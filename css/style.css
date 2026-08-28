@@ -293,6 +293,13 @@ h1 {
 .band-chip.band-hot { background: var(--band-hot); }
 .band-chip.band-scorching { background: var(--band-scorching); animation: sizzle 1.4s ease-in-out infinite; }
 .band-chip.band-found { background: var(--band-found); }
+.band-chip.band-near {
+  background: rgba(224, 208, 176, 0.55);
+  border: 1.5px dashed #b9a888;
+  color: #7c7057;
+  text-shadow: none;
+}
+.band-chip.band-near .band-dot { background: #b9a888; }
 
 @keyframes sizzle {
   0%, 100% { transform: rotate(-1.5deg); }
@@ -309,6 +316,39 @@ h1 {
 .guess-row.band-found.filled {
   border-color: var(--accent);
   background: #fdf3ea;
+}
+
+/* ---------- clue note ---------- */
+
+.clue-note {
+  margin-top: 12px;
+  position: relative;
+  background: var(--paper);
+  border: 1.5px solid var(--paper-edge);
+  border-radius: 4px 10px 5px 9px;
+  padding: 10px 14px 12px;
+  text-align: center;
+  transform: rotate(0.6deg);
+  box-shadow: 0 2px 0 rgba(120, 100, 70, 0.12);
+  animation: slip-in 0.4s ease;
+}
+
+.clue-label {
+  display: block;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--accent-deep);
+}
+
+.clue-text {
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 17px;
+  margin-top: 3px;
+  letter-spacing: 0.02em;
 }
 
 /* ---------- input dock ---------- */

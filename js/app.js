@@ -1,11 +1,10 @@
-import { MAX_GUESSES, applyGuess, bestHeat, createState, shouldNudge } from "./game.js";
+import { MAX_GUESSES, applyGuess, bestHeat, blankPivot, clueAvailable, createState } from "./game.js";
 import { bandFor, bandRank, createHeatLookup } from "./heat.js";
 import { dayIndex, daysBetween, pacificDateString, puzzleNumber, TIMEZONE } from "./calendar.js";
 import { shareText } from "./share.js";
 
 const STORAGE_KEY = "drift-v2";
 const HOWTO_KEY = "drift-howto-v1";
-const NUDGE_TEXT = "drift moves by meaning — yesterday’s word has more than one.";
 
 const $ = (id) => document.getElementById(id);
 
@@ -82,17 +81,18 @@ function renderGuesses(state) {
       continue;
     }
     const found = g.word === state.today;
-    const band = found ? "found" : bandFor(g.heat);
+    const band = found ? "found" : g.near ? "near" : bandFor(g.heat);
+    const label = g.near ? "near yesterday" : band;
     row.classList.add("band-" + band);
     if (i === state.guesses.length - 1) row.classList.add("latest");
-    const arrow = !found && TREND_ARROW[g.trend] ? `<span class="trend ${g.trend}" aria-hidden="true">${TREND_ARROW[g.trend]}</span>` : "";
-    const trendWord = !found && TREND_ARROW[g.trend] ? g.trend : "";
-    row.setAttribute("aria-label", `${g.word}: ${band}${trendWord ? ", " + trendWord : ""}`);
+    const showArrow = !found && !g.near && TREND_ARROW[g.trend];
+    const arrow = showArrow ? `<span class="trend ${g.trend}" aria-hidden="true">${TREND_ARROW[g.trend]}</span>` : "";
+    row.setAttribute("aria-label", `${g.word}: ${label}${showArrow ? ", " + g.trend : ""}`);
     row.innerHTML = `
       <span class="word">${escapeHtml(g.word)}</span>
       <span class="band-chip band-${band}">
         <span class="band-dot" aria-hidden="true"></span>
-        <span class="band-name">${band}</span>${arrow}
+        <span class="band-name">${label}</span>${arrow}
       </span>
     `;
     root.appendChild(row);
@@ -264,11 +264,14 @@ async function main() {
   const idx = dayIndex(todayDate, chain.length, chainPack.epoch);
   const puzNum = puzzleNumber(todayDate, chainPack.epoch);
 
-  const [words, heatBuf] = await Promise.all([
+  const prevIdx = (idx - 1 + chain.length) % chain.length;
+  const [words, heatBuf, prevBuf] = await Promise.all([
     fetch("data/words.json").then((r) => r.json()),
     fetch(`data/heat/${String(idx).padStart(3, "0")}.bin`).then((r) => r.arrayBuffer()),
+    fetch(`data/heat/${String(prevIdx).padStart(3, "0")}.bin`).then((r) => r.arrayBuffer()),
   ]);
   const lookup = createHeatLookup(words, heatBuf);
+  const prevLookup = createHeatLookup(words, prevBuf);
 
   let state = createState(chain, idx);
   let store = loadStore();
@@ -291,18 +294,26 @@ async function main() {
   renderProgress(state);
   renderStats(store);
 
+  const renderClue = () => {
+    const note = $("clue");
+    if (clueAvailable(state)) {
+      $("clue-text").textContent = blankPivot(state.pivot, state.today);
+      note.hidden = false;
+    } else {
+      note.hidden = true;
+    }
+  };
+  renderClue();
+
   if (state.won || state.lost) {
     renderEnd(state, puzNum, store);
     setStatus(state.won ? "Already caught today’s drift." : "Come back after midnight Pacific.");
   }
 
-  let nudged = state.guesses.length > 0 && shouldNudge(state);
-  if (nudged) setStatus(NUDGE_TEXT, "nudge");
-
   $("form").addEventListener("submit", (ev) => {
     ev.preventDefault();
     const input = $("guess");
-    const result = applyGuess(state, input.value, lookup);
+    const result = applyGuess(state, input.value, lookup, prevLookup);
     if (!result.ok) {
       if (result.reason === "invalid") setStatus("Not in the word list.", "bad");
       else if (result.reason === "duplicate") setStatus("Already guessed.", "bad");
@@ -322,6 +333,7 @@ async function main() {
     renderGuesses(state);
     renderProgress(state);
     renderStats(store);
+    renderClue();
     input.value = "";
     input.focus();
     if (state.won) {
@@ -330,9 +342,8 @@ async function main() {
     } else if (state.lost) {
       setStatus("Six guesses. It drifted away.", "bad");
       renderEnd(state, puzNum, store);
-    } else if (!nudged && shouldNudge(state)) {
-      nudged = true;
-      setStatus(NUDGE_TEXT, "nudge");
+    } else if (state.guesses[state.guesses.length - 1].near) {
+      setStatus("Near yesterday — the drift went another way.", "nudge");
     } else {
       const band = bandFor(result.heat);
       if (result.trend === "hotter") setStatus(`Hotter — ${band}.`);

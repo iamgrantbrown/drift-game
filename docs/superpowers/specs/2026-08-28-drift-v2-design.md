@@ -114,3 +114,20 @@ hard mode. Deploy stays GitHub Pages (no pipeline change).
 Re-indexing the chain to 366 changes the mapping of date → word once at
 deploy; the "yesterday" shown on launch day won't match what players
 actually solved the day before. Accepted as a one-time cost.
+
+## Addendum (same day): v2.1 — the human-fairness patch
+
+Playtesting (fence → neighbor) showed v2's feedback punished the exact
+strategy the game asks for: words hot against yesterday's word (wall 95,
+gate 89, wire 80 vs fence) scored ice against the secret. Two changes:
+
+1. **Near yesterday.** A guess under 30 vs today but ≥60 vs yesterday's
+   word (both rows now load, ~20KB each) shows a "near yesterday" tag
+   instead of ice: right anchor, wrong branch. Wrong-but-reasonable
+   guesses eliminate branches instead of reading as noise.
+2. **The clue.** After three misses the pivot phrase appears with the
+   secret blanked ("a fence between ______"), replacing the old nudge.
+   Guesses 1–2 are the expert game; 3–6 are a fair riddle.
+
+Also: British/American spelling bridges win ("neighbours" → neighbor);
+two pivots reworded so every day's pivot blanks cleanly.

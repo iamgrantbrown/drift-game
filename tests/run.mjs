@@ -10,7 +10,14 @@ import {
   pacificDateString,
   puzzleNumber,
 } from "../js/calendar.js";
-import { applyGuess, bestHeat, createState, MAX_GUESSES, shouldNudge } from "../js/game.js";
+import {
+  applyGuess,
+  bestHeat,
+  blankPivot,
+  clueAvailable,
+  createState,
+  MAX_GUESSES,
+} from "../js/game.js";
 import { bandFor, createHeatLookup, heatLabel, heatTrend } from "../js/heat.js";
 import { shareText } from "../js/share.js";
 
@@ -126,6 +133,14 @@ test("inflections resolve, preferring the word itself then base forms", () => {
   assert.equal(day23.resolve("zzzzzz"), null);
 });
 
+test("british spellings bridge to the secret", () => {
+  const day253 = createHeatLookup(words, heatRow(253)); // neighbor
+  let s = createState(chain, 253);
+  const r = applyGuess(s, "neighbours", day253);
+  assert.ok(r.ok);
+  assert.ok(r.state.won, "neighbours should catch neighbor");
+});
+
 test("an inflection of the secret wins even when it is its own dict word", () => {
   const day22 = createHeatLookup(words, heatRow(22)); // string
   let s = createState(chain, 22);
@@ -196,17 +211,49 @@ test("six misses lose the game", () => {
   assert.equal(s.guesses.length, MAX_GUESSES);
 });
 
-test("nudge fires after three all-cold guesses, not after a warm one", () => {
+test("near yesterday: cold vs today but hot vs yesterday flags the guess", () => {
+  const day253 = createHeatLookup(words, heatRow(253)); // neighbor
+  const day252 = createHeatLookup(words, heatRow(252)); // fence
+  let s = createState(chain, 253);
+  assert.equal(s.today, "neighbor");
+  assert.equal(s.yesterday, "fence");
+  const wall = applyGuess(s, "wall", day253, day252);
+  assert.ok(wall.state.guesses[0].near, "wall should be near-yesterday");
+  const friend = applyGuess(wall.state, "friend", day253, day252);
+  assert.ok(!friend.state.guesses[1].near, "friend is warm vs today, not near");
+  const gossip = applyGuess(friend.state, "gossip", day253, day252);
+  assert.ok(!gossip.state.guesses[2].near, "gossip is cold vs both, plain ice");
+});
+
+test("without a prev lookup no guess is flagged near", () => {
+  let s = createState(chain, 253);
+  const day253 = createHeatLookup(words, heatRow(253));
+  const r = applyGuess(s, "wall", day253);
+  assert.ok(!r.state.guesses[0].near);
+});
+
+test("clue appears after three misses, never after the game ends", () => {
   let s = createState(chain, 23);
+  assert.ok(!clueAvailable(s));
   for (const w of ["tea", "rain", "cloud"]) s = applyGuess(s, w, day23).state;
-  if (s.guesses.every((g) => g.heat < 30)) {
-    assert.ok(shouldNudge(s));
+  assert.ok(clueAvailable(s));
+  const won = applyGuess(s, "guitar", day23).state;
+  assert.ok(!clueAvailable(won));
+});
+
+test("blankPivot hides the secret, inflections and compounds included", () => {
+  assert.equal(blankPivot("a fence between neighbors", "neighbor"), "a fence between ______");
+  assert.equal(blankPivot("a record player", "player"), "a record ______");
+  assert.equal(blankPivot("a sheepdog", "dog"), "a sheep___");
+  assert.equal(blankPivot("the coach's office", "office"), "the coach's ______");
+});
+
+test("every day's pivot blanks to a usable clue", () => {
+  for (const e of chain) {
+    const clue = blankPivot(e.pivot, e.w);
+    assert.notEqual(clue, e.pivot, `${e.w}: pivot never blanked`);
+    assert.ok(!new RegExp(`\\b${e.w}\\b`, "i").test(clue), `${e.w}: still visible in "${clue}"`);
   }
-  let s2 = createState(chain, 23);
-  s2 = applyGuess(s2, "violin", day23).state;
-  s2 = applyGuess(s2, "tea", day23).state;
-  s2 = applyGuess(s2, "rain", day23).state;
-  assert.ok(!shouldNudge(s2));
 });
 
 test("bestHeat tracks the maximum", () => {

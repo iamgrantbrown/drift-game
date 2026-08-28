@@ -61,6 +61,11 @@
 
     <div class="guess-list" id="guesses" aria-live="polite"></div>
 
+    <div class="clue-note" id="clue" hidden>
+      <span class="clue-label">the drift</span>
+      <p class="clue-text" id="clue-text"></p>
+    </div>
+
     <div class="dock">
       <form id="form" autocomplete="off">
         <input id="guess" type="text" enterkeyhint="go" autocapitalize="none" autocomplete="off" spellcheck="false" maxlength="14" placeholder="today’s word" aria-label="Guess today’s word" />
@@ -92,6 +97,8 @@
       <li>Today drifted <em>one meaning-step</em> away — often through another meaning of the word.</li>
       <li>You get six guesses.</li>
       <li>Every guess shows how close its <em>meaning</em> is: ice · cold · cool · warm · hot · scorching.</li>
+      <li><em>near yesterday</em> means you’re close to yesterday’s word — but the drift went another way.</li>
+      <li>Miss three times and the drift’s clue appears.</li>
     </ol>
     <div class="howto-samples" aria-hidden="true">
       <div class="guess-row filled band-cold">

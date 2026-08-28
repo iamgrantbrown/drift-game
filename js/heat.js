@@ -26,6 +26,17 @@ export function createHeatLookup(words, rowBytes) {
       // dropped e: baking -> bake
       if (index.has(stem + "e") && !out.includes(stem + "e")) out.push(stem + "e");
     }
+    // British/American spelling bridges: colour<->color, theatre<->theater
+    for (const w of [...out, word]) {
+      for (const v of [
+        w.replace(/our/, "or"),
+        w.replace(/or(?!.*or)/, "our"),
+        w.replace(/re$/, "er"),
+        w.replace(/er$/, "re"),
+      ]) {
+        if (v !== w && index.has(v) && !out.includes(v)) out.push(v);
+      }
+    }
     return out;
   }
 

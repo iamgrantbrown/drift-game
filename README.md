@@ -26,8 +26,14 @@ Then open http://localhost:8080/
   plus a hotter/colder arrow when the band moved against your last guess.
 - Unknown words are rejected; inflections of known words are accepted and
   count as their base word (guessing "strings" catches "string").
-- After three all-cold guesses, a one-time nudge reminds you the drift
-  moves by meaning — yesterday's word usually has more than one.
+- A guess that is cold against today but hot against yesterday's word
+  shows "near yesterday" — right anchor, wrong branch; the drift went
+  another way.
+- After three misses, the drift's clue appears: the pivot phrase with the
+  secret blanked ("a fence between ______"). Solving in 1–2 is the brag;
+  the clue keeps 3–6 fair.
+- Inflections and British/American spellings of the secret win
+  ("neighbours" catches "neighbor").
 - Win or lose, the end card reveals the pivot that links yesterday's word
   to today's, and counts down to the next puzzle.
 - Streak and stats live in the browser on your device. No accounts, ads,
