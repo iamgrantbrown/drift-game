@@ -5,3 +5,4 @@ __pycache__/
 .venv/
 .datamuse_cache.json
 scripts/datamuse/
+scripts/datamuse_v2/

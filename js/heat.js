@@ -1,27 +1,54 @@
-/** Compact secret-major heat table: Uint8 [nSecrets * nWords].
- *  Values are relatedness rank (not GloVe cosine): 45 lukewarm, 60 warm, 75 hot.
- *  Unrelated guesses share one flat ice score from the baker.
+/** Heat: semantic relatedness rank, 0-100, baked at build time.
+ *  v2 serves one Uint8 row per day (data/heat/NNN.bin), indexed by the
+ *  shared dictionary order in data/words.json.
  */
 
-export function createHeatLookup(words, tableBytes) {
+const SUFFIXES = ["s", "es", "ed", "ing", "er"];
+
+export function createHeatLookup(words, rowBytes) {
   const index = new Map(words.map((w, i) => [w, i]));
-  const table =
-    tableBytes instanceof Uint8Array ? tableBytes : new Uint8Array(tableBytes);
-  const nWords = words.length;
+  const row = rowBytes instanceof Uint8Array ? rowBytes : new Uint8Array(rowBytes);
+
+  /** All dictionary words this guess could stand for: the word itself,
+   *  then de-inflected base forms (strings -> string, baking -> bake). */
+  function candidates(word) {
+    const out = [];
+    if (index.has(word)) out.push(word);
+    for (const suf of SUFFIXES) {
+      if (word.length - suf.length < 3 || !word.endsWith(suf)) continue;
+      const stem = word.slice(0, -suf.length);
+      if (index.has(stem) && !out.includes(stem)) out.push(stem);
+      // doubled final consonant: running -> run
+      const undoubled = stem.slice(0, -1);
+      if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2] && index.has(undoubled) && !out.includes(undoubled)) {
+        out.push(undoubled);
+      }
+      // dropped e: baking -> bake
+      if (index.has(stem + "e") && !out.includes(stem + "e")) out.push(stem + "e");
+    }
+    return out;
+  }
+
+  function resolve(word) {
+    return candidates(word)[0] ?? null;
+  }
 
   return {
-    nWords,
+    nWords: words.length,
+    candidates,
+    resolve,
     isValid(word) {
-      return index.has(word);
+      return resolve(word) !== null;
     },
-    heat(guess, secretIndex) {
-      const i = index.get(guess);
-      if (i === undefined) return null;
-      return table[secretIndex * nWords + i];
+    heat(guess) {
+      const w = resolve(guess);
+      if (w === null) return null;
+      return row[index.get(w)];
     },
   };
 }
 
+/** Internal bands (data thresholds). */
 export function heatLabel(heat) {
   if (heat >= 100) return "found";
   if (heat >= 90) return "scorching";
@@ -33,22 +60,28 @@ export function heatLabel(heat) {
   return "ice";
 }
 
-const COLD_BANDS = new Set(["ice", "cold"]);
+/** Display band: lukewarm folds into warm — six visible steps. */
+export function bandFor(heat) {
+  const label = heatLabel(heat);
+  return label === "lukewarm" ? "warm" : label;
+}
+
+export const BAND_ORDER = ["ice", "cold", "cool", "warm", "hot", "scorching", "found"];
+
+export function bandRank(heat) {
+  return BAND_ORDER.indexOf(bandFor(heat));
+}
 
 /**
- * Hotter/colder only when the heat band changes or the score jumps by 10+.
- * Same-band ice/cold twitching is "still", never hotter.
+ * Trend vs the previous guess: hotter/colder when the display band changes
+ * or the score moves 10+. Otherwise "same" — the band chip itself carries
+ * the information now, so there is no "still cold" filler state.
  */
 export function heatTrend(heat, prev) {
   if (prev == null || heat == null) return "same";
   const delta = heat - prev;
-  const band = heatLabel(heat);
-  const prevBand = heatLabel(prev);
-  const notable = band !== prevBand || Math.abs(delta) >= 10;
-  if (!notable) {
-    if (COLD_BANDS.has(band)) return "still";
-    return "same";
-  }
+  const notable = bandFor(heat) !== bandFor(prev) || Math.abs(delta) >= 10;
+  if (!notable) return "same";
   if (delta > 0) return "hotter";
   if (delta < 0) return "colder";
   return "same";

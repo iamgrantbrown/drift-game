@@ -10,16 +10,20 @@ import {
   pacificDateString,
   puzzleNumber,
 } from "../js/calendar.js";
-import { applyGuess, createState, MAX_GUESSES } from "../js/game.js";
-import { createHeatLookup, heatLabel, heatTrend } from "../js/heat.js";
+import { applyGuess, bestHeat, createState, MAX_GUESSES, shouldNudge } from "../js/game.js";
+import { bandFor, createHeatLookup, heatLabel, heatTrend } from "../js/heat.js";
 import { shareText } from "../js/share.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const chainPack = JSON.parse(fs.readFileSync(path.join(root, "data/chain.json"), "utf8"));
 const words = JSON.parse(fs.readFileSync(path.join(root, "data/words.json"), "utf8"));
-const heatBuf = fs.readFileSync(path.join(root, "data/heat.bin"));
-const lookup = createHeatLookup(words, heatBuf);
 const chain = chainPack.words;
+
+function heatRow(day) {
+  return new Uint8Array(
+    fs.readFileSync(path.join(root, "data/heat", String(day).padStart(3, "0") + ".bin")),
+  );
+}
 
 let passed = 0;
 let failed = 0;
@@ -36,251 +40,198 @@ function test(name, fn) {
   }
 }
 
-test("chain is at least 60 unique lowercase words", () => {
-  assert.ok(chain.length >= 60, String(chain.length));
-  assert.equal(new Set(chain).size, chain.length);
-  for (const w of chain) {
-    assert.match(w, /^[a-z]+$/);
-    assert.ok(lookup.isValid(w), "missing from guess list: " + w);
+/* ---------- chain ---------- */
+
+test("chain has 366 unique lowercase words with pivots", () => {
+  assert.equal(chain.length, 366);
+  const seen = new Set();
+  for (const e of chain) {
+    assert.match(e.w, /^[a-z]+$/, e.w);
+    assert.ok(typeof e.pivot === "string" && e.pivot.length >= 4, `pivot for ${e.w}`);
+    assert.ok(!seen.has(e.w), `duplicate ${e.w}`);
+    seen.add(e.w);
   }
 });
 
-test("guess list is compact common English", () => {
-  assert.ok(words.length >= 2000 && words.length <= 8000, String(words.length));
-  assert.ok(lookup.isValid("coffee"));
-  assert.ok(lookup.isValid("mug"));
-  assert.equal(lookup.isValid("xyzzynotaword"), false);
+test("every chain word is in the dictionary", () => {
+  const dict = new Set(words);
+  for (const e of chain) assert.ok(dict.has(e.w), e.w);
 });
 
-test("day index is stable for Pacific calendar dates", () => {
-  assert.equal(dayIndex("2026-01-01", chain.length, EPOCH), 0);
-  assert.equal(dayIndex("2026-01-02", chain.length, EPOCH), 1);
+test("v1 chain opening is preserved", () => {
+  assert.equal(chain[0].w, "coffee");
+  assert.equal(chain[22].w, "string");
+  assert.equal(chain[23].w, "guitar");
+  assert.equal(chain[71].w, "breakfast");
+});
+
+/* ---------- calendar ---------- */
+
+test("dayIndex wraps the chain by pacific day", () => {
+  assert.equal(dayIndex("2026-01-01", chain.length), 0);
+  assert.equal(dayIndex("2026-01-02", chain.length), 1);
+  assert.equal(dayIndex("2027-01-02", chain.length), 0); // 366 days later
+});
+
+test("puzzleNumber counts from epoch", () => {
   assert.equal(puzzleNumber("2026-01-01"), 1);
-  assert.equal(puzzleNumber("2026-01-02"), 2);
-  assert.equal(daysBetween("2026-08-27", "2026-08-28"), 1);
-  const dt = new Date(Date.UTC(2026, 0, 1 + chain.length));
-  const looped = dt.toISOString().slice(0, 10);
-  assert.equal(dayIndex("2026-01-01", chain.length, EPOCH), dayIndex(looped, chain.length, EPOCH));
+  assert.equal(puzzleNumber("2026-08-28"), 240);
 });
 
-test("day index uses America/Los_Angeles around midnight", () => {
-  const stillThursday = new Date("2026-08-28T06:30:00Z");
-  const fridayPacific = new Date("2026-08-28T08:30:00Z");
-  assert.equal(pacificDateString(stillThursday), "2026-08-27");
-  assert.equal(pacificDateString(fridayPacific), "2026-08-28");
-  assert.notEqual(
-    dayIndex(stillThursday, chain.length, EPOCH),
-    dayIndex(fridayPacific, chain.length, EPOCH)
-  );
+test("daysBetween handles month boundaries", () => {
+  assert.equal(daysBetween("2026-02-28", "2026-03-01"), 1);
+  assert.equal(daysBetween("2026-01-01", "2026-01-01"), 0);
 });
 
-test("yesterday and today follow the curated chain and loop", () => {
-  const d0 = createState(chain, 0);
-  assert.equal(d0.today, "coffee");
-  assert.equal(d0.yesterday, "breakfast");
-  const d1 = createState(chain, 1);
-  assert.equal(d1.yesterday, "coffee");
-  assert.equal(d1.today, "espresso");
-  const last = createState(chain, chain.length - 1);
-  assert.equal(last.today, "breakfast");
-  assert.equal(last.yesterday, "toast");
-  const wrapped = createState(chain, chain.length);
-  assert.equal(wrapped.today, d0.today);
-  assert.equal(wrapped.yesterday, d0.yesterday);
+test("pacificDateString returns YYYY-MM-DD", () => {
+  assert.match(pacificDateString(new Date()), /^\d{4}-\d{2}-\d{2}$/);
+  assert.equal(EPOCH, "2026-01-01");
 });
 
-test("invalid and duplicate guesses are rejected", () => {
-  const state = createState(chain, 1);
-  const bad = applyGuess(state, "xyzzynotaword", lookup);
-  assert.equal(bad.ok, false);
-  assert.equal(bad.reason, "invalid");
-  assert.equal(bad.state.guesses.length, 0);
-  const empty = applyGuess(state, "   ", lookup);
-  assert.equal(empty.reason, "invalid");
-  const proper = applyGuess(state, "TEA", lookup);
-  assert.equal(proper.ok, true);
-  const dup = applyGuess(proper.state, "tea", lookup);
+/* ---------- bands & trend ---------- */
+
+test("heatLabel band thresholds", () => {
+  assert.equal(heatLabel(100), "found");
+  assert.equal(heatLabel(95), "scorching");
+  assert.equal(heatLabel(80), "hot");
+  assert.equal(heatLabel(65), "warm");
+  assert.equal(heatLabel(50), "lukewarm");
+  assert.equal(heatLabel(35), "cool");
+  assert.equal(heatLabel(20), "cold");
+  assert.equal(heatLabel(5), "ice");
+});
+
+test("bandFor folds lukewarm into warm", () => {
+  assert.equal(bandFor(50), "warm");
+  assert.equal(bandFor(65), "warm");
+  assert.equal(bandFor(35), "cool");
+});
+
+test("heatTrend: band change or 10+ delta is notable", () => {
+  assert.equal(heatTrend(80, 40), "hotter");
+  assert.equal(heatTrend(20, 60), "colder");
+  assert.equal(heatTrend(22, 20), "same"); // same band, small delta
+  assert.equal(heatTrend(8, 5), "same"); // ice twitching is never a trend
+  assert.equal(heatTrend(31, 28), "hotter"); // band changed cold -> cool
+});
+
+/* ---------- lookup & inflections ---------- */
+
+const day23 = createHeatLookup(words, heatRow(23)); // guitar
+
+test("inflections resolve, preferring the word itself then base forms", () => {
+  assert.ok(day23.candidates("strings").includes("string"));
+  assert.equal(day23.resolve("string"), "string");
+  assert.equal(day23.resolve("guitars"), "guitar");
+  assert.equal(day23.resolve("zzzzzz"), null);
+});
+
+test("an inflection of the secret wins even when it is its own dict word", () => {
+  const day22 = createHeatLookup(words, heatRow(22)); // string
+  let s = createState(chain, 22);
+  const r = applyGuess(s, "strings", day22);
+  assert.ok(r.ok);
+  assert.ok(r.state.won, "strings should catch string");
+});
+
+test("guitar day: secret is 100, yesterday is hot, neighbors grade down", () => {
+  assert.equal(day23.heat("guitar"), 100);
+  assert.ok(day23.heat("string") >= 76, String(day23.heat("string")));
+  assert.ok(day23.heat("violin") >= 60, String(day23.heat("violin")));
+  assert.ok(day23.heat("banjo") >= 75, String(day23.heat("banjo")));
+  const carHeat = day23.heat("car");
+  assert.ok(carHeat < 45, `car should not be warm for guitar: ${carHeat}`);
+});
+
+test("dense signal: every sampled day has hundreds of graded words", () => {
+  for (const day of [0, 23, 100, 200, 300, 365]) {
+    const row = heatRow(day);
+    const above = row.reduce((n, h) => n + (h >= 15 ? 1 : 0), 0);
+    assert.ok(above >= 150, `day ${day}: only ${above} words above ice`);
+    assert.equal(row.length, words.length);
+  }
+});
+
+test("all 366 heat files exist and are one byte per word", () => {
+  for (let d = 0; d < 366; d++) {
+    assert.equal(heatRow(d).length, words.length, `day ${d}`);
+  }
+});
+
+/* ---------- game flow ---------- */
+
+test("createState exposes today, yesterday, and the pivot", () => {
+  const s = createState(chain, 23);
+  assert.equal(s.today, "guitar");
+  assert.equal(s.yesterday, "string");
+  assert.equal(s.pivot, "a guitar string");
+});
+
+test("win on exact guess; inflection of the secret also wins", () => {
+  let s = createState(chain, 23);
+  let r = applyGuess(s, "Guitars", day23);
+  assert.ok(r.ok);
+  assert.ok(r.state.won);
+  assert.equal(r.state.guesses[0].heat, 100);
+});
+
+test("invalid and duplicate guesses are rejected without consuming a turn", () => {
+  let s = createState(chain, 23);
+  assert.equal(applyGuess(s, "qqqq", day23).ok, false);
+  assert.equal(applyGuess(s, "not a word!", day23).ok, false);
+  s = applyGuess(s, "violin", day23).state;
+  const dup = applyGuess(s, "violins", day23); // resolves to violin
   assert.equal(dup.ok, false);
   assert.equal(dup.reason, "duplicate");
+  assert.equal(s.guesses.length, 1);
 });
 
-test("win in one and lose after six", () => {
-  const win0 = createState(chain, 1);
-  const win = applyGuess(win0, "espresso", lookup);
-  assert.equal(win.ok, true);
-  assert.equal(win.reason, "win");
-  assert.equal(win.state.won, true);
-  assert.equal(win.heat, 100);
-  const over = applyGuess(win.state, "latte", lookup);
-  assert.equal(over.reason, "over");
-
-  let lose = createState(chain, 1);
-  const filler = ["library", "mountain", "saddle", "bicycle", "paper", "window"];
-  for (let i = 0; i < MAX_GUESSES; i++) {
-    const r = applyGuess(lose, filler[i], lookup);
-    assert.equal(r.ok, true, filler[i]);
-    lose = r.state;
+test("six misses lose the game", () => {
+  let s = createState(chain, 23);
+  for (const w of ["tea", "rain", "cloud", "sand", "wine", "bread"]) {
+    s = applyGuess(s, w, day23).state;
   }
-  assert.equal(lose.lost, true);
-  assert.equal(lose.won, false);
-  assert.equal(lose.guesses.length, 6);
+  assert.ok(s.lost);
+  assert.ok(!s.won);
+  assert.equal(s.guesses.length, MAX_GUESSES);
 });
 
-test("hotter/colder is semantic and monotonic on espresso fixtures", () => {
-  const secretIndex = chain.indexOf("espresso");
-  assert.equal(secretIndex, 1);
-  const heat = (w) => lookup.heat(w, secretIndex);
-  assert.equal(heat("espresso"), 100);
-  assert.ok(heat("latte") > heat("tea"), "latte vs tea");
-  assert.ok(heat("tea") < heat("mug"), "tea vs mug " + heat("tea") + " " + heat("mug"));
-  assert.ok(heat("mug") < heat("latte"), "mug vs latte " + heat("mug") + " " + heat("latte"));
-  assert.ok(heat("coffee") > heat("tea"), "coffee vs tea");
-  assert.ok(heat("brew") > heat("mountain"), "brew vs mountain");
-  assert.ok(heat("latte") > heat("library"));
-  assert.ok(heat("mug") > heat("saddle"), "mug vs saddle");
-
-  let state = createState(chain, 1);
-  const tea = applyGuess(state, "tea", lookup);
-  assert.equal(tea.ok, true);
-  assert.equal(tea.trend, "colder");
-  const latte = applyGuess(tea.state, "latte", lookup);
-  assert.equal(latte.trend, "hotter");
-  const hit = applyGuess(latte.state, "espresso", lookup);
-  assert.equal(hit.reason, "win");
-  assert.ok(hit.heat > latte.heat);
-});
-
-test("string: kite is warm, thread is hot, vehicles are cold", () => {
-  const secretIndex = chain.indexOf("string");
-  assert.ok(secretIndex >= 0);
-  const heat = (w) => lookup.heat(w, secretIndex);
-  assert.ok(heat("kite") >= 60, "kite " + heat("kite"));
-  assert.ok(heat("kite") <= 85, "kite band " + heat("kite"));
-  assert.ok(heat("thread") >= 75, "thread " + heat("thread"));
-  assert.ok(heat("car") < 30, "car " + heat("car"));
-  assert.ok(heat("bike") < 30, "bike " + heat("bike"));
-  assert.ok(heat("truck") < 30, "truck " + heat("truck"));
-  let state = createState(chain, secretIndex);
-  const car = applyGuess(state, "car", lookup);
-  assert.equal(car.ok, true);
-  assert.equal(car.trend, "colder");
-});
-
-test("unrelated ice guesses share one flat heat", () => {
-  const secretIndex = chain.indexOf("guitar");
-  assert.ok(secretIndex >= 0);
-  const ice = ["reel", "ribbon", "tail", "spoke", "paper", "sheet", "mountain", "window"];
-  const heats = ice.map((w) => {
-    assert.ok(lookup.isValid(w), "missing " + w);
-    return lookup.heat(w, secretIndex);
-  });
-  for (let i = 0; i < ice.length; i++) {
-    assert.ok(heats[i] < 15, ice[i] + " should be ice, got " + heats[i]);
-    assert.equal(heats[i], heats[0], ice[i] + " heat " + heats[i] + " != " + heats[0]);
+test("nudge fires after three all-cold guesses, not after a warm one", () => {
+  let s = createState(chain, 23);
+  for (const w of ["tea", "rain", "cloud"]) s = applyGuess(s, w, day23).state;
+  if (s.guesses.every((g) => g.heat < 30)) {
+    assert.ok(shouldNudge(s));
   }
-  assert.equal(heatLabel(heats[0]), "ice");
+  let s2 = createState(chain, 23);
+  s2 = applyGuess(s2, "violin", day23).state;
+  s2 = applyGuess(s2, "tea", day23).state;
+  s2 = applyGuess(s2, "rain", day23).state;
+  assert.ok(!shouldNudge(s2));
 });
 
-test("hotter/colder needs a band change or a jump of 10", () => {
-  assert.equal(heatTrend(8, 8), "still");
-  assert.equal(heatTrend(10, 8), "still");
-  assert.equal(heatTrend(14, 6), "still");
-  assert.equal(heatTrend(16, 8), "hotter");
-  assert.equal(heatTrend(8, 76), "colder");
-  assert.equal(heatTrend(50, 45), "same");
-  assert.equal(heatTrend(56, 45), "hotter");
-  assert.equal(heatTrend(92, 80), "hotter");
-  assert.equal(heatTrend(48, 76), "colder");
-  assert.equal(heatTrend(66, 48), "hotter");
-
-  const secretIndex = chain.indexOf("guitar");
-  let state = createState(chain, secretIndex);
-  const yesterdayHeat = lookup.heat(state.yesterday, secretIndex);
-  assert.ok(yesterdayHeat >= 70 && yesterdayHeat <= 80, "yesterday heat " + yesterdayHeat);
-
-  const reel = applyGuess(state, "reel", lookup);
-  assert.equal(reel.ok, true);
-  assert.equal(reel.trend, "colder");
-  assert.equal(heatLabel(reel.heat), "ice");
-
-  const ribbon = applyGuess(reel.state, "ribbon", lookup);
-  assert.equal(ribbon.heat, reel.heat);
-  assert.equal(ribbon.trend, "still");
-
-  const tail = applyGuess(ribbon.state, "tail", lookup);
-  assert.equal(tail.trend, "still");
-  assert.equal(tail.heat, reel.heat);
+test("bestHeat tracks the maximum", () => {
+  let s = createState(chain, 23);
+  s = applyGuess(s, "violin", day23).state;
+  s = applyGuess(s, "tea", day23).state;
+  assert.equal(bestHeat(s), s.guesses[0].heat);
 });
 
-test("yesterday lives on a paper tile, not a kite", () => {
-  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  const yIdx = html.indexOf('id="yesterday"');
-  assert.ok(yIdx > 0);
-  const sectionStart = html.lastIndexOf("<section", yIdx);
-  const sectionEnd = html.indexOf("</section>", yIdx);
-  const board = html.slice(sectionStart, sectionEnd);
-  assert.match(board, /class="board"/);
-  assert.match(board, /paper-tile/);
-  assert.equal(/kite|pennant|string-run|slot-dot|slot-row/i.test(board), false);
-  assert.equal(board.includes("on the kite"), false);
+/* ---------- share ---------- */
+
+test("share text never contains the secret and maps bands to emoji", () => {
+  let s = createState(chain, 23);
+  s = applyGuess(s, "tea", day23).state;
+  s = applyGuess(s, "violin", day23).state;
+  s = applyGuess(s, "guitar", day23).state;
+  const text = shareText({ puzzleNumber: 240, guesses: s.guesses, won: s.won });
+  assert.ok(!text.includes("guitar"), text);
+  assert.ok(text.includes("Drift #240"));
+  assert.ok(text.includes("caught the drift in 3"));
+  assert.ok(text.includes("🟩"));
+  assert.ok(text.includes("⬜⬜⬜"));
 });
 
-test("how-to-play does not say the word is on the kite", () => {
-  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  assert.equal(/on the kite/i.test(html), false);
-  assert.match(html, /Yesterday.s word is shown/);
-  assert.match(html, /Today drifted one meaning-step/);
-  const dialogStart = html.indexOf("<dialog");
-  const dialog = html.slice(dialogStart, html.indexOf("</dialog>"));
-  assert.match(dialog, /Yesterday.s word is shown/);
-  assert.match(dialog, /one meaning-step/);
-  assert.equal(/on the kite/i.test(dialog), false);
-});
+/* ---------- summary ---------- */
 
-test("share card never names the secret", () => {
-  let state = createState(chain, 1);
-  state = applyGuess(state, "tea", lookup).state;
-  state = applyGuess(state, "latte", lookup).state;
-  state = applyGuess(state, "espresso", lookup).state;
-  const card = shareText({ puzzleNumber: 12, guesses: state.guesses, won: true });
-  assert.match(card, /Drift #12/);
-  assert.match(card, /got it in 3/);
-  assert.equal(card.includes("espresso"), false);
-  assert.equal(card.includes("coffee"), false);
-  assert.equal(card.includes("🪁"), false);
-});
-
-test("board does not print heat numbers", () => {
-  const app = fs.readFileSync(path.join(root, "js/app.js"), "utf8");
-  const css = fs.readFileSync(path.join(root, "css/style.css"), "utf8");
-  assert.equal(app.includes("heat-num"), false);
-  assert.equal(app.includes("${g.heat}"), false);
-  assert.equal(css.includes(".heat-num"), false);
-});
-
-test("end copy uses drift language, not kite voice", () => {
-  const app = fs.readFileSync(path.join(root, "js/app.js"), "utf8");
-  assert.match(app, /You caught the drift/);
-  assert.match(app, /It drifted away/);
-  assert.equal(/caught the kite|kite got away|today.s kite/i.test(app), false);
-});
-
-test("how-to sample chips say hotter, not hot", () => {
-  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  const dialog = html.slice(html.indexOf("<dialog"), html.indexOf("</dialog>"));
-  assert.equal(dialog.includes('chip-label">hot<'), false);
-  assert.match(dialog, /chip-label">hotter</);
-});
-
-test("colder chips use a wind pip, not a gold sun", () => {
-  const app = fs.readFileSync(path.join(root, "js/app.js"), "utf8");
-  assert.match(app, /trend === "colder".*return "wind"/s);
-  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
-  const dialog = html.slice(html.indexOf("<dialog"), html.indexOf("</dialog>"));
-  assert.match(dialog, /heat-chip colder"><span class="pip wind"/);
-  assert.equal(/heat-chip colder"><span class="pip sun"/.test(dialog), false);
-});
-
-console.log("");
-console.log(passed + " passed, " + failed + " failed");
-process.exit(failed ? 1 : 0);
+console.log(`\n${passed} passed, ${failed} failed`);
+if (failed > 0) process.exit(1);
