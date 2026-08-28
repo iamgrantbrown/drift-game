@@ -86,16 +86,24 @@ function renderGuesses(state) {
       root.appendChild(row);
       continue;
     }
-    const trend =
-      g.trend === "hotter" ? "hotter" : g.trend === "colder" ? "colder" : "holding";
     const label = heatLabel(g.heat);
     const found = g.word === state.today;
+    const chipClass = g.trend === "hotter" || g.trend === "colder" ? g.trend : "still";
+    const chipText = found
+      ? "found"
+      : g.trend === "hotter"
+        ? "hotter"
+        : g.trend === "colder"
+          ? "colder"
+          : g.trend === "still" || label === "ice" || label === "cold"
+            ? "still cold"
+            : "holding";
     row.classList.add("heat-" + label);
     row.innerHTML = `
       <span class="word">${escapeHtml(g.word)}</span>
-      <span class="heat-chip ${g.trend}">
+      <span class="heat-chip ${chipClass}">
         <span class="pip ${pipKind(g.heat)}" aria-hidden="true"></span>
-        <span class="chip-label">${found ? "found" : trend}</span>
+        <span class="chip-label">${chipText}</span>
       </span>
       <span class="heat-num">${g.heat}</span>
     `;
@@ -257,9 +265,11 @@ async function main() {
       setStatus("Six guesses. The kite got away.", "bad");
       renderEnd(state, puzNum, store);
     } else {
-      const t = result.trend === "hotter" ? "Hotter." : result.trend === "colder" ? "Colder." : "Same heat.";
       const warmth = heatLabel(result.heat);
-      setStatus(`${t} ${warmth}.`);
+      if (result.trend === "hotter") setStatus(`Hotter. ${warmth}.`);
+      else if (result.trend === "colder") setStatus(`Colder. ${warmth}.`);
+      else if (result.trend === "still") setStatus("Still cold.");
+      else setStatus(`Same heat. ${warmth}.`);
     }
   });
 

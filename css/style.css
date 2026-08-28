@@ -171,51 +171,35 @@ h1 {
   line-height: 1.4;
 }
 
-.scene {
+.board {
   display: grid;
-  grid-template-columns: minmax(7.4rem, 1.15fr) minmax(2.4rem, 1fr) auto;
-  align-items: center;
-  gap: 0.15rem;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.65rem;
   margin: 1rem 0 1.1rem;
-  min-height: 6.4rem;
 }
 
-.kite-bob {
-  animation: kite-bob 5.8s ease-in-out infinite;
-  transform-origin: 85% 100%;
-  justify-self: start;
-}
-
-@keyframes kite-bob {
-  0%, 100% { transform: translate(0, 0) rotate(-6deg); }
-  50% { transform: translate(5px, -8px) rotate(-2deg); }
-}
-
-.paper-kite {
-  position: relative;
-  width: 9.6rem;
-  height: 6.7rem;
+.paper-tile {
+  min-height: 5.4rem;
+  padding: 0.75rem 0.7rem 0.9rem;
+  border-radius: 1rem;
+  border: 2px solid var(--line);
+  background: var(--paper-2);
   text-align: center;
-}
-.kite-shape {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 8px 16px rgba(90, 70, 40, 0.14));
-}
-.kite-word {
-  position: relative;
-  z-index: 1;
-  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0 1.15rem;
+  box-shadow: 0 1px 0 rgba(255,255,255,0.85) inset, 0 2px 8px rgba(90,70,40,0.05);
 }
 
-.kite-label {
+.today-tile {
+  background: rgba(255, 250, 243, 0.5);
+  border-style: dashed;
+  border-color: #e0d0ba;
+  box-shadow: none;
+}
+
+.tile-label {
   display: block;
   font-size: 0.62rem;
   font-weight: 800;
@@ -226,39 +210,22 @@ h1 {
 
 .yesterday {
   font-family: var(--serif);
-  font-size: clamp(1.05rem, 4.6vw, 1.38rem);
+  font-size: clamp(1.15rem, 4.8vw, 1.45rem);
   font-weight: 600;
   color: var(--ink);
-  margin: 0.12rem 0 0;
+  margin: 0.28rem 0 0;
   line-height: 1.05;
   letter-spacing: -0.03em;
 }
 
-.string-run {
-  width: 100%;
-  height: 48px;
-  display: block;
-}
-
 .today-blank {
-  text-align: center;
-  padding-top: 0.55rem;
-}
-
-.slot-row {
-  display: flex;
-  gap: 0.28rem;
-  margin-top: 0.28rem;
-  justify-content: center;
-}
-
-.slot-dot {
-  width: 0.72rem;
-  height: 0.72rem;
-  border-radius: 50%;
-  border: 2px solid #d7c7b0;
+  display: block;
+  width: 4.4rem;
+  height: 1.7rem;
+  margin-top: 0.4rem;
+  border-radius: 0.45rem;
+  border: 1.5px solid var(--line);
   background: #fffdf8;
-  box-shadow: 0 1px 0 rgba(255,255,255,0.8) inset;
 }
 
 .guess-list {
@@ -318,6 +285,11 @@ h1 {
 .heat-chip.colder {
   background: #d7ebf7;
   color: var(--blue-deep);
+}
+.heat-chip.still,
+.heat-chip.same {
+  background: #eee6d8;
+  color: #6b6156;
 }
 
 .pip {
@@ -543,13 +515,10 @@ input:focus-visible,
 }
 
 @media (max-width: 380px) {
-  .scene {
-    grid-template-columns: minmax(6.8rem, 1.1fr) minmax(1.8rem, 0.8fr) auto;
-  }
-  .yesterday { font-size: 1.05rem; }
-  .paper-kite { width: 8.6rem; height: 6.1rem; }
+  .yesterday { font-size: 1.08rem; }
+  .paper-tile { min-height: 4.9rem; padding: 0.65rem 0.5rem 0.75rem; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .kite-bob, .kite-mark, .cloud { animation: none; }
+  .kite-mark, .cloud { animation: none; }
 }

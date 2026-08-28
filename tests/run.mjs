@@ -11,7 +11,7 @@ import {
   puzzleNumber,
 } from "../js/calendar.js";
 import { applyGuess, createState, MAX_GUESSES } from "../js/game.js";
-import { createHeatLookup } from "../js/heat.js";
+import { createHeatLookup, heatLabel, heatTrend } from "../js/heat.js";
 import { shareText } from "../js/share.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -164,6 +164,77 @@ test("string: kite is warm, thread is hot, vehicles are cold", () => {
   const car = applyGuess(state, "car", lookup);
   assert.equal(car.ok, true);
   assert.equal(car.trend, "colder");
+});
+
+test("unrelated ice guesses share one flat heat", () => {
+  const secretIndex = chain.indexOf("guitar");
+  assert.ok(secretIndex >= 0);
+  const ice = ["reel", "ribbon", "tail", "spoke", "paper", "sheet", "mountain", "window"];
+  const heats = ice.map((w) => {
+    assert.ok(lookup.isValid(w), "missing " + w);
+    return lookup.heat(w, secretIndex);
+  });
+  for (let i = 0; i < ice.length; i++) {
+    assert.ok(heats[i] < 15, ice[i] + " should be ice, got " + heats[i]);
+    assert.equal(heats[i], heats[0], ice[i] + " heat " + heats[i] + " != " + heats[0]);
+  }
+  assert.equal(heatLabel(heats[0]), "ice");
+});
+
+test("hotter/colder needs a band change or a jump of 10", () => {
+  assert.equal(heatTrend(8, 8), "still");
+  assert.equal(heatTrend(10, 8), "still");
+  assert.equal(heatTrend(14, 6), "still");
+  assert.equal(heatTrend(16, 8), "hotter");
+  assert.equal(heatTrend(8, 76), "colder");
+  assert.equal(heatTrend(50, 45), "same");
+  assert.equal(heatTrend(56, 45), "hotter");
+  assert.equal(heatTrend(92, 80), "hotter");
+  assert.equal(heatTrend(48, 76), "colder");
+  assert.equal(heatTrend(66, 48), "hotter");
+
+  const secretIndex = chain.indexOf("guitar");
+  let state = createState(chain, secretIndex);
+  const yesterdayHeat = lookup.heat(state.yesterday, secretIndex);
+  assert.ok(yesterdayHeat >= 70 && yesterdayHeat <= 80, "yesterday heat " + yesterdayHeat);
+
+  const reel = applyGuess(state, "reel", lookup);
+  assert.equal(reel.ok, true);
+  assert.equal(reel.trend, "colder");
+  assert.equal(heatLabel(reel.heat), "ice");
+
+  const ribbon = applyGuess(reel.state, "ribbon", lookup);
+  assert.equal(ribbon.heat, reel.heat);
+  assert.equal(ribbon.trend, "still");
+
+  const tail = applyGuess(ribbon.state, "tail", lookup);
+  assert.equal(tail.trend, "still");
+  assert.equal(tail.heat, reel.heat);
+});
+
+test("yesterday lives on a paper tile, not a kite", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const yIdx = html.indexOf('id="yesterday"');
+  assert.ok(yIdx > 0);
+  const sectionStart = html.lastIndexOf("<section", yIdx);
+  const sectionEnd = html.indexOf("</section>", yIdx);
+  const board = html.slice(sectionStart, sectionEnd);
+  assert.match(board, /class="board"/);
+  assert.match(board, /paper-tile/);
+  assert.equal(/kite|pennant|string-run|slot-dot|slot-row/i.test(board), false);
+  assert.equal(board.includes("on the kite"), false);
+});
+
+test("how-to-play does not say the word is on the kite", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  assert.equal(/on the kite/i.test(html), false);
+  assert.match(html, /Yesterday.s word is shown/);
+  assert.match(html, /Today drifted one meaning-step/);
+  const dialogStart = html.indexOf("<dialog");
+  const dialog = html.slice(dialogStart, html.indexOf("</dialog>"));
+  assert.match(dialog, /Yesterday.s word is shown/);
+  assert.match(dialog, /one meaning-step/);
+  assert.equal(/on the kite/i.test(dialog), false);
 });
 
 test("share card never names the secret", () => {

@@ -1,3 +1,5 @@
+import { heatTrend } from "./heat.js";
+
 export const MAX_GUESSES = 6;
 
 export function createState(chain, index) {
@@ -19,7 +21,7 @@ export function normalizeGuess(raw) {
 
 /**
  * Apply a guess. Heat is semantic (lookup table), never edit distance.
- * First guess is hotter/colder versus yesterday's word (the drift origin).
+ * First guess is hotter/colder versus yesterday's word when that heat is real.
  */
 export function applyGuess(state, rawGuess, lookup) {
   if (state.won || state.lost) {
@@ -37,9 +39,7 @@ export function applyGuess(state, rawGuess, lookup) {
     state.guesses.length === 0
       ? lookup.heat(state.yesterday, state.dayIndex)
       : state.guesses[state.guesses.length - 1].heat;
-  let trend = "same";
-  if (heat > prev) trend = "hotter";
-  else if (heat < prev) trend = "colder";
+  const trend = heatTrend(heat, prev);
   const won = word === state.today;
   const guesses = [...state.guesses, { word, heat, trend }];
   const lost = !won && guesses.length >= MAX_GUESSES;

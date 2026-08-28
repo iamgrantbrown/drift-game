@@ -22,7 +22,7 @@ Then open http://localhost:8080/
 
 - Six guesses at today's word.
 - Unknown words are rejected (common English guess list).
-- After each guess: hotter or colder versus your previous guess. The first guess is compared with yesterday's word.
+- After each guess: hotter or colder versus your previous guess, but only when the heat band changes or the score jumps by 10+. Same-band ice twitching says still cold, never hotter. The first guess is compared with yesterday's word.
 - Heat 0-100 is semantic relatedness (rank in a baked neighbor list), never edit distance.
 - One puzzle per day, rolling at midnight Pacific (America/Los_Angeles).
 - Streak lives in the browser on your device. No accounts, ads, payments, or hint engine.
@@ -47,8 +47,8 @@ Datamuse is build-time only. The browser never calls it.
     python3 scripts/build_heat.py
     node tests/run.mjs
 
-Yesterday is pinned near 76. True neighbors rank scorching/hot; words outside the relatedness list stay ice/cold.
+Yesterday is pinned near 76. True neighbors rank scorching/hot; words outside the relatedness list share one flat ice score.
 
 ## Tests
 Run: node tests/run.mjs
-Covers day index, chain yesterday/today, hotter/colder fixtures (including string vs kite/car), win/lose, and invalid guesses.
+Covers day index, chain yesterday/today, hotter/colder fixtures (including string vs kite/car), ice guesses sharing one heat, kite not in the yesterday DOM, how-to-play copy, win/lose, and invalid guesses.

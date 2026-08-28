@@ -5,13 +5,13 @@ Prefers scripts/datamuse/*.json from fetch_datamuse.sh (build-time only).
 Curated neighbors live in related_seeds.json and boosts.txt.
 """
 from __future__ import annotations
-import hashlib, json, re
+import json, re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 WORD_RE = re.compile(r"^[a-z]{3,14}$")
 YESTERDAY_HEAT = 76
-ICE_LO, ICE_HI = 6, 18
+ICE_HEAT = 8
 
 def load(path):
     return json.loads(path.read_text(encoding="utf-8"))
@@ -21,8 +21,7 @@ def clean(w):
     return w if WORD_RE.fullmatch(w) else None
 
 def ice_heat(word):
-    n = hashlib.md5(word.encode()).digest()[0]
-    return ICE_LO + (n % (ICE_HI - ICE_LO + 1))
+    return ICE_HEAT
 
 def rank_to_heat(rank):
     if rank < 8:

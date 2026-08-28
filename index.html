@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#eaf4fb" />
   <title>Drift — daily word game</title>
-  <meta name="description" content="Yesterday’s word is on the kite. Today drifted one meaning-step. Six guesses, hotter or colder." />
+  <meta name="description" content="Yesterday’s word is shown. Today drifted one meaning-step. Six guesses, hotter or colder." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet" />
@@ -33,37 +33,17 @@
         </h1>
         <button type="button" class="howto-btn" id="howto-btn" aria-label="How to play">?</button>
       </div>
-      <p class="rule">Yesterday’s word is on the kite. Today drifted one step.</p>
+      <p class="rule">Yesterday’s word is shown. Today drifted one meaning-step.</p>
     </header>
 
-    <section class="scene" aria-label="Today’s drift">
-      <div class="kite-bob">
-        <div class="paper-kite">
-          <svg class="kite-shape" viewBox="0 0 200 140" aria-hidden="true">
-            <polygon points="100,6 194,70 100,134 6,70" fill="#fffaf2" stroke="#d07850" stroke-width="2.2" stroke-linejoin="round"/>
-            <line x1="100" y1="6" x2="100" y2="134" stroke="#d07850" stroke-width="1.35"/>
-            <line x1="6" y1="70" x2="194" y2="70" stroke="#d07850" stroke-width="1.35"/>
-          </svg>
-          <div class="kite-word">
-            <span class="kite-label">yesterday</span>
-            <p class="yesterday" id="yesterday">—</p>
-          </div>
-        </div>
+    <section class="board" aria-label="Today’s drift">
+      <div class="paper-tile">
+        <span class="tile-label">yesterday</span>
+        <p class="yesterday" id="yesterday">—</p>
       </div>
-      <svg class="string-run" viewBox="0 0 88 48" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M2 14 C 22 6, 38 40, 86 30" fill="none" stroke="#c4ae94" stroke-width="1.7" stroke-linecap="round" />
-        <polygon points="18,10 24,13 19,17" fill="#e07a5f" opacity="0.85" />
-        <polygon points="40,24 46,27 41,31" fill="#6aaa64" opacity="0.8" />
-        <polygon points="62,28 68,31 63,35" fill="#c9b458" opacity="0.85" />
-      </svg>
-      <div class="today-blank">
-        <span class="kite-label">today</span>
-        <div class="slot-row" aria-hidden="true">
-          <span class="slot-dot"></span>
-          <span class="slot-dot"></span>
-          <span class="slot-dot"></span>
-          <span class="slot-dot"></span>
-        </div>
+      <div class="paper-tile today-tile">
+        <span class="tile-label">today</span>
+        <span class="today-blank" aria-hidden="true"></span>
       </div>
     </section>
 
@@ -94,7 +74,7 @@
     <button type="button" class="howto-close" id="howto-close" aria-label="Close">×</button>
     <h2 id="howto-title">How to play</h2>
     <ol>
-      <li>Yesterday’s word is on the kite.</li>
+      <li>Yesterday’s word is shown.</li>
       <li>Today drifted <em>one meaning-step</em> away.</li>
       <li>You get six guesses.</li>
       <li>Hotter and colder is meaning, not spelling.</li>
