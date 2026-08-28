@@ -85,21 +85,18 @@
     </section>
 
     <footer>
-      One a day · midnight Pacific · <a href="https://github.com/iamgrantbrown/drift-game">Source</a>
+      one a day · it drifts at midnight pacific · <a href="https://github.com/iamgrantbrown/drift-game">source</a>
     </footer>
   </main>
 
   <dialog class="paper-dialog howto" id="howto" aria-labelledby="howto-title">
     <button type="button" class="dialog-close" id="howto-close" aria-label="Close">×</button>
     <h2 id="howto-title">How to play</h2>
-    <ol>
-      <li>Yesterday’s word is shown.</li>
-      <li>Today drifted <em>one meaning-step</em> away — often through another meaning of the word.</li>
-      <li>You get six guesses.</li>
-      <li>Every guess shows how close its <em>meaning</em> is: ice · cold · cool · warm · hot · scorching.</li>
-      <li><em>near yesterday</em> means you’re close to yesterday’s word — but the drift went another way.</li>
-      <li>Miss three times and the drift’s clue appears.</li>
-    </ol>
+    <p class="howto-story">Every night the word drifts one meaning-step.
+    If yesterday it was <b>coffee</b>, by morning it might be <b>espresso</b>.
+    You get six guesses to catch it.</p>
+    <p class="howto-story">Every guess tells you how close its <em>meaning</em> is —
+    ice · cold · cool · warm · hot · scorching. Spelling never matters.</p>
     <div class="howto-samples" aria-hidden="true">
       <div class="guess-row filled band-cold">
         <span class="word">tea</span>
@@ -114,16 +111,17 @@
         <span class="band-chip band-hot"><span class="band-dot"></span><span class="band-name">hot</span><span class="trend hotter">▲</span></span>
       </div>
     </div>
-    <p class="howto-note">If yesterday was <b>coffee</b> and today is <b>espresso</b>: tea is cold, mug is warm, latte is hot. Spelling never matters — meaning does.</p>
+    <p class="howto-note"><em>near yesterday</em> means you’re close to yesterday’s word,
+    but the drift went another way. Miss three times and the drift’s clue appears.</p>
     <button type="button" class="primary" id="howto-play">Play</button>
   </dialog>
 
   <dialog class="paper-dialog stats" id="stats" aria-labelledby="stats-title">
     <button type="button" class="dialog-close" id="stats-close" aria-label="Close">×</button>
-    <h2 id="stats-title">Statistics</h2>
+    <h2 id="stats-title">Flight log</h2>
     <div class="stat-grid">
-      <div class="stat"><b id="stat-plays">0</b><span>played</span></div>
-      <div class="stat"><b id="stat-win">0%</b><span>won</span></div>
+      <div class="stat"><b id="stat-plays">0</b><span>flown</span></div>
+      <div class="stat"><b id="stat-win">0%</b><span>caught</span></div>
       <div class="stat"><b id="stat-streak">0</b><span>streak</span></div>
       <div class="stat"><b id="stat-best">0</b><span>best</span></div>
     </div>

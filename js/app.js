@@ -2,6 +2,7 @@ import { MAX_GUESSES, applyGuess, bestHeat, blankPivot, clueAvailable, createSta
 import { bandFor, bandRank, createHeatLookup } from "./heat.js";
 import { dayIndex, daysBetween, pacificDateString, puzzleNumber, TIMEZONE } from "./calendar.js";
 import { shareText } from "./share.js";
+import { voiceLine, winLine } from "./voice.js";
 
 const STORAGE_KEY = "drift-v2";
 const HOWTO_KEY = "drift-howto-v1";
@@ -145,10 +146,11 @@ function renderEnd(state, puzNum, store) {
   });
   $("end-title").textContent = state.won ? "You caught the drift" : "It drifted away";
   $("end-body").textContent = state.won
-    ? `Today’s word in ${state.guesses.length} of ${MAX_GUESSES}.`
-    : `Today’s word was ${state.today}.`;
+    ? `${winLine(state.guesses.length, puzNum)} In ${state.guesses.length} of ${MAX_GUESSES}.`
+    : voiceLine("loss", puzNum);
   $("pivot-line").innerHTML =
-    `<b>${escapeHtml(state.yesterday)}</b> → <b>${escapeHtml(state.today)}</b> — ${escapeHtml(state.pivot)}`;
+    `From “<b>${escapeHtml(state.yesterday)}</b>”, the word drifted through ` +
+    `“<i>${escapeHtml(state.pivot)}</i>” to “<b>${escapeHtml(state.today)}</b>”.`;
   $("tomorrow-line").textContent = `Tomorrow drifts from “${state.today}.”`;
   $("form").hidden = true;
   renderStats(store);
@@ -217,7 +219,7 @@ function startCountdown() {
     const h = String(Math.floor(left / 3600)).padStart(2, "0");
     const m = String(Math.floor((left % 3600) / 60)).padStart(2, "0");
     const s = String(left % 60).padStart(2, "0");
-    el.textContent = `Next drift in ${h}:${m}:${s}`;
+    el.textContent = `tomorrow’s word drifts in ${h}:${m}:${s}`;
   };
   tick();
   countdownTimer = setInterval(tick, 1000);
@@ -307,17 +309,24 @@ async function main() {
 
   if (state.won || state.lost) {
     renderEnd(state, puzNum, store);
-    setStatus(state.won ? "Already caught today’s drift." : "Come back after midnight Pacific.");
+    setStatus(voiceLine("done", puzNum));
   }
+
+  const shake = (input) => {
+    input.classList.remove("shake");
+    void input.offsetWidth; // restart the animation
+    input.classList.add("shake");
+  };
 
   $("form").addEventListener("submit", (ev) => {
     ev.preventDefault();
     const input = $("guess");
     const result = applyGuess(state, input.value, lookup, prevLookup);
     if (!result.ok) {
-      if (result.reason === "invalid") setStatus("Not in the word list.", "bad");
-      else if (result.reason === "duplicate") setStatus("Already guessed.", "bad");
-      else setStatus("Today’s drift is over.");
+      if (result.reason === "invalid") setStatus(voiceLine("invalid", puzNum + state.guesses.length), "bad");
+      else if (result.reason === "duplicate") setStatus(voiceLine("duplicate", puzNum + state.guesses.length), "bad");
+      else setStatus(voiceLine("done", puzNum));
+      shake(input);
       input.select();
       return;
     }
@@ -336,19 +345,18 @@ async function main() {
     renderClue();
     input.value = "";
     input.focus();
+    const seed = puzNum * 7 + state.guesses.length;
     if (state.won) {
-      setStatus(`You caught it — ${state.today}.`, "good");
+      setStatus(`caught it — ${state.today}.`, "good");
       renderEnd(state, puzNum, store);
+      burstScraps($("today-tile"));
     } else if (state.lost) {
-      setStatus("Six guesses. It drifted away.", "bad");
+      setStatus(voiceLine("loss", puzNum), "bad");
       renderEnd(state, puzNum, store);
     } else if (state.guesses[state.guesses.length - 1].near) {
-      setStatus("Near yesterday — the drift went another way.", "nudge");
+      setStatus(voiceLine("near", seed), "nudge");
     } else {
-      const band = bandFor(result.heat);
-      if (result.trend === "hotter") setStatus(`Hotter — ${band}.`);
-      else if (result.trend === "colder") setStatus(`Colder — ${band}.`);
-      else setStatus(cap(band) + ".");
+      setStatus(voiceLine(bandFor(result.heat), seed));
     }
   });
 
@@ -375,8 +383,26 @@ async function main() {
   else if (!(state.won || state.lost)) $("guess").focus();
 }
 
-function cap(s) {
-  return s.charAt(0).toUpperCase() + s.slice(1);
+/** A little burst of paper scraps from the stamped tile on a win. */
+function burstScraps(fromEl) {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const rect = fromEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2;
+  const cy = rect.top + rect.height / 2;
+  const colors = ["#fffaf2", "#d07850", "#c4ae94", "#e2b45a"];
+  for (let i = 0; i < 14; i++) {
+    const s = document.createElement("span");
+    s.className = "scrap" + (i % 5 === 0 ? " scrap-kite" : "");
+    const angle = (i / 14) * Math.PI * 2 + Math.random() * 0.6;
+    s.style.left = cx + "px";
+    s.style.top = cy + "px";
+    s.style.background = colors[i % colors.length];
+    s.style.setProperty("--dx", Math.cos(angle) * (50 + Math.random() * 90) + "px");
+    s.style.setProperty("--dy", Math.sin(angle) * (40 + Math.random() * 60) - 90 + "px");
+    s.style.setProperty("--rot", (Math.random() * 520 - 260).toFixed(0) + "deg");
+    s.addEventListener("animationend", () => s.remove());
+    document.body.appendChild(s);
+  }
 }
 
 main().catch((err) => {

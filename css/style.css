@@ -572,6 +572,43 @@ footer a { color: var(--accent-deep); }
   z-index: 1;
 }
 
+/* ---------- warmth: shake + paper scraps ---------- */
+
+#guess.shake { animation: shake 0.4s ease; }
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+}
+
+.scrap {
+  position: fixed;
+  z-index: 30;
+  width: 9px;
+  height: 12px;
+  pointer-events: none;
+  border-radius: 1px 3px 1px 2px;
+  animation: scrap-fly 1.5s cubic-bezier(0.2, 0.6, 0.4, 1) forwards;
+}
+
+.scrap-kite {
+  width: 10px;
+  height: 10px;
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+
+@keyframes scrap-fly {
+  0% { opacity: 1; transform: translate(0, 0) rotate(0); }
+  70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) rotate(var(--rot)); }
+}
+
+.howto-story { font-size: 14.5px; line-height: 1.55; margin-bottom: 10px; }
+.howto-story b { color: var(--accent-deep); }
+
 /* ---------- a11y & motion ---------- */
 
 :focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }

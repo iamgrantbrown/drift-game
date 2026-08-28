@@ -278,6 +278,22 @@ test("share text never contains the secret and maps bands to emoji", () => {
   assert.ok(text.includes("⬜⬜⬜"));
 });
 
+/* ---------- voice ---------- */
+
+test("voice lines: deterministic, non-empty, function-critical kinds distinct", async () => {
+  const { voiceLine, winLine } = await import("../js/voice.js");
+  for (const kind of ["ice", "cold", "cool", "warm", "hot", "scorching", "near", "invalid", "duplicate", "loss", "done"]) {
+    for (const seed of [0, 1, 2, 100]) {
+      const line = voiceLine(kind, seed);
+      assert.ok(line.length > 0, `${kind} seed ${seed}`);
+      assert.equal(line, voiceLine(kind, seed), "deterministic");
+    }
+  }
+  assert.ok(winLine(1, 0).length > 0);
+  assert.notEqual(winLine(1, 0), winLine(5, 0), "quick and clue wins read differently");
+  assert.equal(voiceLine("nope", 0), "");
+});
+
 /* ---------- summary ---------- */
 
 console.log(`\n${passed} passed, ${failed} failed`);
