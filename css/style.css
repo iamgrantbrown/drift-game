@@ -441,6 +441,12 @@ footer a { color: var(--accent-deep); }
 /* ---------- dialogs ---------- */
 
 .paper-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  height: fit-content;
+  max-height: 88vh;
+  overflow-y: auto;
   width: min(92vw, 400px);
   border: 1.5px solid var(--paper-edge);
   border-radius: 8px 11px 8px 12px;

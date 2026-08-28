@@ -4,8 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "node tests/run.mjs",
-    "build:heat": "python3 scripts/build_heat.py",
-    "fetch:heat": "bash scripts/fetch_datamuse.sh",
+    "build:chain": "node scripts/chain_v2.mjs",
+    "build:heat": "node scripts/build_heat_v2.mjs",
     "start": "python3 -m http.server 8080"
   }
 }
