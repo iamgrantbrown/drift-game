@@ -256,10 +256,13 @@ async function main() {
 
   const chainPack = await fetch("data/chain.json").then((r) => r.json());
   const chain = chainPack.words;
-  const now = new Date();
-  const todayDate = pacificDateString(now);
-  const idx = dayIndex(now, chain.length, chainPack.epoch);
-  const puzNum = puzzleNumber(now, chainPack.epoch);
+  // Playtest preview: ?date=YYYY-MM-DD plays that Pacific day's puzzle.
+  const dateParam = new URLSearchParams(location.search).get("date");
+  const todayDate = /^\d{4}-\d{2}-\d{2}$/.test(dateParam || "")
+    ? dateParam
+    : pacificDateString(new Date());
+  const idx = dayIndex(todayDate, chain.length, chainPack.epoch);
+  const puzNum = puzzleNumber(todayDate, chainPack.epoch);
 
   const [words, heatBuf] = await Promise.all([
     fetch("data/words.json").then((r) => r.json()),
