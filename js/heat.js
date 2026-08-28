@@ -1,4 +1,6 @@
-/** Compact secret-major heat table: Uint8 [nSecrets * nWords]. */
+/** Compact secret-major heat table: Uint8 [nSecrets * nWords].
+ *  Values are relatedness rank (not GloVe cosine): 45 lukewarm, 60 warm, 75 hot.
+ */
 
 export function createHeatLookup(words, tableBytes) {
   const index = new Map(words.map((w, i) => [w, i]));

@@ -132,6 +132,8 @@ test("hotter/colder is semantic and monotonic on espresso fixtures", () => {
   const heat = (w) => lookup.heat(w, secretIndex);
   assert.equal(heat("espresso"), 100);
   assert.ok(heat("latte") > heat("tea"), "latte vs tea");
+  assert.ok(heat("tea") < heat("mug"), "tea vs mug " + heat("tea") + " " + heat("mug"));
+  assert.ok(heat("mug") < heat("latte"), "mug vs latte " + heat("mug") + " " + heat("latte"));
   assert.ok(heat("coffee") > heat("tea"), "coffee vs tea");
   assert.ok(heat("brew") > heat("mountain"), "brew vs mountain");
   assert.ok(heat("latte") > heat("library"));
@@ -146,6 +148,22 @@ test("hotter/colder is semantic and monotonic on espresso fixtures", () => {
   const hit = applyGuess(latte.state, "espresso", lookup);
   assert.equal(hit.reason, "win");
   assert.ok(hit.heat > latte.heat);
+});
+
+test("string: kite is warm, thread is hot, vehicles are cold", () => {
+  const secretIndex = chain.indexOf("string");
+  assert.ok(secretIndex >= 0);
+  const heat = (w) => lookup.heat(w, secretIndex);
+  assert.ok(heat("kite") >= 60, "kite " + heat("kite"));
+  assert.ok(heat("kite") <= 85, "kite band " + heat("kite"));
+  assert.ok(heat("thread") >= 75, "thread " + heat("thread"));
+  assert.ok(heat("car") < 30, "car " + heat("car"));
+  assert.ok(heat("bike") < 30, "bike " + heat("bike"));
+  assert.ok(heat("truck") < 30, "truck " + heat("truck"));
+  let state = createState(chain, secretIndex);
+  const car = applyGuess(state, "car", lookup);
+  assert.equal(car.ok, true);
+  assert.equal(car.trend, "colder");
 });
 
 test("share card never names the secret", () => {

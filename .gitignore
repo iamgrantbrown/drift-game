@@ -3,3 +3,5 @@ node_modules/
 __pycache__/
 *.pyc
 .venv/
+.datamuse_cache.json
+scripts/datamuse/

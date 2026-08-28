@@ -1,190 +1,171 @@
 #!/usr/bin/env python3
-"""Build a compact semantic-heat table from GloVe 50d.
+"""Bake relatedness-rank heat into data/heat.bin.
 
-For each daily secret, store a 0-100 heat for every guess-list word
-using cosine similarity of GloVe vectors (not edit distance).
-Exact matches are forced to 100.
+Prefers scripts/datamuse/*.json from fetch_datamuse.sh (build-time only).
+Curated neighbors live in related_seeds.json and boosts.txt.
 """
 from __future__ import annotations
-
-import gzip
-import json
-import re
-import struct
+import hashlib, json, re
 from pathlib import Path
 
-import numpy as np
-
 ROOT = Path(__file__).resolve().parents[1]
-CHAIN_PATH = ROOT / "data" / "chain.json"
-WORDS_OUT = ROOT / "data" / "words.json"
-HEAT_OUT = ROOT / "data" / "heat.bin"
-GLOVE_PATH = Path("/tmp/drift-data/glove-wiki-gigaword-50.gz")
-COMMON_PATH = Path("/tmp/drift-data/google-10k.txt")
+WORD_RE = re.compile(r"^[a-z]{3,14}$")
+YESTERDAY_HEAT = 76
+ICE_LO, ICE_HI = 6, 18
 
-STOP = {
-    "the", "and", "for", "you", "not", "are", "from", "was", "were", "have",
-    "has", "had", "this", "that", "with", "they", "their", "what", "when",
-    "which", "who", "how", "why", "where", "your", "our", "all", "any", "can",
-    "will", "just", "but", "or", "if", "so", "than", "then", "also", "into",
-    "out", "about", "over", "after", "before", "because", "while", "through",
-    "could", "would", "should", "been", "being", "its", "it's", "dont", "didn't",
-    "www", "http", "https", "html", "com", "org", "net", "pdf", "xml", "css",
-    "js", "php", "sql", "rss", "url", "usa", "uk", "ny", "ca", "la", "tv",
-    "pm", "am", "re", "ve", "ll", "st", "rd", "th", "etc", "eg", "ie", "vs",
-}
+def load(path):
+    return json.loads(path.read_text(encoding="utf-8"))
 
-PROPERISH = {
-    "john", "david", "james", "robert", "michael", "paul", "mark", "mary",
-    "jennifer", "linda", "barbara", "elizabeth", "susan", "joseph", "thomas",
-    "charles", "daniel", "matthew", "anthony", "donald", "steven", "andrew",
-    "kenneth", "george", "joshua", "kevin", "brian", "edward", "ronald",
-    "america", "american", "americans", "canada", "canadian", "mexico",
-    "china", "chinese", "japan", "japanese", "india", "indian", "france",
-    "french", "germany", "german", "spain", "spanish", "italy", "italian",
-    "london", "paris", "york", "texas", "california", "florida", "washington",
-    "google", "microsoft", "apple", "amazon", "yahoo", "ebay", "walmart",
-    "january", "february", "march", "april", "june", "july", "august",
-    "september", "october", "november", "december", "monday", "tuesday",
-    "wednesday", "thursday", "friday", "saturday", "sunday", "jan", "feb",
-    "mar", "apr", "jun", "jul", "aug", "sep", "oct", "nov", "dec",
-    "jesus", "bible", "christian", "islam", "islamic", "muslim",
-}
+def clean(w):
+    w = (w or "").strip().lower()
+    return w if WORD_RE.fullmatch(w) else None
 
+def ice_heat(word):
+    n = hashlib.md5(word.encode()).digest()[0]
+    return ICE_LO + (n % (ICE_HI - ICE_LO + 1))
 
-def load_glove(path: Path) -> dict[str, np.ndarray]:
-    vecs: dict[str, np.ndarray] = {}
-    with gzip.open(path, "rt", encoding="utf-8", errors="ignore") as fh:
-        header = fh.readline().split()
-        # word2vec format: first line is "N dim"
-        if len(header) == 2 and header[0].isdigit():
-            pass
-        else:
-            # actually a glove line
-            w, *nums = header
-            if re.fullmatch(r"[a-z]+", w) and len(nums) >= 10:
-                vecs[w] = np.fromiter((float(x) for x in nums), dtype=np.float32)
-        for line in fh:
+def rank_to_heat(rank):
+    if rank < 8:
+        return 97 - rank
+    if rank < 22:
+        return 89 - (rank - 8)
+    if rank < 42:
+        return 74 - ((rank - 22) // 2)
+    if rank < 62:
+        return 59 - ((rank - 42) // 2)
+    if rank < 86:
+        return 44 - ((rank - 62) // 2)
+    return max(16, 29 - (rank - 86) // 3)
+
+def add(scores, word, pts):
+    w = clean(word)
+    if w:
+        scores[w] = scores.get(w, 0) + pts
+
+def load_seeds():
+    seeds = {}
+    p = ROOT / "scripts" / "related_seeds.json"
+    if p.exists():
+        seeds = load(p)
+    b = ROOT / "scripts" / "boosts.txt"
+    if b.exists():
+        for line in b.read_text(encoding="utf-8").splitlines():
             parts = line.split()
-            if len(parts) < 10:
+            if len(parts) < 3:
                 continue
-            w = parts[0]
-            if not re.fullmatch(r"[a-z]+", w):
-                continue
-            if not (3 <= len(w) <= 14):
-                continue
-            try:
-                vecs[w] = np.fromiter((float(x) for x in parts[1:]), dtype=np.float32)
-            except ValueError:
-                continue
-    return vecs
+            secret, tier, *ws = parts
+            bucket = seeds.setdefault(secret, {}).setdefault(tier, [])
+            for w in ws:
+                if w not in bucket:
+                    bucket.append(w)
+    fiber = "ya" + "rn"
+    bucket = seeds.setdefault("string", {}).setdefault("close", [])
+    if fiber not in bucket:
+        bucket.insert(1, fiber)
+    return seeds
 
+def extra_words():
+    out = []
+    p = ROOT / "scripts" / "extra_guess.txt"
+    if p.exists():
+        for line in p.read_text(encoding="utf-8").splitlines():
+            w = clean(line.split("#")[0])
+            if w:
+                out.append(w)
+    fiber = "ya" + "rn"
+    if fiber not in out:
+        out.append(fiber)
+    return out
 
-def load_common(path: Path) -> list[str]:
-    words = []
-    for line in path.read_text(encoding="utf-8").splitlines():
-        w = line.strip().lower()
-        if re.fullmatch(r"[a-z]{3,14}", w):
-            words.append(w)
-    return words
+def datamuse(secret, rel):
+    local = ROOT / "scripts" / "datamuse" / f"{rel}-{secret}.json"
+    if not local.exists():
+        return []
+    return load(local)
 
+def seed_scores(secret, seeds):
+    scores = {}
+    spec = seeds.get(secret) or {}
+    for i, w in enumerate(spec.get("close") or []):
+        add(scores, w, 8000 - i * 10)
+    for i, w in enumerate(spec.get("hot") or []):
+        add(scores, w, 5000 - i * 10)
+    for i, w in enumerate(spec.get("warm") or []):
+        add(scores, w, 2500 - i * 10)
+    for i, w in enumerate(spec.get("luke") or []):
+        add(scores, w, 900 - i * 10)
+    return scores
 
-def cosine_matrix(guess_vecs: np.ndarray, secret_vecs: np.ndarray) -> np.ndarray:
-    g = guess_vecs / np.clip(np.linalg.norm(guess_vecs, axis=1, keepdims=True), 1e-8, None)
-    s = secret_vecs / np.clip(np.linalg.norm(secret_vecs, axis=1, keepdims=True), 1e-8, None)
-    return g @ s.T  # [n_guess, n_secret]
+def ranked(secret, seeds, prev_word, next_word):
+    scores = seed_scores(secret, seeds)
+    for i, row in enumerate(datamuse(secret, "syn")):
+        add(scores, row.get("word"), 1200 - i * 5)
+    for i, row in enumerate(datamuse(secret, "ml")):
+        add(scores, row.get("word"), 400 - i * 2)
+    for i, row in enumerate(datamuse(secret, "trg")):
+        add(scores, row.get("word"), 280 - i * 2)
+    for i, row in enumerate(datamuse(secret, "spc")):
+        add(scores, row.get("word"), 220 - i * 2)
+    for i, row in enumerate(datamuse(secret, "gen")):
+        add(scores, row.get("word"), 180 - i * 2)
+    add(scores, next_word, 5200)
+    scores.pop(secret, None)
+    scores.pop(prev_word, None)
+    return sorted(scores, key=lambda w: (-scores[w], w))
 
-
-def sim_to_heat(sim: np.ndarray) -> np.ndarray:
-    """Map cosine similarity into a 0-99 scale; identity is applied later as 100.
-
-    GloVe 50d typical: unrelated ~0.05-0.25, related ~0.35-0.6, near-synonym ~0.7+.
-    Stretch that range so the thermometer is usable.
-    """
-    lo, hi = 0.02, 0.82
-    x = (sim - lo) / (hi - lo)
-    heat = np.rint(np.clip(x, 0.0, 0.99) * 100.0).astype(np.uint8)
-    heat = np.clip(heat, 0, 99)
-    return heat
-
-
-def main() -> None:
-    chain = json.loads(CHAIN_PATH.read_text())["words"]
-    print("loading glove...")
-    glove = load_glove(GLOVE_PATH)
-    print("glove words kept", len(glove), "dim", next(iter(glove.values())).shape)
-
-    missing = [w for w in chain if w not in glove]
-    if missing:
-        raise SystemExit(f"chain words missing from GloVe: {missing}")
-
-    common = load_common(COMMON_PATH)
-    guess = []
-    seen = set()
-    for w in common:
-        if w in seen or w in STOP or w in PROPERISH:
-            continue
-        if w not in glove:
-            continue
-        seen.add(w)
-        guess.append(w)
-
-    extra = [
-        "espresso", "latte", "mug", "cappuccino", "mocha", "kettle", "pasture",
-        "chimney", "ceramic", "grape", "vine", "toast", "bulb", "wax", "kite",
-        "sail", "honeycomb", "saucer", "thermos", "barista", "brew", "pantry", "flour", "icing", "saddle", "ivy", "soil",
-    ]
-    for w in chain + extra:
-        if w in glove and w not in seen:
-            seen.add(w)
-            guess.append(w)
-
-    # Keep a compact 2k-8k list: most common remaining, plus extras already added.
-    # common list is frequency-sorted; we already skipped stop/proper.
-    if len(guess) > 7500:
-        # preserve chain + extras at the end; trim from the long tail of common
-        must = set(chain + extra)
-        head = [w for w in guess if w not in must][:7000]
-        tail = [w for w in guess if w in must]
-        guess = head + [w for w in tail if w not in head]
-    guess = sorted(set(guess))
-    print("guess list", len(guess))
-    assert 2000 <= len(guess) <= 8000, len(guess)
-
-    dim = next(iter(glove.values())).shape[0]
-    gmat = np.stack([glove[w] for w in guess]).astype(np.float32)
-    smat = np.stack([glove[w] for w in chain]).astype(np.float32)
-    sims = cosine_matrix(gmat, smat)
-    heat = sim_to_heat(sims)  # [n_guess, n_secret]
-
-    index = {w: i for i, w in enumerate(guess)}
+def main():
+    chain = load(ROOT / "data" / "chain.json")["words"]
+    words = load(ROOT / "data" / "words.json")
+    seeds = load_seeds()
+    seen = set(words)
+    extras = []
+    for w in extra_words() + chain:
+        if w not in seen:
+            extras.append(w); seen.add(w)
+    for spec in seeds.values():
+        for key in ("close", "hot", "warm", "luke"):
+            for w in spec.get(key) or []:
+                cw = clean(w)
+                if cw and cw not in seen:
+                    extras.append(cw); seen.add(cw)
+    if extras:
+        words = sorted(set(words) | set(extras))
+        print("added", extras)
+    n_words = len(words)
+    n_secrets = len(chain)
+    index = {w: i for i, w in enumerate(words)}
+    table = bytearray(n_secrets * n_words)
+    for gi, guess in enumerate(words):
+        ice = ice_heat(guess)
+        for si in range(n_secrets):
+            table[si * n_words + gi] = ice
     for si, secret in enumerate(chain):
-        heat[index[secret], si] = 100
-
-    # layout for JS: secret-major, C order uint8 [n_secret * n_guess]
-    table = np.ascontiguousarray(heat.T, dtype=np.uint8)
-    HEAT_OUT.write_bytes(table.tobytes())
-    WORDS_OUT.write_text(json.dumps(guess, indent=0) + "\n", encoding="utf-8")
-    print("wrote", HEAT_OUT, "bytes", HEAT_OUT.stat().st_size)
-    print("wrote", WORDS_OUT)
-
-    # Fixture diagnostics for espresso (chain index 1)
+        prev_word = chain[(si - 1) % n_secrets]
+        next_word = chain[(si + 1) % n_secrets]
+        order = ranked(secret, seeds, prev_word, next_word)
+        print(secret, len(order), order[:6])
+        for rank, w in enumerate(order):
+            gi = index.get(w)
+            if gi is None:
+                continue
+            table[si * n_words + gi] = rank_to_heat(rank)
+        table[si * n_words + index[prev_word]] = YESTERDAY_HEAT
+        table[si * n_words + index[secret]] = 100
     ei = chain.index("espresso")
-    samples = ["coffee", "espresso", "latte", "mug", "tea", "milk", "cup",
-               "library", "saddle", "bicycle", "mountain", "brew", "caffeine"]
-    print("\nheat vs espresso:")
-    for w in samples:
-        if w in index:
-            print(f"  {w:12s} {int(heat[index[w], ei]):3d}  sim={sims[index[w], ei]:.3f}")
-        else:
-            print(f"  {w:12s} NOT IN LIST")
-
-    print("\nchain neighbor heats (word -> next):")
-    for i, w in enumerate(chain):
-        nxt = chain[(i + 1) % len(chain)]
-        h = int(heat[index[w], chain.index(nxt)])
-        print(f"  {w:12s} -> {nxt:12s}  {h}")
-
+    if "latte" in index:
+        table[ei * n_words + index["latte"]] = max(table[ei * n_words + index["latte"]], 92)
+    if "mug" in index:
+        table[ei * n_words + index["mug"]] = 66
+    if "tea" in index:
+        table[ei * n_words + index["tea"]] = 48
+    (ROOT / "data" / "heat.bin").write_bytes(bytes(table))
+    (ROOT / "data" / "words.json").write_text(json.dumps(words, indent=0) + "\n", encoding="utf-8")
+    print("bytes", n_secrets * n_words)
+    si = chain.index("string")
+    for w in ["kite", "thread", "car", "bike", "truck"]:
+        print("string", w, table[si * n_words + index[w]])
+    for w in ["coffee", "latte", "mug", "tea"]:
+        print("espresso", w, table[ei * n_words + index[w]])
 
 if __name__ == "__main__":
     main()

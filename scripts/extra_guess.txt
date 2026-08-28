@@ -1,0 +1,10 @@
+twine
+cord
+lace
+bead
+thread
+rope
+violin
+fiddle
+strand
+braid

@@ -1,0 +1,74 @@
+{
+  "coffee": {
+    "close": ["espresso", "latte", "brew", "caffeine", "mocha", "cappuccino", "cafe", "barista"],
+    "hot": ["bean", "roast", "mug", "drip", "americano", "macchiato"],
+    "warm": ["cup", "pot", "kettle", "cream", "sugar"],
+    "luke": ["tea", "breakfast", "morning", "kitchen"]
+  },
+  "espresso": {
+    "close": ["latte", "cappuccino", "mocha", "macchiato", "brew", "caffeine", "americano", "barista"],
+    "hot": ["cafe", "roast", "bean", "shot", "foam"],
+    "warm": ["mug", "cup", "milk"],
+    "luke": ["tea", "cocoa", "chocolate", "pastry"]
+  },
+  "latte": {
+    "close": ["espresso", "cappuccino", "mocha", "macchiato", "foam", "milk", "barista", "cafe"],
+    "hot": ["coffee", "brew", "americano", "cream"],
+    "warm": ["mug", "cup", "caffeine"],
+    "luke": ["tea", "chocolate", "cocoa"]
+  },
+  "milk": {
+    "close": ["cream", "dairy", "cow", "latte", "cheese", "butter", "yogurt", "carton"],
+    "hot": ["pour", "white", "bottle", "calcium"],
+    "warm": ["cereal", "baby", "glass"],
+    "luke": ["water", "juice", "soy"]
+  },
+  "cow": {
+    "close": ["cattle", "bull", "calf", "milk", "herd", "farm", "pasture", "moo"],
+    "hot": ["barn", "dairy", "beef", "grass"],
+    "warm": ["field", "fence", "hay"],
+    "luke": ["horse", "sheep", "pig"]
+  },
+  "pasture": {
+    "close": ["meadow", "grazing", "grass", "field", "cattle", "cow", "paddock", "farm"],
+    "hot": ["fence", "green", "herd", "hay"],
+    "warm": ["rural", "land", "ranch"],
+    "luke": ["park", "lawn", "garden"]
+  },
+  "grass": {
+    "close": ["lawn", "turf", "meadow", "blade", "pasture", "green", "clover", "sod"],
+    "hot": ["field", "weed", "yard", "mow"],
+    "warm": ["park", "garden", "soil"],
+    "luke": ["tree", "flower", "dirt"]
+  },
+  "lawn": {
+    "close": ["grass", "yard", "mower", "turf", "sprinkler", "garden", "green", "hedge"],
+    "hot": ["mow", "weed", "patio", "fence"],
+    "warm": ["house", "park", "soil"],
+    "luke": ["field", "forest", "beach"]
+  },
+  "garden": {
+    "close": ["flower", "plant", "vegetable", "soil", "rose", "bed", "hose", "seed"],
+    "hot": ["lawn", "fence", "herb", "bloom"],
+    "warm": ["yard", "greenhouse", "path"],
+    "luke": ["park", "forest", "kitchen"]
+  },
+  "flower": {
+    "close": ["petal", "rose", "bloom", "blossom", "bouquet", "pollen", "stem", "garden"],
+    "hot": ["bee", "tulip", "daisy", "lily"],
+    "warm": ["plant", "vase", "spring"],
+    "luke": ["tree", "grass", "leaf"]
+  },
+  "bee": {
+    "close": ["honey", "hive", "pollen", "sting", "buzz", "wasp", "swarm", "insect"],
+    "hot": ["flower", "nectar", "queen", "comb"],
+    "warm": ["wing", "yellow", "garden"],
+    "luke": ["ant", "fly", "bird"]
+  },
+  "honey": {
+    "close": ["bee", "nectar", "hive", "comb", "sweet", "honeycomb", "jar", "sticky"],
+    "hot": ["sugar", "tea", "pollen", "golden"],
+    "warm": ["toast", "spoon", "syrup"],
+    "luke": ["jam", "butter", "milk"]
+  }
+}
