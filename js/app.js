@@ -9,6 +9,7 @@ import {
 import { shareText } from "./share.js";
 
 const STORAGE_KEY = "drift-v1";
+const HOWTO_KEY = "drift-howto-v1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -69,6 +70,10 @@ function recordResult(store, date, won) {
   };
 }
 
+function pipKind(heat) {
+  return heat >= 45 ? "sun" : "wind";
+}
+
 function renderGuesses(state) {
   const root = $("guesses");
   root.innerHTML = "";
@@ -77,18 +82,22 @@ function renderGuesses(state) {
     const row = document.createElement("div");
     row.className = "guess-row" + (g ? " filled" : " empty");
     if (!g) {
-      row.innerHTML = `<span class="slot">${i + 1}</span><span class="ghost">waiting</span>`;
+      row.setAttribute("aria-label", `Guess ${i + 1} empty`);
       root.appendChild(row);
       continue;
     }
     const trend =
       g.trend === "hotter" ? "hotter" : g.trend === "colder" ? "colder" : "holding";
-    const pct = Math.max(2, Math.min(100, g.heat));
+    const label = heatLabel(g.heat);
+    const found = g.word === state.today;
+    row.classList.add("heat-" + label);
     row.innerHTML = `
       <span class="word">${escapeHtml(g.word)}</span>
-      <span class="meter" aria-hidden="true"><span class="fill heat-${heatLabel(g.heat)}" style="width:${pct}%"></span></span>
-      <span class="heat">${g.heat}</span>
-      <span class="trend ${g.trend}">${g.word === state.today ? "found" : trend}</span>
+      <span class="heat-chip ${g.trend}">
+        <span class="pip ${pipKind(g.heat)}" aria-hidden="true"></span>
+        <span class="chip-label">${found ? "found" : trend}</span>
+      </span>
+      <span class="heat-num">${g.heat}</span>
     `;
     root.appendChild(row);
   }
@@ -119,11 +128,12 @@ function renderEnd(state, puzNum, store) {
     won: state.won,
     maxGuesses: MAX_GUESSES,
   });
-  $("end-title").textContent = state.won ? "You caught the drift" : "It drifted away";
+  $("end-title").textContent = state.won ? "You caught the kite" : "The kite got away";
   $("end-body").textContent = state.won
-    ? `Today's word in ${state.guesses.length} of ${MAX_GUESSES}. Streak ${store.streak}.`
-    : `Today's word was ${state.today}. Streak resets. Tomorrow another step.`;
+    ? `Today’s word in ${state.guesses.length} of ${MAX_GUESSES}.`
+    : `Today’s word was ${state.today}. Tomorrow another step.`;
   $("form").hidden = true;
+  renderStats(store);
 }
 
 function renderStats(store) {
@@ -131,7 +141,50 @@ function renderStats(store) {
   $("max-streak").textContent = String(store.maxStreak || 0);
 }
 
+function howtoSeen() {
+  try {
+    return localStorage.getItem(HOWTO_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markHowtoSeen() {
+  try {
+    localStorage.setItem(HOWTO_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+function openHowto() {
+  const d = $("howto");
+  if (typeof d.showModal === "function") d.showModal();
+  else d.setAttribute("open", "");
+}
+
+function closeHowto() {
+  const d = $("howto");
+  if (typeof d.close === "function" && d.open) d.close();
+  else d.removeAttribute("open");
+  markHowtoSeen();
+  const input = $("guess");
+  if (input && !input.closest("form").hidden) input.focus();
+}
+
+function wireHowto() {
+  $("howto-btn").addEventListener("click", openHowto);
+  $("howto-close").addEventListener("click", closeHowto);
+  $("howto-play").addEventListener("click", closeHowto);
+  $("howto").addEventListener("close", markHowtoSeen);
+  $("howto").addEventListener("click", (ev) => {
+    if (ev.target === $("howto")) closeHowto();
+  });
+}
+
 async function main() {
+  wireHowto();
+
   const chainPack = await fetch("data/chain.json").then((r) => r.json());
   const words = await fetch("data/words.json").then((r) => r.json());
   const heatBuf = await fetch("data/heat.bin").then((r) => r.arrayBuffer());
@@ -159,16 +212,12 @@ async function main() {
 
   $("yesterday").textContent = state.yesterday;
   $("puzzle-num").textContent = `#${puzNum}`;
-  $("pacific-date").textContent = todayDate;
   renderGuesses(state);
   renderStats(store);
 
-  const baseline = lookup.heat(state.yesterday, state.dayIndex);
-  $("baseline").textContent = `Starting heat from yesterday: ${baseline}`;
-
   if (state.won || state.lost) {
     renderEnd(state, puzNum, store);
-    setStatus(state.won ? "Already found today's word." : "Come back after midnight Pacific.", "muted");
+    setStatus(state.won ? "Already caught today’s kite." : "Come back after midnight Pacific.");
   }
 
   $("form").addEventListener("submit", (ev) => {
@@ -177,9 +226,9 @@ async function main() {
     const raw = input.value;
     const result = applyGuess(state, raw, lookup);
     if (!result.ok) {
-      if (result.reason === "invalid") setStatus("Unknown word — try a common English word.", "bad");
+      if (result.reason === "invalid") setStatus("Not in the word list.", "bad");
       else if (result.reason === "duplicate") setStatus("Already guessed.", "bad");
-      else setStatus("Today's drift is over.", "muted");
+      else setStatus("Today’s drift is over.");
       input.select();
       return;
     }
@@ -202,14 +251,15 @@ async function main() {
     input.value = "";
     input.focus();
     if (state.won) {
-      setStatus(`Hot enough. ${state.today}.`, "good");
+      setStatus(`You caught it — ${state.today}.`, "good");
       renderEnd(state, puzNum, store);
     } else if (state.lost) {
-      setStatus("Six guesses. The current slips away.", "bad");
+      setStatus("Six guesses. The kite got away.", "bad");
       renderEnd(state, puzNum, store);
     } else {
       const t = result.trend === "hotter" ? "Hotter." : result.trend === "colder" ? "Colder." : "Same heat.";
-      setStatus(`${t} Heat ${result.heat} — ${heatLabel(result.heat)}.`);
+      const warmth = heatLabel(result.heat);
+      setStatus(`${t} ${warmth}.`);
     }
   });
 
@@ -227,15 +277,16 @@ async function main() {
         await navigator.clipboard.writeText(text);
         setStatus("Share card copied.", "good");
       } catch {
-        setStatus("Copy the card by hand.", "muted");
+        setStatus("Copy the card by hand.");
       }
     }
   });
 
-  $("guess").focus();
+  if (!howtoSeen()) openHowto();
+  else if (!(state.won || state.lost)) $("guess").focus();
 }
 
 main().catch((err) => {
   console.error(err);
-  setStatus("Could not load today's puzzle files.", "bad");
+  setStatus("Could not load today’s puzzle files.", "bad");
 });
