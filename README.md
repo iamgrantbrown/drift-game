@@ -5,8 +5,9 @@ meaning-step away — often through another meaning of the word.
 
 Play: https://iamgrantbrown.github.io/drift-game/
 
-If yesterday was **record** and today is **player**, the step is *a record
-player*. Six guesses; every guess shows how close its meaning is:
+If yesterday was **mouse** and today were **cheese**, the step would be
+*a mouse loves cheese* (that pair isn't in the game — the real chain is
+the secret). Six guesses; every guess shows how close its meaning is:
 ice · cold · cool · warm · hot · scorching.
 
 ## Play
@@ -27,8 +28,8 @@ Then open http://localhost:8080/
   count as their base word (guessing "strings" catches "string").
 - After three all-cold guesses, a one-time nudge reminds you the drift
   moves by meaning — yesterday's word usually has more than one.
-- Win or lose, the end card reveals the pivot ("record → player — a record
-  player") and counts down to the next puzzle.
+- Win or lose, the end card reveals the pivot that links yesterday's word
+  to today's, and counts down to the next puzzle.
 - Streak and stats live in the browser on your device. No accounts, ads,
   or payments.
 - The share card shows puzzle number, guess count, and band bars. It never
