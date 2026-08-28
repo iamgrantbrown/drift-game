@@ -308,15 +308,6 @@ h1 {
   box-shadow: 0 0 0 2px rgba(126, 182, 217, 0.3);
 }
 
-.heat-num {
-  font-variant-numeric: tabular-nums;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--mute);
-  min-width: 1.35rem;
-  text-align: right;
-}
-
 .guess-row.heat-ice,
 .guess-row.heat-cold { border-color: #c5deee; }
 .guess-row.heat-cool { border-color: #d2dde4; }

@@ -10,5 +10,5 @@ export function shareText({ puzzleNumber, guesses, won, maxGuesses = 6 }) {
     guesses.map((g) => heatBlock(g.heat)).join("") +
     "⬜".repeat(Math.max(0, maxGuesses - guesses.length));
   const line = won ? `got it in ${guesses.length}` : "drifted away";
-  return `🪁 Drift #${puzzleNumber}\n${line}\n${bars}`;
+  return `Drift #${puzzleNumber}\n${line}\n${bars}`;
 }

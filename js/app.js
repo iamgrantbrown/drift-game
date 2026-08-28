@@ -70,7 +70,9 @@ function recordResult(store, date, won) {
   };
 }
 
-function pipKind(heat) {
+function pipKind(trend, heat) {
+  if (trend === "hotter" || trend === "found") return "sun";
+  if (trend === "colder" || trend === "still") return "wind";
   return heat >= 45 ? "sun" : "wind";
 }
 
@@ -99,13 +101,13 @@ function renderGuesses(state) {
             ? "still cold"
             : "holding";
     row.classList.add("heat-" + label);
+    const pipTrend = found ? "found" : g.trend;
     row.innerHTML = `
       <span class="word">${escapeHtml(g.word)}</span>
       <span class="heat-chip ${chipClass}">
-        <span class="pip ${pipKind(g.heat)}" aria-hidden="true"></span>
+        <span class="pip ${pipKind(pipTrend, g.heat)}" aria-hidden="true"></span>
         <span class="chip-label">${chipText}</span>
       </span>
-      <span class="heat-num">${g.heat}</span>
     `;
     root.appendChild(row);
   }
@@ -136,7 +138,7 @@ function renderEnd(state, puzNum, store) {
     won: state.won,
     maxGuesses: MAX_GUESSES,
   });
-  $("end-title").textContent = state.won ? "You caught the kite" : "The kite got away";
+  $("end-title").textContent = state.won ? "You caught the drift" : "It drifted away";
   $("end-body").textContent = state.won
     ? `Today’s word in ${state.guesses.length} of ${MAX_GUESSES}.`
     : `Today’s word was ${state.today}. Tomorrow another step.`;
@@ -225,7 +227,7 @@ async function main() {
 
   if (state.won || state.lost) {
     renderEnd(state, puzNum, store);
-    setStatus(state.won ? "Already caught today’s kite." : "Come back after midnight Pacific.");
+    setStatus(state.won ? "Already caught today’s drift." : "Come back after midnight Pacific.");
   }
 
   $("form").addEventListener("submit", (ev) => {
@@ -262,14 +264,13 @@ async function main() {
       setStatus(`You caught it — ${state.today}.`, "good");
       renderEnd(state, puzNum, store);
     } else if (state.lost) {
-      setStatus("Six guesses. The kite got away.", "bad");
+      setStatus("Six guesses. It drifted away.", "bad");
       renderEnd(state, puzNum, store);
     } else {
-      const warmth = heatLabel(result.heat);
-      if (result.trend === "hotter") setStatus(`Hotter. ${warmth}.`);
-      else if (result.trend === "colder") setStatus(`Colder. ${warmth}.`);
+      if (result.trend === "hotter") setStatus("Hotter.");
+      else if (result.trend === "colder") setStatus("Colder.");
       else if (result.trend === "still") setStatus("Still cold.");
-      else setStatus(`Same heat. ${warmth}.`);
+      else setStatus("Holding.");
     }
   });
 
