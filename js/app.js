@@ -8,7 +8,7 @@ import {
 } from "./calendar.js";
 import { shareText } from "./share.js";
 
-const STORAGE_KEY = "drift-v1";
+const STORAGE_KEY = "drift-v2";
 const HOWTO_KEY = "drift-howto-v1";
 
 const $ = (id) => document.getElementById(id);
