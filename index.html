@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07110e" />
+  <title>Drift — daily word game</title>
+  <meta name="description" content="Yesterday's word is shown. Today's is one meaning-step away. Six guesses, hotter or colder." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="brand">
+        <h1>Drift</h1>
+        <div class="meta"><span id="puzzle-num">#</span> · <span id="pacific-date"></span> PT</div>
+      </div>
+      <p class="rule">Yesterday’s word is shown; today’s is one meaning-step away — six guesses, hotter or colder.</p>
+    </header>
+
+    <section class="wake" aria-label="Today’s drift">
+      <div>
+        <span class="label">Yesterday</span>
+        <p class="yesterday" id="yesterday">—</p>
+      </div>
+      <div class="arrow" aria-hidden="true">↝</div>
+      <div>
+        <span class="label">Today</span>
+        <p class="today-blank">····</p>
+      </div>
+      <p class="baseline" id="baseline"></p>
+    </section>
+
+    <div class="stats">
+      <span>Streak <b id="streak">0</b></span>
+      <span>Best <b id="max-streak">0</b></span>
+    </div>
+
+    <div class="guess-list" id="guesses" aria-live="polite"></div>
+
+    <form id="form" autocomplete="off">
+      <input id="guess" type="text" enterkeyhint="go" autocapitalize="none" autocomplete="off" spellcheck="false" maxlength="14" placeholder="guess today’s word" aria-label="Guess today’s word" />
+      <button type="submit">Drift</button>
+    </form>
+    <p class="status" id="status" role="status"></p>
+
+    <section class="end" id="end" hidden>
+      <h2 id="end-title"></h2>
+      <p id="end-body"></p>
+      <pre class="share-card" id="share-text"></pre>
+      <button type="button" class="ghosty" id="share-btn">Copy share card</button>
+    </section>
+
+    <footer>
+      One puzzle a day, midnight Pacific. No accounts, no ads, no hints engine.
+      Heat is semantic closeness, not spelling. <a href="https://github.com/iamgrantbrown/drift-game">Source</a>
+    </footer>
+  </main>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
