@@ -247,6 +247,38 @@ test("share card never names the secret", () => {
   assert.match(card, /got it in 3/);
   assert.equal(card.includes("espresso"), false);
   assert.equal(card.includes("coffee"), false);
+  assert.equal(card.includes("🪁"), false);
+});
+
+test("board does not print heat numbers", () => {
+  const app = fs.readFileSync(path.join(root, "js/app.js"), "utf8");
+  const css = fs.readFileSync(path.join(root, "css/style.css"), "utf8");
+  assert.equal(app.includes("heat-num"), false);
+  assert.equal(app.includes("${g.heat}"), false);
+  assert.equal(css.includes(".heat-num"), false);
+});
+
+test("end copy uses drift language, not kite voice", () => {
+  const app = fs.readFileSync(path.join(root, "js/app.js"), "utf8");
+  assert.match(app, /You caught the drift/);
+  assert.match(app, /It drifted away/);
+  assert.equal(/caught the kite|kite got away|today.s kite/i.test(app), false);
+});
+
+test("how-to sample chips say hotter, not hot", () => {
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const dialog = html.slice(html.indexOf("<dialog"), html.indexOf("</dialog>"));
+  assert.equal(dialog.includes('chip-label">hot<'), false);
+  assert.match(dialog, /chip-label">hotter</);
+});
+
+test("colder chips use a wind pip, not a gold sun", () => {
+  const app = fs.readFileSync(path.join(root, "js/app.js"), "utf8");
+  assert.match(app, /trend === "colder".*return "wind"/s);
+  const html = fs.readFileSync(path.join(root, "index.html"), "utf8");
+  const dialog = html.slice(html.indexOf("<dialog"), html.indexOf("</dialog>"));
+  assert.match(dialog, /heat-chip colder"><span class="pip wind"/);
+  assert.equal(/heat-chip colder"><span class="pip sun"/.test(dialog), false);
 });
 
 console.log("");

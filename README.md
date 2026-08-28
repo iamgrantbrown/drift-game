@@ -23,7 +23,7 @@ Then open http://localhost:8080/
 - Six guesses at today's word.
 - Unknown words are rejected (common English guess list).
 - After each guess: hotter or colder versus your previous guess, but only when the heat band changes or the score jumps by 10+. Same-band ice twitching says still cold, never hotter. The first guess is compared with yesterday's word.
-- Heat 0-100 is semantic relatedness (rank in a baked neighbor list), never edit distance.
+- Heat 0-100 is semantic relatedness (rank in a baked neighbor list), never edit distance. The board shows hotter/colder chips, not the number.
 - One puzzle per day, rolling at midnight Pacific (America/Los_Angeles).
 - Streak lives in the browser on your device. No accounts, ads, payments, or hint engine.
 - The share card shows puzzle number, guess count, and heat bars. It does not name the word.
