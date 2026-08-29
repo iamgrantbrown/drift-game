@@ -1,5 +1,5 @@
 import { MAX_GUESSES, applyGuess, blankPivot, clueAvailable, createState } from "./game.js";
-import { bandFor, bandRank, createHeatLookup } from "./heat.js";
+import { bandFor, createHeatLookup } from "./heat.js";
 import { dayIndex, daysBetween, pacificDateString, puzzleNumber, TIMEZONE } from "./calendar.js";
 import { shareText } from "./share.js";
 import { voiceLine, winLine } from "./voice.js";
@@ -130,13 +130,28 @@ function setStatus(msg, kind = "") {
   el.className = "status " + kind;
 }
 
-/** Desk warmth is a live thermometer: it follows the LATEST guess, warming
- *  when you run hot and cooling again when you drift cold. */
+/** The notebook travels through your day: every guess sets it down
+ *  somewhere new, and the finished page ends up under a lamp at night. */
+const SCENES = ["home", "coffee", "commute", "office", "park", "evening"];
+let sceneShown = null;
+let sceneFront = null; // which layer is currently visible
+
 function renderProgress(state) {
-  const last = state.guesses[state.guesses.length - 1];
-  const rank = state.won ? 6 : last ? bandRank(last.heat) : 0;
-  const warmth = Math.min(1, rank / 5);
-  document.documentElement.style.setProperty("--warmth", warmth.toFixed(3));
+  const name = state.won || state.lost ? "night" : SCENES[Math.min(state.guesses.length, SCENES.length - 1)];
+  if (name === sceneShown) return;
+  sceneShown = name;
+  document.documentElement.dataset.scene = name;
+  const a = $("scene-a");
+  const b = $("scene-b");
+  const front = sceneFront === a ? a : sceneFront === b ? b : null;
+  const back = front === a ? b : a;
+  back.className = "scene bg-" + name;
+  // double rAF so the class lands before the fade starts
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    back.classList.add("visible");
+    if (front) front.classList.remove("visible");
+  }));
+  sceneFront = back;
 }
 
 function renderEnd(state, puzNum, store) {
