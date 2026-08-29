@@ -162,12 +162,12 @@ const PROPS = {
       '<ellipse cx="50" cy="74" rx="34" ry="7"/><path d="M28 42 h36 v14 a13 13 0 0 1 -13 13 h-10 a13 13 0 0 1 -13 -13 z"/><path d="M64 46 h7 a8 8 0 0 1 0 16 h-8"/><path d="M36 32 c 0 -7, 6 -7, 6 -14"/><path d="M47 34 c 0 -6, 6 -6, 6 -12"/><path d="M57 32 c 0 -7, 6 -7, 6 -14"/>'),
     // croissant, bottom-left
     S("calc(50% - 345px)", "64%", 88,
-      '<path d="M20 60 C 26 42, 44 34, 56 40 C 68 34, 82 44, 82 56 C 76 52, 70 52, 66 54 C 64 46, 50 44, 46 50 C 38 46, 26 52, 20 60 z"/><path d="M46 50 C 48 56, 60 58, 66 54"/><path d="M20 60 c 8 2, 18 0, 26 -10"/><path d="M82 56 c -6 4, -12 4, -16 -2"/>'),
+      '<path d="M16 64 C 12 52, 22 42, 34 46 C 38 36, 62 36, 66 46 C 78 42, 88 52, 84 64 C 80 58, 72 56, 66 58 C 62 50, 38 50, 34 58 C 28 56, 20 58, 16 64 z"/><path d="M34 46 C 36 51, 36 54, 34 58" stroke-width="1.8"/><path d="M66 46 C 64 51, 64 54, 66 58" stroke-width="1.8"/>'),
   ],
   commute: [
-    // train window with passing hills, top-right
+    // train window with the country rolling past, top-right
     S("calc(50% + 245px)", "12%", 110,
-      '<rect x="12" y="16" width="76" height="58" rx="10"/><path d="M16 58 C 30 44, 42 50, 50 56 C 60 44, 74 46, 84 54"/><circle cx="70" cy="30" r="6"/><path d="M12 66 h76"/>'),
+      '<rect x="10" y="18" width="80" height="56" rx="9"/><rect x="16" y="24" width="68" height="44" rx="5" stroke-width="1.7"/><path d="M18 56 C 30 48, 42 54, 52 50 C 64 44, 74 50, 82 48" stroke-width="1.7"/><path d="M24 34 h12 M46 31 h16 M30 40 h9" stroke-width="1.5" opacity="0.7"/>'),
     // ticket stub, bottom-left
     S("calc(50% - 330px)", "66%", 84,
       '<path d="M18 40 h64 v12 a5 5 0 0 0 0 10 v12 h-64 v-12 a5 5 0 0 0 0 -10 z" transform="rotate(-8 50 57)"/><path d="M30 52 h24 M30 60 h18" transform="rotate(-8 50 57)"/><path d="M66 46 v30" stroke-dasharray="4 5" transform="rotate(-8 50 57)"/>'),
@@ -181,9 +181,9 @@ const PROPS = {
       '<path d="M34 36 h30 l-4 40 h-22 z"/><path d="M32 36 h34 v-8 h-34 z"/><path d="M40 22 c 0 -5, 5 -5, 5 -9"/><path d="M76 66 c 6 -2, 10 4, 5 8 l-12 9 c -7 5, -14 -4, -8 -9 l 13 -10" stroke-width="1.8"/>'),
   ],
   park: [
-    // branch with a bird, top-right
-    S("calc(50% + 240px)", "13%", 116,
-      '<path d="M6 66 C 30 60, 60 58, 94 62"/><path d="M34 62 c -4 -8, -12 -10, -18 -8"/><path d="M60 60 c 2 -10, 10 -14, 16 -12"/><path d="M46 60 c 0 -6, -6 -8, -10 -6"/><path d="M70 48 a8 8 0 0 1 8 8 c 0 3, -2 5, -6 5 a8 8 0 0 1 -8 -8 c 0 -3, 2 -5, 6 -5 z"/><circle cx="74" cy="52" r="0.8" fill="currentColor"/><path d="M64 56 l -6 2"/>'),
+    // a bird on a branch, top-right
+    S("calc(50% + 240px)", "12%", 116,
+      '<path d="M6 70 C 28 64, 62 66, 94 62"/><path d="M74 64 c 5 -4, 8 -9, 8 -15"/><path d="M34 61 C 24 60, 22 50, 30 45 C 31 36, 43 33, 48 39 C 50 38, 53 38, 55 40 L 64 43 L 55 46 C 57 55, 48 63, 38 61 z"/><circle cx="47" cy="43" r="1.1" fill="currentColor" stroke="none"/><path d="M32 52 a8 6 0 0 0 10 4" stroke-width="1.7"/><path d="M31 46 l-11 -5 M31 50 l-12 0" stroke-width="1.7"/><path d="M38 61 v7 M44 60 v8" stroke-width="1.7"/>'),
     // fallen leaves, bottom-left
     S("calc(50% - 340px)", "66%", 84,
       '<path d="M26 60 c -8 -12, 2 -26, 16 -24 c 2 14, -6 24, -16 24 z"/><path d="M30 56 c 4 -8, 8 -14, 10 -20"/><path d="M58 74 c -6 -10, 2 -20, 13 -19 c 1 11, -5 19, -13 19 z" transform="rotate(24 64 64)"/>'),
@@ -197,9 +197,9 @@ const PROPS = {
       '<circle cx="56" cy="56" r="26"/><circle cx="56" cy="56" r="16"/><path d="M18 36 v14 M24 36 v14 M30 36 v14 M24 50 v28"/><path d="M18 50 h12"/>'),
   ],
   night: [
-    // desk lamp with light cone, top-right, leaning over the page
-    S("calc(50% + 225px)", "8%", 150,
-      '<path d="M78 84 h-28 a6 6 0 0 1 0 -12 h10"/><path d="M60 72 L 44 44"/><path d="M44 44 L 58 26"/><path d="M58 26 l -22 -8 a4 4 0 0 0 -3 7 l 14 14"/><path d="M33 18 L 8 52" stroke-dasharray="2 7" stroke-width="1.6" opacity="0.7"/><path d="M40 26 L 26 62" stroke-dasharray="2 7" stroke-width="1.6" opacity="0.7"/>'),
+    // bedside lamp glowing, top-right
+    S("calc(50% + 245px)", "8%", 120,
+      '<path d="M27 42 a23 23 0 0 1 46 0 z"/><path d="M50 42 v24"/><path d="M34 75 a16 9 0 0 1 32 0 z"/><path d="M37 50 l-5 9" stroke-width="1.6" opacity="0.75"/><path d="M50 51 v10" stroke-width="1.6" opacity="0.75"/><path d="M63 50 l5 9" stroke-width="1.6" opacity="0.75"/>'),
     // moon + reading glasses, bottom-left
     S("calc(50% - 330px)", "10%", 56, '<path d="M62 20 a26 26 0 1 0 18 44 a30 30 0 0 1 -18 -44 z"/>'),
     S("calc(50% - 345px)", "66%", 84,
