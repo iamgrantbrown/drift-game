@@ -149,61 +149,54 @@ const S = (x, y, w, body) =>
 
 const PROPS = {
   home: [
-    // potted plant, bottom-left of the desk
-    S("calc(50% - 350px)", "62%", 92,
-      '<path d="M32 62 h36 l-5 28 h-26 z"/><path d="M50 62 C 50 40, 38 34, 30 22"/><path d="M50 62 C 52 38, 64 34, 72 20"/><path d="M50 62 C 50 44, 50 34, 50 24"/><path d="M30 22 c -2 8, 2 12, 8 13"/><path d="M72 20 c 3 8, -1 13, -8 14"/><path d="M50 24 c -6 4, -6 10, 0 13"/>'),
-    // morning mug, top-right
-    S("calc(50% + 265px)", "16%", 74,
-      '<path d="M28 40 h40 v26 a14 14 0 0 1 -14 14 h-12 a14 14 0 0 1 -14 -14 z"/><path d="M68 46 h8 a9 9 0 0 1 0 18 h-9"/><path d="M40 30 c 0 -6, 6 -6, 6 -12"/><path d="M52 32 c 0 -5, 5 -5, 5 -10"/>'),
+    // a pen and a jotted note: the desk where the day starts
+    S("calc(50% + 265px)", "16%", 86,
+      '<path d="M24 76 L62 38 a7 7 0 0 1 10 10 L34 86 a7 7 0 0 1 -10 -10 z"/><path d="M24 76 l-8 16 l16 -8"/><path d="M56 44 l8 8" stroke-width="1.7"/>'),
+    S("calc(50% - 345px)", "62%", 88,
+      '<path d="M20 26 h44 v22 l-8 8 h-36 z" transform="rotate(-5 42 41)"/><path d="M28 36 h28 M28 44 h18" stroke-width="1.6" transform="rotate(-5 42 41)"/>'),
   ],
   coffee: [
-    // cup on saucer with steam, top-right
-    S("calc(50% + 250px)", "14%", 96,
-      '<ellipse cx="50" cy="74" rx="34" ry="7"/><path d="M28 42 h36 v14 a13 13 0 0 1 -13 13 h-10 a13 13 0 0 1 -13 -13 z"/><path d="M64 46 h7 a8 8 0 0 1 0 16 h-8"/><path d="M36 32 c 0 -7, 6 -7, 6 -14"/><path d="M47 34 c 0 -6, 6 -6, 6 -12"/><path d="M57 32 c 0 -7, 6 -7, 6 -14"/>'),
-    // croissant, bottom-left
-    S("calc(50% - 345px)", "64%", 88,
-      '<path d="M16 64 C 12 52, 22 42, 34 46 C 38 36, 62 36, 66 46 C 78 42, 88 52, 84 64 C 80 58, 72 56, 66 58 C 62 50, 38 50, 34 58 C 28 56, 20 58, 16 64 z"/><path d="M34 46 C 36 51, 36 54, 34 58" stroke-width="1.8"/><path d="M66 46 C 64 51, 64 54, 66 58" stroke-width="1.8"/>'),
+    // your cup, seen from above, spoon on the saucer
+    S("calc(50% + 250px)", "13%", 104,
+      '<circle cx="48" cy="52" r="31"/><circle cx="48" cy="52" r="20"/><circle cx="48" cy="52" r="14" stroke-width="1.7"/><path d="M79 46 a9 9 0 0 1 0 13"/><path d="M62 76 l16 12"/><ellipse cx="80" cy="90" rx="5" ry="3.6" transform="rotate(38 80 90)"/>'),
+    // the ring an earlier cup left behind
+    S("calc(50% - 340px)", "62%", 90,
+      '<path d="M36 26 a24 24 0 0 1 30 10" stroke-width="5" opacity="0.5"/><path d="M70 44 a24 24 0 0 1 -12 28" stroke-width="5" opacity="0.4"/><path d="M50 74 a24 24 0 0 1 -22 -34" stroke-width="5" opacity="0.45"/>'),
   ],
   commute: [
-    // train window with the country rolling past, top-right
-    S("calc(50% + 245px)", "12%", 110,
-      '<rect x="10" y="18" width="80" height="56" rx="9"/><rect x="16" y="24" width="68" height="44" rx="5" stroke-width="1.7"/><path d="M18 56 C 30 48, 42 54, 52 50 C 64 44, 74 50, 82 48" stroke-width="1.7"/><path d="M24 34 h12 M46 31 h16 M30 40 h9" stroke-width="1.5" opacity="0.7"/>'),
-    // ticket stub, bottom-left
-    S("calc(50% - 330px)", "66%", 84,
-      '<path d="M18 40 h64 v12 a5 5 0 0 0 0 10 v12 h-64 v-12 a5 5 0 0 0 0 -10 z" transform="rotate(-8 50 57)"/><path d="M30 52 h24 M30 60 h18" transform="rotate(-8 50 57)"/><path d="M66 46 v30" stroke-dasharray="4 5" transform="rotate(-8 50 57)"/>'),
+    // phone face-up on the tray table, ticket beside it
+    S("calc(50% + 275px)", "14%", 76,
+      '<rect x="34" y="18" width="34" height="62" rx="7"/><path d="M46 24 h10" stroke-width="1.7"/><circle cx="51" cy="72" r="2.6" stroke-width="1.7"/>'),
+    S("calc(50% - 330px)", "64%", 84,
+      '<path d="M18 40 h64 v12 a5 5 0 0 0 0 10 v12 h-64 v-12 a5 5 0 0 0 0 -10 z" transform="rotate(-8 50 57)"/><path d="M30 52 h24 M30 60 h18" transform="rotate(-8 50 57)" stroke-width="1.7"/><path d="M66 46 v30" stroke-dasharray="4 5" transform="rotate(-8 50 57)" stroke-width="1.7"/>'),
   ],
   office: [
-    // sticky notes, top-right
+    // sticky notes and a pencil put down mid-thought
     S("calc(50% + 265px)", "15%", 86,
       '<rect x="16" y="18" width="34" height="34" transform="rotate(-5 33 35)"/><rect x="48" y="40" width="34" height="34" transform="rotate(6 65 57)"/><path d="M22 32 c 8 -4, 16 2, 22 -2" transform="rotate(-5 33 35)"/><path d="M54 54 h20 M54 62 h14" transform="rotate(6 65 57)"/>'),
-    // paper coffee cup + paperclip, bottom-left
-    S("calc(50% - 335px)", "63%", 80,
-      '<path d="M34 36 h30 l-4 40 h-22 z"/><path d="M32 36 h34 v-8 h-34 z"/><path d="M40 22 c 0 -5, 5 -5, 5 -9"/><path d="M76 66 c 6 -2, 10 4, 5 8 l-12 9 c -7 5, -14 -4, -8 -9 l 13 -10" stroke-width="1.8"/>'),
+    S("calc(50% - 340px)", "64%", 84,
+      '<path d="M22 80 L58 44 M30 88 L66 52"/><path d="M22 80 l-6 12 l10 -4 z"/><path d="M58 44 l8 8 M62 40 l8 8" stroke-width="1.7"/>'),
   ],
   park: [
-    // a bird on a branch, top-right
-    S("calc(50% + 240px)", "12%", 116,
-      '<path d="M6 70 C 28 64, 62 66, 94 62"/><path d="M74 64 c 5 -4, 8 -9, 8 -15"/><path d="M34 61 C 24 60, 22 50, 30 45 C 31 36, 43 33, 48 39 C 50 38, 53 38, 55 40 L 64 43 L 55 46 C 57 55, 48 63, 38 61 z"/><circle cx="47" cy="43" r="1.1" fill="currentColor" stroke="none"/><path d="M32 52 a8 6 0 0 0 10 4" stroke-width="1.7"/><path d="M31 46 l-11 -5 M31 50 l-12 0" stroke-width="1.7"/><path d="M38 61 v7 M44 60 v8" stroke-width="1.7"/>'),
-    // fallen leaves, bottom-left
-    S("calc(50% - 340px)", "66%", 84,
-      '<path d="M26 60 c -8 -12, 2 -26, 16 -24 c 2 14, -6 24, -16 24 z"/><path d="M30 56 c 4 -8, 8 -14, 10 -20"/><path d="M58 74 c -6 -10, 2 -20, 13 -19 c 1 11, -5 19, -13 19 z" transform="rotate(24 64 64)"/>'),
+    // what the wind left on the bench
+    S("calc(50% + 260px)", "14%", 92,
+      '<path d="M74 20 C 58 22, 42 38, 32 60 C 29 68, 28 76, 28 82 C 34 78, 43 71, 51 61 C 64 47, 71 33, 74 20 z"/><path d="M30 80 C 46 60, 62 38, 74 20" stroke-width="1.6"/><path d="M38 62 l8 3 M44 52 l9 4 M52 42 l8 4" stroke-width="1.4" opacity="0.8"/>'),
+    S("calc(50% - 340px)", "64%", 84,
+      '<path d="M26 60 c -8 -12, 2 -26, 16 -24 c 2 14, -6 24, -16 24 z"/><path d="M30 56 c 4 -8, 8 -14, 10 -20" stroke-width="1.6"/><path d="M58 74 c -6 -10, 2 -20, 13 -19 c 1 11, -5 19, -13 19 z" transform="rotate(24 64 64)"/>'),
   ],
   evening: [
-    // lit candle, top-right
-    S("calc(50% + 275px)", "14%", 70,
-      '<path d="M40 44 h20 v34 h-20 z"/><ellipse cx="50" cy="78" rx="20" ry="5"/><path d="M50 44 v-8"/><path d="M50 22 c 5 6, 4 11, 0 14 c -4 -3, -5 -8, 0 -14 z"/>'),
-    // plate with fork, bottom-left
-    S("calc(50% - 350px)", "64%", 92,
-      '<circle cx="56" cy="56" r="26"/><circle cx="56" cy="56" r="16"/><path d="M18 36 v14 M24 36 v14 M30 36 v14 M24 50 v28"/><path d="M18 50 h12"/>'),
+    // the notebook set like a dinner plate: fork left, knife right
+    S("calc(50% - 300px)", "22%", 90,
+      '<path d="M46 90 c -3 -14, -2 -24, 2 -34 l 0 -4 c -5 -4, -7 -10, -7 -18 l 2 -16 M52 90 c 3 -14, 2 -24, -2 -34 l 0 -4 c 5 -4, 7 -10, 7 -18 l -2 -16"/><path d="M46 18 v16 M52 18 v16" stroke-width="1.7"/>'),
+    S("calc(50% + 260px)", "22%", 90,
+      '<path d="M48 90 c -2 -12, -2 -22, 0 -34"/><path d="M52 90 c 2 -12, 2 -22, 0 -34"/><path d="M48 56 c -6 -14, -6 -28, 2 -42 c 8 10, 9 28, 2 42 z"/>'),
   ],
   night: [
-    // bedside lamp glowing, top-right
-    S("calc(50% + 245px)", "8%", 120,
-      '<path d="M27 42 a23 23 0 0 1 46 0 z"/><path d="M50 42 v24"/><path d="M34 75 a16 9 0 0 1 32 0 z"/><path d="M37 50 l-5 9" stroke-width="1.6" opacity="0.75"/><path d="M50 51 v10" stroke-width="1.6" opacity="0.75"/><path d="M63 50 l5 9" stroke-width="1.6" opacity="0.75"/>'),
-    // moon + reading glasses, bottom-left
-    S("calc(50% - 330px)", "10%", 56, '<path d="M62 20 a26 26 0 1 0 18 44 a30 30 0 0 1 -18 -44 z"/>'),
-    S("calc(50% - 345px)", "66%", 84,
-      '<circle cx="32" cy="56" r="14"/><circle cx="68" cy="56" r="14"/><path d="M46 56 c 2 -4, 6 -4, 8 0"/><path d="M18 56 l -8 -6 M82 56 l 8 -6"/>'),
+    // glasses folded, a book closed: the day put away
+    S("calc(50% + 260px)", "13%", 88,
+      '<rect x="30" y="18" width="42" height="64" rx="3"/><path d="M37 18 v64" stroke-width="1.7"/><path d="M46 34 h18 M46 42 h12" stroke-width="1.5" opacity="0.8"/><path d="M60 82 v-8 l4 4 l4 -4 v8" stroke-width="1.5"/>'),
+    S("calc(50% - 345px)", "60%", 90,
+      '<circle cx="30" cy="56" r="13"/><circle cx="58" cy="56" r="13"/><path d="M43 54 a5 4 0 0 1 2 0" stroke-width="1.7"/><path d="M71 52 C 66 40, 52 36, 40 40" stroke-width="1.7"/><path d="M17 52 C 20 44, 26 40, 34 41" stroke-width="1.7"/>'),
   ],
 };
 
