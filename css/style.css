@@ -59,67 +59,73 @@ body {
 }
 .scene.visible { opacity: 1; }
 
+/* pencil-drawn props that say where you are */
+.prop {
+  position: absolute;
+  color: rgba(90, 74, 52, 0.55);
+  opacity: 0.9;
+}
+.bg-coffee .prop, .bg-night .prop { color: rgba(245, 228, 196, 0.5); }
+.bg-commute .prop { color: rgba(55, 68, 82, 0.5); }
+.bg-park .prop { color: rgba(58, 74, 40, 0.5); }
+@media (max-width: 699px) {
+  .prop { display: none; }
+}
+
 /* morning: the desk at home, pale wood, window light */
 .bg-home {
   background:
-    radial-gradient(1100px 600px at 50% 18%, rgba(255, 253, 246, 0.5), transparent 70%),
-    repeating-linear-gradient(91deg, rgba(120, 95, 60, 0.045) 0 2px, transparent 2px 9px),
-    repeating-linear-gradient(89deg, rgba(90, 70, 45, 0.03) 0 26px, transparent 26px 61px),
-    linear-gradient(180deg, #e6dfd0 0%, #ddd3bf 100%);
+    radial-gradient(1000px 550px at 50% 12%, rgba(255, 252, 242, 0.55), transparent 70%),
+    repeating-linear-gradient(90.5deg, rgba(150, 120, 80, 0.035) 0 3px, transparent 3px 34px),
+    linear-gradient(180deg, #ead9bd 0%, #ddc7a4 100%);
 }
 
 /* the coffee shop: dark espresso counter, a cup ring, warm lamp */
 .bg-coffee {
   background:
-    radial-gradient(circle at 13% 16%, transparent 42px, rgba(255, 225, 180, 0.16) 44px 50px, transparent 53px),
-    radial-gradient(900px 550px at 65% 12%, rgba(255, 205, 130, 0.22), transparent 70%),
-    repeating-linear-gradient(88deg, rgba(50, 32, 18, 0.1) 0 3px, transparent 3px 11px),
-    linear-gradient(180deg, #7d5f45 0%, #64492f 100%);
+    radial-gradient(850px 500px at 62% 8%, rgba(255, 200, 120, 0.28), transparent 68%),
+    repeating-linear-gradient(89deg, rgba(40, 24, 12, 0.07) 0 4px, transparent 4px 40px),
+    linear-gradient(180deg, #6e5138 0%, #553d28 100%);
 }
 
 /* the commute: cool seat-back tray, window light strobing past */
 .bg-commute {
   background:
-    repeating-linear-gradient(102deg, rgba(255, 255, 255, 0.09) 0 70px, transparent 70px 220px),
-    repeating-linear-gradient(45deg, rgba(70, 85, 100, 0.05) 0 2px, transparent 2px 5px),
-    linear-gradient(180deg, #adb6bf 0%, #939ea9 100%);
+    linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.14) 42%, transparent 55%),
+    linear-gradient(180deg, #b7bfc7 0%, #9aa5b0 100%);
 }
 
 /* the office: pale laminate over faint grid paper light */
 .bg-office {
   background:
-    repeating-linear-gradient(0deg, rgba(110, 140, 170, 0.05) 0 1px, transparent 1px 34px),
-    repeating-linear-gradient(90deg, rgba(110, 140, 170, 0.05) 0 1px, transparent 1px 34px),
-    radial-gradient(1000px 600px at 50% 0%, rgba(255, 255, 255, 0.55), transparent 65%),
-    linear-gradient(180deg, #e9e6df 0%, #dcd8cf 100%);
+    repeating-linear-gradient(0deg, rgba(120, 145, 175, 0.06) 0 1px, transparent 1px 36px),
+    repeating-linear-gradient(90deg, rgba(120, 145, 175, 0.06) 0 1px, transparent 1px 36px),
+    radial-gradient(1000px 550px at 50% 0%, rgba(255, 255, 255, 0.6), transparent 65%),
+    linear-gradient(180deg, #e8e6e0 0%, #d9d6cd 100%);
 }
 
 /* the park bench: weathered green wood, dappled light through leaves */
 .bg-park {
   background:
-    radial-gradient(180px 120px at 20% 28%, rgba(255, 252, 230, 0.3), transparent 70%),
-    radial-gradient(220px 150px at 72% 14%, rgba(255, 252, 230, 0.26), transparent 70%),
-    radial-gradient(160px 110px at 55% 55%, rgba(255, 252, 230, 0.2), transparent 70%),
-    repeating-linear-gradient(0deg, rgba(70, 80, 40, 0.07) 0 3px, transparent 3px 46px),
-    repeating-linear-gradient(91deg, rgba(75, 85, 45, 0.05) 0 2px, transparent 2px 8px),
-    linear-gradient(180deg, #b4bd93 0%, #9cab7e 100%);
+    radial-gradient(260px 170px at 22% 24%, rgba(255, 252, 228, 0.35), transparent 70%),
+    radial-gradient(300px 200px at 74% 60%, rgba(255, 252, 228, 0.22), transparent 70%),
+    linear-gradient(180deg, #b9c49c 0%, #9dad80 100%);
 }
 
 /* the kitchen, evening: warm gingham tablecloth */
 .bg-evening {
   background:
-    repeating-linear-gradient(0deg, rgba(176, 90, 54, 0.14) 0 17px, transparent 17px 40px),
-    repeating-linear-gradient(90deg, rgba(176, 90, 54, 0.14) 0 17px, transparent 17px 40px),
-    radial-gradient(900px 550px at 50% 15%, rgba(255, 215, 150, 0.28), transparent 70%),
-    linear-gradient(180deg, #ecd9b8 0%, #e0c69c 100%);
+    repeating-linear-gradient(0deg, rgba(176, 90, 54, 0.12) 0 18px, transparent 18px 42px),
+    repeating-linear-gradient(90deg, rgba(176, 90, 54, 0.12) 0 18px, transparent 18px 42px),
+    radial-gradient(900px 550px at 50% 12%, rgba(255, 218, 155, 0.3), transparent 70%),
+    linear-gradient(180deg, #eedcbc 0%, #e2c99e 100%);
 }
 
 /* night: dark felt, one pool of lamplight on the finished page */
 .bg-night {
   background:
-    radial-gradient(650px 480px at 50% 22%, rgba(255, 208, 130, 0.32), transparent 65%),
-    repeating-linear-gradient(47deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 6px),
-    linear-gradient(180deg, #4c4038 0%, #362e28 100%);
+    radial-gradient(700px 520px at 62% 10%, rgba(255, 202, 120, 0.4), rgba(255, 202, 120, 0.08) 45%, transparent 66%),
+    linear-gradient(180deg, #3e3a40 0%, #2b2830 100%);
 }
 
 /* dark scenes: lift the ink that sits directly on the desk */
@@ -196,6 +202,22 @@ h1 {
   color: var(--ink-soft);
   margin-top: 6px;
 }
+
+/* the journal caption: time + place, like a fieldnote entry */
+.scene-caption {
+  text-align: center;
+  margin-top: 14px;
+  margin-bottom: -6px;
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--ink-soft);
+  transition: color 1.6s ease;
+}
+[data-scene="coffee"] .scene-caption,
+[data-scene="night"] .scene-caption { color: rgba(243, 232, 212, 0.8); }
 
 /* ---------- the page (fieldnote board) ---------- */
 

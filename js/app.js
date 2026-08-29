@@ -131,21 +131,97 @@ function setStatus(msg, kind = "") {
 }
 
 /** The notebook travels through your day: every guess sets it down
- *  somewhere new, and the finished page ends up under a lamp at night. */
-const SCENES = ["home", "coffee", "commute", "office", "park", "evening"];
+ *  somewhere new, and the finished page ends up under a lamp at night.
+ *  Each scene = a caption (time + place, like a journal entry), a calm
+ *  surface, and a few pencil-drawn props that say where you are. */
+const SCENES = [
+  { name: "home", label: "8 am \u00b7 at home" },
+  { name: "coffee", label: "10 am \u00b7 the coffee shop" },
+  { name: "commute", label: "12 pm \u00b7 on the train" },
+  { name: "office", label: "2 pm \u00b7 the office" },
+  { name: "park", label: "5 pm \u00b7 the park" },
+  { name: "evening", label: "7 pm \u00b7 the kitchen table" },
+];
+const NIGHT = { name: "night", label: "11 pm \u00b7 lights out" };
+
+const S = (x, y, w, body) =>
+  `<svg class="prop" style="left:${x};top:${y};width:${w}px" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+
+const PROPS = {
+  home: [
+    // potted plant, bottom-left of the desk
+    S("calc(50% - 350px)", "62%", 92,
+      '<path d="M32 62 h36 l-5 28 h-26 z"/><path d="M50 62 C 50 40, 38 34, 30 22"/><path d="M50 62 C 52 38, 64 34, 72 20"/><path d="M50 62 C 50 44, 50 34, 50 24"/><path d="M30 22 c -2 8, 2 12, 8 13"/><path d="M72 20 c 3 8, -1 13, -8 14"/><path d="M50 24 c -6 4, -6 10, 0 13"/>'),
+    // morning mug, top-right
+    S("calc(50% + 265px)", "16%", 74,
+      '<path d="M28 40 h40 v26 a14 14 0 0 1 -14 14 h-12 a14 14 0 0 1 -14 -14 z"/><path d="M68 46 h8 a9 9 0 0 1 0 18 h-9"/><path d="M40 30 c 0 -6, 6 -6, 6 -12"/><path d="M52 32 c 0 -5, 5 -5, 5 -10"/>'),
+  ],
+  coffee: [
+    // cup on saucer with steam, top-right
+    S("calc(50% + 250px)", "14%", 96,
+      '<ellipse cx="50" cy="74" rx="34" ry="7"/><path d="M28 42 h36 v14 a13 13 0 0 1 -13 13 h-10 a13 13 0 0 1 -13 -13 z"/><path d="M64 46 h7 a8 8 0 0 1 0 16 h-8"/><path d="M36 32 c 0 -7, 6 -7, 6 -14"/><path d="M47 34 c 0 -6, 6 -6, 6 -12"/><path d="M57 32 c 0 -7, 6 -7, 6 -14"/>'),
+    // croissant, bottom-left
+    S("calc(50% - 345px)", "64%", 88,
+      '<path d="M20 60 C 26 42, 44 34, 56 40 C 68 34, 82 44, 82 56 C 76 52, 70 52, 66 54 C 64 46, 50 44, 46 50 C 38 46, 26 52, 20 60 z"/><path d="M46 50 C 48 56, 60 58, 66 54"/><path d="M20 60 c 8 2, 18 0, 26 -10"/><path d="M82 56 c -6 4, -12 4, -16 -2"/>'),
+  ],
+  commute: [
+    // train window with passing hills, top-right
+    S("calc(50% + 245px)", "12%", 110,
+      '<rect x="12" y="16" width="76" height="58" rx="10"/><path d="M16 58 C 30 44, 42 50, 50 56 C 60 44, 74 46, 84 54"/><circle cx="70" cy="30" r="6"/><path d="M12 66 h76"/>'),
+    // ticket stub, bottom-left
+    S("calc(50% - 330px)", "66%", 84,
+      '<path d="M18 40 h64 v12 a5 5 0 0 0 0 10 v12 h-64 v-12 a5 5 0 0 0 0 -10 z" transform="rotate(-8 50 57)"/><path d="M30 52 h24 M30 60 h18" transform="rotate(-8 50 57)"/><path d="M66 46 v30" stroke-dasharray="4 5" transform="rotate(-8 50 57)"/>'),
+  ],
+  office: [
+    // sticky notes, top-right
+    S("calc(50% + 265px)", "15%", 86,
+      '<rect x="16" y="18" width="34" height="34" transform="rotate(-5 33 35)"/><rect x="48" y="40" width="34" height="34" transform="rotate(6 65 57)"/><path d="M22 32 c 8 -4, 16 2, 22 -2" transform="rotate(-5 33 35)"/><path d="M54 54 h20 M54 62 h14" transform="rotate(6 65 57)"/>'),
+    // paper coffee cup + paperclip, bottom-left
+    S("calc(50% - 335px)", "63%", 80,
+      '<path d="M34 36 h30 l-4 40 h-22 z"/><path d="M32 36 h34 v-8 h-34 z"/><path d="M40 22 c 0 -5, 5 -5, 5 -9"/><path d="M76 66 c 6 -2, 10 4, 5 8 l-12 9 c -7 5, -14 -4, -8 -9 l 13 -10" stroke-width="1.8"/>'),
+  ],
+  park: [
+    // branch with a bird, top-right
+    S("calc(50% + 240px)", "13%", 116,
+      '<path d="M6 66 C 30 60, 60 58, 94 62"/><path d="M34 62 c -4 -8, -12 -10, -18 -8"/><path d="M60 60 c 2 -10, 10 -14, 16 -12"/><path d="M46 60 c 0 -6, -6 -8, -10 -6"/><path d="M70 48 a8 8 0 0 1 8 8 c 0 3, -2 5, -6 5 a8 8 0 0 1 -8 -8 c 0 -3, 2 -5, 6 -5 z"/><circle cx="74" cy="52" r="0.8" fill="currentColor"/><path d="M64 56 l -6 2"/>'),
+    // fallen leaves, bottom-left
+    S("calc(50% - 340px)", "66%", 84,
+      '<path d="M26 60 c -8 -12, 2 -26, 16 -24 c 2 14, -6 24, -16 24 z"/><path d="M30 56 c 4 -8, 8 -14, 10 -20"/><path d="M58 74 c -6 -10, 2 -20, 13 -19 c 1 11, -5 19, -13 19 z" transform="rotate(24 64 64)"/>'),
+  ],
+  evening: [
+    // lit candle, top-right
+    S("calc(50% + 275px)", "14%", 70,
+      '<path d="M40 44 h20 v34 h-20 z"/><ellipse cx="50" cy="78" rx="20" ry="5"/><path d="M50 44 v-8"/><path d="M50 22 c 5 6, 4 11, 0 14 c -4 -3, -5 -8, 0 -14 z"/>'),
+    // plate with fork, bottom-left
+    S("calc(50% - 350px)", "64%", 92,
+      '<circle cx="56" cy="56" r="26"/><circle cx="56" cy="56" r="16"/><path d="M18 36 v14 M24 36 v14 M30 36 v14 M24 50 v28"/><path d="M18 50 h12"/>'),
+  ],
+  night: [
+    // desk lamp with light cone, top-right, leaning over the page
+    S("calc(50% + 225px)", "8%", 150,
+      '<path d="M78 84 h-28 a6 6 0 0 1 0 -12 h10"/><path d="M60 72 L 44 44"/><path d="M44 44 L 58 26"/><path d="M58 26 l -22 -8 a4 4 0 0 0 -3 7 l 14 14"/><path d="M33 18 L 8 52" stroke-dasharray="2 7" stroke-width="1.6" opacity="0.7"/><path d="M40 26 L 26 62" stroke-dasharray="2 7" stroke-width="1.6" opacity="0.7"/>'),
+    // moon + reading glasses, bottom-left
+    S("calc(50% - 330px)", "10%", 56, '<path d="M62 20 a26 26 0 1 0 18 44 a30 30 0 0 1 -18 -44 z"/>'),
+    S("calc(50% - 345px)", "66%", 84,
+      '<circle cx="32" cy="56" r="14"/><circle cx="68" cy="56" r="14"/><path d="M46 56 c 2 -4, 6 -4, 8 0"/><path d="M18 56 l -8 -6 M82 56 l 8 -6"/>'),
+  ],
+};
+
 let sceneShown = null;
 let sceneFront = null; // which layer is currently visible
 
 function renderProgress(state) {
-  const name = state.won || state.lost ? "night" : SCENES[Math.min(state.guesses.length, SCENES.length - 1)];
-  if (name === sceneShown) return;
-  sceneShown = name;
-  document.documentElement.dataset.scene = name;
+  const scene = state.won || state.lost ? NIGHT : SCENES[Math.min(state.guesses.length, SCENES.length - 1)];
+  if (scene.name === sceneShown) return;
+  sceneShown = scene.name;
+  document.documentElement.dataset.scene = scene.name;
+  $("scene-caption").textContent = scene.label;
   const a = $("scene-a");
   const b = $("scene-b");
   const front = sceneFront === a ? a : sceneFront === b ? b : null;
   const back = front === a ? b : a;
-  back.className = "scene bg-" + name;
+  back.className = "scene bg-" + scene.name;
+  back.innerHTML = (PROPS[scene.name] || []).join("");
   // double rAF so the class lands before the fade starts
   requestAnimationFrame(() => requestAnimationFrame(() => {
     back.classList.add("visible");
