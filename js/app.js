@@ -1,4 +1,4 @@
-import { MAX_GUESSES, applyGuess, bestHeat, blankPivot, clueAvailable, createState } from "./game.js";
+import { MAX_GUESSES, applyGuess, blankPivot, clueAvailable, createState } from "./game.js";
 import { bandFor, bandRank, createHeatLookup } from "./heat.js";
 import { dayIndex, daysBetween, pacificDateString, puzzleNumber, TIMEZONE } from "./calendar.js";
 import { shareText } from "./share.js";
@@ -130,9 +130,11 @@ function setStatus(msg, kind = "") {
   el.className = "status " + kind;
 }
 
-/** Sky warmth follows the best band reached (0..5). */
+/** Desk warmth is a live thermometer: it follows the LATEST guess, warming
+ *  when you run hot and cooling again when you drift cold. */
 function renderProgress(state) {
-  const rank = state.won ? 6 : bandRank(bestHeat(state));
+  const last = state.guesses[state.guesses.length - 1];
+  const rank = state.won ? 6 : last ? bandRank(last.heat) : 0;
   const warmth = Math.min(1, rank / 5);
   document.documentElement.style.setProperty("--warmth", warmth.toFixed(3));
 }
