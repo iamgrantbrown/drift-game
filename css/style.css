@@ -30,42 +30,53 @@ body {
   font-family: "Nunito", system-ui, sans-serif;
   font-weight: 600;
   color: var(--ink);
-  background: #dfeefa;
+  background: #e2dac8;
   overflow-x: hidden;
 }
 
-/* ---------- sky ---------- */
+/* ---------- the desk ---------- */
 
-.sky {
+.desk {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: linear-gradient(180deg, #d3e8f9 0%, #e6f1f9 46%, #f3ede2 100%);
+  /* cool morning desk: pale beech, faint grain, soft window light */
+  background:
+    radial-gradient(1100px 600px at 50% 18%, rgba(255, 253, 246, 0.5), transparent 70%),
+    repeating-linear-gradient(91deg, rgba(120, 95, 60, 0.045) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(89deg, rgba(90, 70, 45, 0.03) 0 26px, transparent 26px 61px),
+    linear-gradient(180deg, #e6dfd0 0%, #ddd3bf 100%);
 }
 
-.sky-warm {
+.desk::after {
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, #f6cf9a 0%, #f8e3bd 48%, #f7ecd8 100%);
+  background: radial-gradient(1300px 900px at 50% 40%, transparent 55%, rgba(80, 60, 35, 0.13));
+}
+
+.desk-warm {
+  position: absolute;
+  inset: 0;
+  /* honeyed afternoon desk */
+  background:
+    radial-gradient(1100px 600px at 50% 18%, rgba(255, 244, 214, 0.55), transparent 70%),
+    repeating-linear-gradient(91deg, rgba(140, 95, 40, 0.05) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(89deg, rgba(120, 80, 30, 0.04) 0 26px, transparent 26px 61px),
+    linear-gradient(180deg, #e5c99b 0%, #d9b985 100%);
   opacity: var(--warmth);
   transition: opacity 1.4s ease;
 }
 
-.cloud {
+.coffee-ring {
   position: absolute;
-  width: 220px;
-  height: 60px;
-  border-radius: 60px;
-  background: rgba(255, 252, 246, 0.75);
-  filter: blur(18px);
-  animation: cloud-drift 90s linear infinite;
-}
-.cloud.c1 { top: 12%; left: -240px; }
-.cloud.c2 { top: 34%; left: -240px; width: 300px; animation-duration: 130s; animation-delay: -60s; }
-.cloud.c3 { top: 66%; left: -240px; width: 180px; animation-duration: 110s; animation-delay: -30s; }
-
-@keyframes cloud-drift {
-  to { transform: translateX(calc(100vw + 480px)); }
+  top: 9%;
+  left: 7%;
+  width: 92px;
+  height: 88px;
+  border: 7px solid rgba(140, 90, 45, 0.09);
+  border-radius: 48% 52% 50% 50% / 51% 49% 52% 48%;
+  transform: rotate(8deg);
 }
 
 /* ---------- layout ---------- */
@@ -268,47 +279,82 @@ h1 {
 
 /* ---------- guesses ---------- */
 
-/* torn-tag band chips */
+/* band chips as rubber stamps: outlined ink on the paper */
 .band-chip {
+  --stamp: #6f95bd;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11.5px;
+  font-size: 11px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 3px 9px 4px 8px;
-  transform: rotate(-1deg);
-  color: #fff;
-  background: var(--band-ice);
-  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  padding: 3px 10px;
+  border: 2px solid var(--stamp);
+  border-radius: 5px 8px 4px 9px;
+  transform: rotate(-2.5deg) translateY(-5px);
+  color: var(--stamp);
+  background: color-mix(in srgb, var(--stamp) 10%, transparent);
 }
 
-.band-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); }
+.band-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--stamp); opacity: 0.8; }
 
-.band-chip.band-ice { background: var(--band-ice); }
-.band-chip.band-cold { background: var(--band-cold); }
-.band-chip.band-cool { background: var(--band-cool); }
-.band-chip.band-warm { background: var(--band-warm); }
-.band-chip.band-hot { background: var(--band-hot); }
-.band-chip.band-scorching { background: var(--band-scorching); animation: sizzle 1.4s ease-in-out infinite; }
-.band-chip.band-found { background: var(--band-found); }
+.band-chip.band-ice { --stamp: #6f95bd; }
+.band-chip.band-cold { --stamp: #5d87b6; }
+.band-chip.band-cool { --stamp: #8f9153; }
+.band-chip.band-warm { --stamp: #b3822c; }
+.band-chip.band-hot { --stamp: #b06426; }
+.band-chip.band-scorching { --stamp: #b04618; animation: sizzle 1.4s ease-in-out infinite; }
+.band-chip.band-found {
+  --stamp: #9c3f1d;
+  border-width: 2.5px;
+  font-size: 12px;
+  padding: 4px 13px;
+  transform: rotate(-4deg) translateY(-5px);
+  background: color-mix(in srgb, var(--stamp) 14%, transparent);
+}
+/* "joins yesterday" stays a taped annotation, not a stamp */
 .band-chip.band-near {
-  background: rgba(224, 208, 176, 0.55);
   border: 1.5px dashed #b9a888;
   color: #7c7057;
-  text-shadow: none;
+  background: rgba(224, 208, 176, 0.55);
 }
 .band-chip.band-near .band-dot { background: #b9a888; }
 
+/* the latest verdict slams down like a stamp */
+.line-guess.latest .band-chip { animation: stamp-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1); }
+.line-guess.latest .band-chip.band-scorching { animation: stamp-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1), sizzle 1.4s ease-in-out 0.5s infinite; }
+
+@keyframes stamp-in {
+  0% { transform: rotate(-16deg) translateY(-5px) scale(2); opacity: 0; }
+  55% { transform: rotate(1deg) translateY(-5px) scale(0.93); opacity: 1; }
+  100% { transform: rotate(-2.5deg) translateY(-5px) scale(1); }
+}
+
 @keyframes sizzle {
-  0%, 100% { transform: rotate(-1.5deg); }
-  50% { transform: rotate(1.5deg); }
+  0%, 100% { transform: rotate(-3deg) translateY(-5px); }
+  50% { transform: rotate(0.5deg) translateY(-5px); }
 }
 
 .trend { font-size: 10px; }
 
+
+/* ---------- doodles: the pencil hand ---------- */
+
+.doodle { color: #a89a83; opacity: 0.75; flex-shrink: 0; }
+.doodle-down { align-self: center; margin-left: 2px; }
+.doodle-kite {
+  position: absolute;
+  right: 14px;
+  bottom: 10px;
+  opacity: 0.32;
+  transform: rotate(9deg);
+}
+.doodle-point {
+  position: absolute;
+  left: 14px;
+  top: 12px;
+}
 
 /* ---------- clue note ---------- */
 
@@ -581,9 +627,9 @@ footer a { color: var(--accent-deep); }
 :focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .cloud, .band-chip.band-scorching { animation: none; }
-  .line-guess.latest .line-word, .line-found { animation: none; }
-  .sky-warm { transition: none; }
+  .band-chip.band-scorching { animation: none; }
+  .line-guess.latest .line-word, .line-found, .line-guess.latest .band-chip { animation: none; }
+  .desk-warm { transition: none; }
 }
 
 @media (max-width: 430px) {
