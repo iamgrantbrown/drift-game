@@ -3,6 +3,7 @@
    kitchen, lamplit night). Wrong guesses scribble out; verdicts stamp. */
 
 :root {
+  --warmth: 0;
   --paper: #fffaf2;
   --paper-edge: #e3d7c2;
   --ink: #3b3730;
@@ -30,118 +31,43 @@ body {
   font-family: "Nunito", system-ui, sans-serif;
   font-weight: 600;
   color: var(--ink);
-  background: #e2dac8;
+  background: #dfeefa;
   overflow-x: hidden;
 }
 
-/* ---------- the journey: a new surface under the notebook per guess ---------- */
+/* ---------- sky ---------- */
 
-.desk {
+.sky {
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: #e2dac8;
+  background: linear-gradient(180deg, #d3e8f9 0%, #e6f1f9 46%, #f3ede2 100%);
 }
 
-.desk::after {
-  content: "";
+.sky-warm {
   position: absolute;
   inset: 0;
-  background: radial-gradient(1300px 900px at 50% 40%, transparent 55%, rgba(50, 40, 25, 0.16));
-  pointer-events: none;
+  background: linear-gradient(180deg, #f6cf9a 0%, #f8e3bd 48%, #f7ecd8 100%);
+  opacity: var(--warmth);
+  transition: opacity 1.4s ease;
 }
 
-.scene {
+.cloud {
   position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 1.6s ease;
+  width: 220px;
+  height: 60px;
+  border-radius: 60px;
+  background: rgba(255, 252, 246, 0.75);
+  filter: blur(18px);
+  animation: cloud-drift 90s linear infinite;
 }
-.scene.visible { opacity: 1; }
+.cloud.c1 { top: 12%; left: -240px; }
+.cloud.c2 { top: 34%; left: -240px; width: 300px; animation-duration: 130s; animation-delay: -60s; }
+.cloud.c3 { top: 66%; left: -240px; width: 180px; animation-duration: 110s; animation-delay: -30s; }
 
-/* pencil-drawn props that say where you are */
-.prop {
-  position: absolute;
-  color: rgba(90, 74, 52, 0.55);
-  opacity: 0.9;
+@keyframes cloud-drift {
+  to { transform: translateX(calc(100vw + 480px)); }
 }
-.bg-coffee .prop, .bg-night .prop { color: rgba(245, 228, 196, 0.5); }
-.bg-commute .prop { color: rgba(55, 68, 82, 0.5); }
-.bg-park .prop { color: rgba(58, 74, 40, 0.5); }
-@media (max-width: 699px) {
-  .prop { display: none; }
-}
-
-/* morning: the desk at home, pale wood, window light */
-.bg-home {
-  background:
-    radial-gradient(1000px 550px at 50% 12%, rgba(255, 252, 242, 0.55), transparent 70%),
-    repeating-linear-gradient(90.5deg, rgba(150, 120, 80, 0.035) 0 3px, transparent 3px 34px),
-    linear-gradient(180deg, #ead9bd 0%, #ddc7a4 100%);
-}
-
-/* the coffee shop: dark espresso counter, a cup ring, warm lamp */
-.bg-coffee {
-  background:
-    radial-gradient(850px 500px at 62% 8%, rgba(255, 200, 120, 0.28), transparent 68%),
-    repeating-linear-gradient(89deg, rgba(40, 24, 12, 0.07) 0 4px, transparent 4px 40px),
-    linear-gradient(180deg, #6e5138 0%, #553d28 100%);
-}
-
-/* the commute: cool seat-back tray, window light strobing past */
-.bg-commute {
-  background:
-    linear-gradient(115deg, transparent 30%, rgba(255, 255, 255, 0.14) 42%, transparent 55%),
-    linear-gradient(180deg, #b7bfc7 0%, #9aa5b0 100%);
-}
-
-/* the office: pale laminate over faint grid paper light */
-.bg-office {
-  background:
-    repeating-linear-gradient(0deg, rgba(120, 145, 175, 0.06) 0 1px, transparent 1px 36px),
-    repeating-linear-gradient(90deg, rgba(120, 145, 175, 0.06) 0 1px, transparent 1px 36px),
-    radial-gradient(1000px 550px at 50% 0%, rgba(255, 255, 255, 0.6), transparent 65%),
-    linear-gradient(180deg, #e8e6e0 0%, #d9d6cd 100%);
-}
-
-/* the park bench: weathered green wood, dappled light through leaves */
-.bg-park {
-  background:
-    radial-gradient(260px 170px at 22% 24%, rgba(255, 252, 228, 0.35), transparent 70%),
-    radial-gradient(300px 200px at 74% 60%, rgba(255, 252, 228, 0.22), transparent 70%),
-    linear-gradient(180deg, #b9c49c 0%, #9dad80 100%);
-}
-
-/* the kitchen, evening: warm gingham tablecloth */
-.bg-evening {
-  background:
-    repeating-linear-gradient(0deg, rgba(176, 90, 54, 0.12) 0 18px, transparent 18px 42px),
-    repeating-linear-gradient(90deg, rgba(176, 90, 54, 0.12) 0 18px, transparent 18px 42px),
-    radial-gradient(900px 550px at 50% 12%, rgba(255, 218, 155, 0.3), transparent 70%),
-    linear-gradient(180deg, #eedcbc 0%, #e2c99e 100%);
-}
-
-/* night: dark felt, one pool of lamplight on the finished page */
-.bg-night {
-  background:
-    radial-gradient(700px 520px at 62% 10%, rgba(255, 202, 120, 0.4), rgba(255, 202, 120, 0.08) 45%, transparent 66%),
-    linear-gradient(180deg, #3e3a40 0%, #2b2830 100%);
-}
-
-/* dark scenes: lift the ink that sits directly on the desk */
-[data-scene="night"] .meta,
-[data-scene="night"] h1,
-[data-scene="night"] .rule,
-[data-scene="night"] .status,
-[data-scene="night"] footer { color: rgba(243, 232, 212, 0.85); }
-[data-scene="night"] .status.good { color: #b9d49a; }
-[data-scene="night"] footer a { color: #e8b586; }
-[data-scene="coffee"] .meta,
-[data-scene="coffee"] h1,
-[data-scene="coffee"] .rule,
-[data-scene="coffee"] .status,
-[data-scene="coffee"] footer { color: rgba(248, 238, 220, 0.9); }
-[data-scene="coffee"] footer a { color: #f0c290; }
 
 /* ---------- layout ---------- */
 
@@ -202,22 +128,6 @@ h1 {
   color: var(--ink-soft);
   margin-top: 6px;
 }
-
-/* the journal caption: time + place, like a fieldnote entry */
-.scene-caption {
-  text-align: center;
-  margin-top: 14px;
-  margin-bottom: -6px;
-  font-family: "Fraunces", serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 14px;
-  letter-spacing: 0.04em;
-  color: var(--ink-soft);
-  transition: color 1.6s ease;
-}
-[data-scene="coffee"] .scene-caption,
-[data-scene="night"] .scene-caption { color: rgba(243, 232, 212, 0.8); }
 
 /* ---------- the page (fieldnote board) ---------- */
 
@@ -709,7 +619,8 @@ footer a { color: var(--accent-deep); }
 @media (prefers-reduced-motion: reduce) {
   .band-chip.band-scorching { animation: none; }
   .line-guess.latest .line-word, .line-found, .line-guess.latest .band-chip { animation: none; }
-  .scene { transition: none; }
+  .cloud { animation: none; }
+  .sky-warm { transition: none; }
 }
 
 @media (max-width: 430px) {

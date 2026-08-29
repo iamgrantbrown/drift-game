@@ -1,5 +1,5 @@
 import { MAX_GUESSES, applyGuess, blankPivot, clueAvailable, createState } from "./game.js";
-import { bandFor, createHeatLookup } from "./heat.js";
+import { bandFor, bandRank, createHeatLookup } from "./heat.js";
 import { dayIndex, daysBetween, pacificDateString, puzzleNumber, TIMEZONE } from "./calendar.js";
 import { shareText } from "./share.js";
 import { voiceLine, winLine } from "./voice.js";
@@ -130,97 +130,13 @@ function setStatus(msg, kind = "") {
   el.className = "status " + kind;
 }
 
-/** The notebook travels through your day: every guess sets it down
- *  somewhere new, and the finished page ends up under a lamp at night.
- *  Each scene = a caption (time + place, like a journal entry), a calm
- *  surface, and a few pencil-drawn props that say where you are. */
-const SCENES = [
-  { name: "home", label: "8 am \u00b7 at home" },
-  { name: "coffee", label: "10 am \u00b7 the coffee shop" },
-  { name: "commute", label: "12 pm \u00b7 on the train" },
-  { name: "office", label: "2 pm \u00b7 the office" },
-  { name: "park", label: "5 pm \u00b7 the park" },
-  { name: "evening", label: "7 pm \u00b7 the kitchen table" },
-];
-const NIGHT = { name: "night", label: "11 pm \u00b7 lights out" };
-
-const S = (x, y, w, body) =>
-  `<svg class="prop" style="left:${x};top:${y};width:${w}px" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
-
-const PROPS = {
-  home: [
-    // a pen and a jotted note: the desk where the day starts
-    S("calc(50% + 265px)", "16%", 86,
-      '<path d="M24 76 L62 38 a7 7 0 0 1 10 10 L34 86 a7 7 0 0 1 -10 -10 z"/><path d="M24 76 l-8 16 l16 -8"/><path d="M56 44 l8 8" stroke-width="1.7"/>'),
-    S("calc(50% - 345px)", "62%", 88,
-      '<path d="M20 26 h44 v22 l-8 8 h-36 z" transform="rotate(-5 42 41)"/><path d="M28 36 h28 M28 44 h18" stroke-width="1.6" transform="rotate(-5 42 41)"/>'),
-  ],
-  coffee: [
-    // your cup, seen from above, spoon on the saucer
-    S("calc(50% + 250px)", "13%", 104,
-      '<circle cx="48" cy="52" r="31"/><circle cx="48" cy="52" r="20"/><circle cx="48" cy="52" r="14" stroke-width="1.7"/><path d="M79 46 a9 9 0 0 1 0 13"/><path d="M62 76 l16 12"/><ellipse cx="80" cy="90" rx="5" ry="3.6" transform="rotate(38 80 90)"/>'),
-    // the ring an earlier cup left behind
-    S("calc(50% - 340px)", "62%", 90,
-      '<path d="M36 26 a24 24 0 0 1 30 10" stroke-width="5" opacity="0.5"/><path d="M70 44 a24 24 0 0 1 -12 28" stroke-width="5" opacity="0.4"/><path d="M50 74 a24 24 0 0 1 -22 -34" stroke-width="5" opacity="0.45"/>'),
-  ],
-  commute: [
-    // phone face-up on the tray table, ticket beside it
-    S("calc(50% + 275px)", "14%", 76,
-      '<rect x="34" y="18" width="34" height="62" rx="7"/><path d="M46 24 h10" stroke-width="1.7"/><circle cx="51" cy="72" r="2.6" stroke-width="1.7"/>'),
-    S("calc(50% - 330px)", "64%", 84,
-      '<path d="M18 40 h64 v12 a5 5 0 0 0 0 10 v12 h-64 v-12 a5 5 0 0 0 0 -10 z" transform="rotate(-8 50 57)"/><path d="M30 52 h24 M30 60 h18" transform="rotate(-8 50 57)" stroke-width="1.7"/><path d="M66 46 v30" stroke-dasharray="4 5" transform="rotate(-8 50 57)" stroke-width="1.7"/>'),
-  ],
-  office: [
-    // sticky notes and a pencil put down mid-thought
-    S("calc(50% + 265px)", "15%", 86,
-      '<rect x="16" y="18" width="34" height="34" transform="rotate(-5 33 35)"/><rect x="48" y="40" width="34" height="34" transform="rotate(6 65 57)"/><path d="M22 32 c 8 -4, 16 2, 22 -2" transform="rotate(-5 33 35)"/><path d="M54 54 h20 M54 62 h14" transform="rotate(6 65 57)"/>'),
-    S("calc(50% - 340px)", "64%", 84,
-      '<path d="M22 80 L58 44 M30 88 L66 52"/><path d="M22 80 l-6 12 l10 -4 z"/><path d="M58 44 l8 8 M62 40 l8 8" stroke-width="1.7"/>'),
-  ],
-  park: [
-    // what the wind left on the bench
-    S("calc(50% + 260px)", "14%", 92,
-      '<path d="M74 20 C 58 22, 42 38, 32 60 C 29 68, 28 76, 28 82 C 34 78, 43 71, 51 61 C 64 47, 71 33, 74 20 z"/><path d="M30 80 C 46 60, 62 38, 74 20" stroke-width="1.6"/><path d="M38 62 l8 3 M44 52 l9 4 M52 42 l8 4" stroke-width="1.4" opacity="0.8"/>'),
-    S("calc(50% - 340px)", "64%", 84,
-      '<path d="M26 60 c -8 -12, 2 -26, 16 -24 c 2 14, -6 24, -16 24 z"/><path d="M30 56 c 4 -8, 8 -14, 10 -20" stroke-width="1.6"/><path d="M58 74 c -6 -10, 2 -20, 13 -19 c 1 11, -5 19, -13 19 z" transform="rotate(24 64 64)"/>'),
-  ],
-  evening: [
-    // the notebook set like a dinner plate: fork left, knife right
-    S("calc(50% - 300px)", "22%", 90,
-      '<path d="M46 90 c -3 -14, -2 -24, 2 -34 l 0 -4 c -5 -4, -7 -10, -7 -18 l 2 -16 M52 90 c 3 -14, 2 -24, -2 -34 l 0 -4 c 5 -4, 7 -10, 7 -18 l -2 -16"/><path d="M46 18 v16 M52 18 v16" stroke-width="1.7"/>'),
-    S("calc(50% + 260px)", "22%", 90,
-      '<path d="M48 90 c -2 -12, -2 -22, 0 -34"/><path d="M52 90 c 2 -12, 2 -22, 0 -34"/><path d="M48 56 c -6 -14, -6 -28, 2 -42 c 8 10, 9 28, 2 42 z"/>'),
-  ],
-  night: [
-    // glasses folded, a book closed: the day put away
-    S("calc(50% + 260px)", "13%", 88,
-      '<rect x="30" y="18" width="42" height="64" rx="3"/><path d="M37 18 v64" stroke-width="1.7"/><path d="M46 34 h18 M46 42 h12" stroke-width="1.5" opacity="0.8"/><path d="M60 82 v-8 l4 4 l4 -4 v8" stroke-width="1.5"/>'),
-    S("calc(50% - 345px)", "60%", 90,
-      '<circle cx="30" cy="56" r="13"/><circle cx="58" cy="56" r="13"/><path d="M43 54 a5 4 0 0 1 2 0" stroke-width="1.7"/><path d="M71 52 C 66 40, 52 36, 40 40" stroke-width="1.7"/><path d="M17 52 C 20 44, 26 40, 34 41" stroke-width="1.7"/>'),
-  ],
-};
-
-let sceneShown = null;
-let sceneFront = null; // which layer is currently visible
-
+/** Sky warmth is a live thermometer: it follows the LATEST guess, warming
+ *  when you run hot and cooling again when you drift cold. */
 function renderProgress(state) {
-  const scene = state.won || state.lost ? NIGHT : SCENES[Math.min(state.guesses.length, SCENES.length - 1)];
-  if (scene.name === sceneShown) return;
-  sceneShown = scene.name;
-  document.documentElement.dataset.scene = scene.name;
-  $("scene-caption").textContent = scene.label;
-  const a = $("scene-a");
-  const b = $("scene-b");
-  const front = sceneFront === a ? a : sceneFront === b ? b : null;
-  const back = front === a ? b : a;
-  back.className = "scene bg-" + scene.name;
-  back.innerHTML = (PROPS[scene.name] || []).join("");
-  // double rAF so the class lands before the fade starts
-  requestAnimationFrame(() => requestAnimationFrame(() => {
-    back.classList.add("visible");
-    if (front) front.classList.remove("visible");
-  }));
-  sceneFront = back;
+  const last = state.guesses[state.guesses.length - 1];
+  const rank = state.won ? 6 : last ? bandRank(last.heat) : 0;
+  const warmth = Math.min(1, rank / 5);
+  document.documentElement.style.setProperty("--warmth", warmth.toFixed(3));
 }
 
 function renderEnd(state, puzNum, store) {
