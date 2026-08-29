@@ -1,10 +1,10 @@
-/** The kite-flier's voice. Every system message is a person, not a taxonomy.
+/** The drift-keeper's voice. Every system message is a person, not a taxonomy.
  *  Lines rotate deterministically by day + guess, so the game feels alive but
  *  everyone sees the same words on the same day.
  *
- *  Rules for these lines: concrete over atmospheric (a string really does hum
- *  in strong wind); function first (a rejected word must read as rejected,
- *  never as scored); varied rhythm; no greeting-card poetry.
+ *  Rules for these lines: concrete over atmospheric; function first (a
+ *  rejected word must read as rejected, never as scored); varied rhythm;
+ *  no greeting-card poetry. Vocabulary: the notebook and the trail.
  */
 
 const LINES = {
@@ -15,7 +15,7 @@ const LINES = {
   ],
   cold: [
     "barely a tug. keep looking.",
-    "the string hardly moves.",
+    "the trail barely moves.",
     "cold out there. drift on.",
   ],
   cool: [
@@ -24,44 +24,44 @@ const LINES = {
     "cooler, but it's moving.",
   ],
   warm: [
-    "the string tightens.",
+    "the trail tightens.",
     "warmer. keep going.",
     "you're in the right wind.",
   ],
   hot: [
-    "it's tugging now.",
-    "close. the tail is dancing.",
+    "it pulls now.",
+    "close. the trail is warm.",
     "hot wind. stay with it.",
   ],
   scorching: [
     "nearly overhead. look up.",
-    "so close the string hums.",
+    "so close it hums.",
     "right there.",
   ],
   near: [
-    "you're holding yesterday's string. the word moved on.",
-    "that's yesterday's sky. it drifted somewhere else.",
-    "close to yesterday, not to today.",
+    "a real join, but it's yesterday's. today went another way.",
+    "that joins yesterday. the drift moved on.",
+    "yesterday's join. try another direction.",
   ],
   invalid: [
     "not a word this game knows.",
-    "can't fly that one.",
+    "can't write that one.",
   ],
   duplicate: [
     "you already tried that one.",
-    "that kite's already up.",
+    "that one's already on the page.",
   ],
   loss: [
     "it got away. it drifts again tomorrow.",
     "the wind kept it. another chance tomorrow.",
   ],
   done: [
-    "you've flown today. back after midnight pacific.",
+    "today's page is done. back after midnight pacific.",
   ],
 };
 
 const WIN = {
-  quick: ["no wind needed. first try.", "one guess. the kite barely left your hand."],
+  quick: ["first line, first try.", "one guess. straight ink."],
   clean: ["a clean catch.", "caught mid-drift."],
   clue: ["the clue did its work.", "the drift showed itself, and you took it."],
 };

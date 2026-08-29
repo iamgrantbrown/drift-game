@@ -69,34 +69,48 @@ function recordResult(store, date, won, guessCount) {
 
 const TREND_ARROW = { hotter: "▲", colder: "▼" };
 
-function renderGuesses(state) {
-  const root = $("guesses");
-  root.innerHTML = "";
-  for (let i = 0; i < MAX_GUESSES; i++) {
+/** The notebook page: guessed words scribble out and stack up; the write
+ *  line moves down with you; empty rules wait below. */
+function renderPage(state) {
+  const trail = $("trail");
+  trail.innerHTML = "";
+  for (let i = 0; i < state.guesses.length; i++) {
     const g = state.guesses[i];
-    const row = document.createElement("div");
-    row.className = "guess-row" + (g ? " filled" : " empty");
-    if (!g) {
-      row.setAttribute("aria-label", `Guess ${i + 1} empty`);
-      root.appendChild(row);
-      continue;
-    }
     const found = g.word === state.today;
     const band = found ? "found" : g.near ? "near" : bandFor(g.heat);
-    const label = g.near ? "near yesterday" : band;
-    row.classList.add("band-" + band);
-    if (i === state.guesses.length - 1) row.classList.add("latest");
+    const label = g.near ? "joins yesterday" : band;
+    const line = document.createElement("div");
+    line.className = "page-line line-guess band-" + band;
+    if (i === state.guesses.length - 1) line.classList.add("latest");
     const showArrow = !found && !g.near && TREND_ARROW[g.trend];
     const arrow = showArrow ? `<span class="trend ${g.trend}" aria-hidden="true">${TREND_ARROW[g.trend]}</span>` : "";
-    row.setAttribute("aria-label", `${g.word}: ${label}${showArrow ? ", " + g.trend : ""}`);
-    row.innerHTML = `
-      <span class="word">${escapeHtml(g.word)}</span>
+    line.setAttribute("aria-label", `${g.word}: ${label}${showArrow ? ", " + g.trend : ""}`);
+    line.innerHTML = `
+      <span class="line-word ${found ? "line-found" : "scribbled"}">${escapeHtml(g.word)}</span>
       <span class="band-chip band-${band}">
         <span class="band-dot" aria-hidden="true"></span>
         <span class="band-name">${label}</span>${arrow}
       </span>
     `;
-    root.appendChild(row);
+    trail.appendChild(line);
+  }
+  // loss: the answer gets written on the page in the drift's own hand
+  if (state.lost) {
+    const line = document.createElement("div");
+    line.className = "page-line line-guess line-reveal";
+    line.innerHTML = `<span class="line-word line-revealed">${escapeHtml(state.today)}</span><span class="reveal-note">the drift</span>`;
+    trail.appendChild(line);
+  }
+  const over = state.won || state.lost;
+  $("active-line").hidden = over;
+  const used = state.guesses.length + (state.lost ? 1 : 0);
+  const blanksLeft = over ? Math.max(0, MAX_GUESSES - used) : Math.max(0, MAX_GUESSES - used - 1);
+  const blanks = $("blanks");
+  blanks.innerHTML = "";
+  for (let i = 0; i < blanksLeft; i++) {
+    const line = document.createElement("div");
+    line.className = "page-line line-blank";
+    blanks.appendChild(line);
   }
 }
 
@@ -116,28 +130,16 @@ function setStatus(msg, kind = "") {
   el.className = "status " + kind;
 }
 
-/** Sky warmth + kite altitude follow the best band reached (0..5). */
+/** Sky warmth follows the best band reached (0..5). */
 function renderProgress(state) {
   const rank = state.won ? 6 : bandRank(bestHeat(state));
   const warmth = Math.min(1, rank / 5);
   document.documentElement.style.setProperty("--warmth", warmth.toFixed(3));
-  const kite = $("kite");
-  kite.style.setProperty("--alt", (rank / 6).toFixed(3));
-  kite.classList.toggle("soaring", state.won);
-  kite.classList.toggle("sunk", state.lost);
-}
-
-function stampToday(state) {
-  const tile = $("today-word");
-  tile.textContent = state.today;
-  tile.classList.add(state.won ? "stamped" : "revealed");
-  $("today-blank").hidden = true;
 }
 
 function renderEnd(state, puzNum, store) {
   const panel = $("end");
   panel.hidden = false;
-  stampToday(state);
   $("share-text").textContent = shareText({
     puzzleNumber: puzNum,
     guesses: state.guesses,
@@ -151,7 +153,7 @@ function renderEnd(state, puzNum, store) {
   $("pivot-line").innerHTML =
     `From “<b>${escapeHtml(state.yesterday)}</b>”, the word drifted through ` +
     `“<i>${escapeHtml(state.pivot)}</i>” to “<b>${escapeHtml(state.today)}</b>”.`;
-  $("tomorrow-line").textContent = `Tomorrow drifts from “${state.today}.”`;
+  $("tomorrow-line").textContent = `Tomorrow drifts from “${state.today}”.`;
   $("form").hidden = true;
   renderStats(store);
   startCountdown();
@@ -267,14 +269,12 @@ async function main() {
   const puzNum = puzzleNumber(todayDate, chainPack.epoch);
 
   const prevIdx = (idx - 1 + chain.length) % chain.length;
-  const [words, heatBuf, prevBuf, pairList] = await Promise.all([
+  const [words, heatBuf, pairList] = await Promise.all([
     fetch("data/words.json").then((r) => r.json()),
     fetch(`data/heat/${String(idx).padStart(3, "0")}.bin`).then((r) => r.arrayBuffer()),
-    fetch(`data/heat/${String(prevIdx).padStart(3, "0")}.bin`).then((r) => r.arrayBuffer()),
     fetch("data/pairs.json").then((r) => r.json()).catch(() => []),
   ]);
   const lookup = createHeatLookup(words, heatBuf);
-  const prevLookup = createHeatLookup(words, prevBuf);
   const yesterdayWord = chain[prevIdx].w;
   // every word known to join yesterday's word into a lexical unit
   const joins = new Set();
@@ -300,7 +300,7 @@ async function main() {
 
   $("yesterday").textContent = state.yesterday;
   $("puzzle-num").textContent = `#${puzNum}`;
-  renderGuesses(state);
+  renderPage(state);
   renderProgress(state);
   renderStats(store);
 
@@ -329,7 +329,7 @@ async function main() {
   $("form").addEventListener("submit", (ev) => {
     ev.preventDefault();
     const input = $("guess");
-    const result = applyGuess(state, input.value, lookup, prevLookup, joins);
+    const result = applyGuess(state, input.value, lookup, joins);
     if (!result.ok) {
       if (result.reason === "invalid") setStatus(voiceLine("invalid", puzNum + state.guesses.length), "bad");
       else if (result.reason === "duplicate") setStatus(voiceLine("duplicate", puzNum + state.guesses.length), "bad");
@@ -347,17 +347,17 @@ async function main() {
       store = recordResult(store, todayDate, state.won, state.guesses.length);
     }
     saveStore(store);
-    renderGuesses(state);
+    renderPage(state);
     renderProgress(state);
     renderStats(store);
     renderClue();
     input.value = "";
-    input.focus();
+    if (!state.won && !state.lost) input.focus();
     const seed = puzNum * 7 + state.guesses.length;
     if (state.won) {
-      setStatus(`caught it — ${state.today}.`, "good");
+      setStatus(`caught it: ${state.today}.`, "good");
       renderEnd(state, puzNum, store);
-      burstScraps($("today-tile"));
+      burstScraps($("trail").lastElementChild || $("trail"));
     } else if (state.lost) {
       setStatus(voiceLine("loss", puzNum), "bad");
       renderEnd(state, puzNum, store);

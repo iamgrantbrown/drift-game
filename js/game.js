@@ -3,10 +3,10 @@ import { heatTrend } from "./heat.js";
 export const MAX_GUESSES = 6;
 export const CLUE_AFTER = 3; // misses before the blanked pivot clue appears
 
-// "near yesterday": ice/cold vs today, but hot vs yesterday's word —
-// right anchor, wrong branch.
+// "joins yesterday": the guess forms a real lexical unit with yesterday's
+// word (tin -> tin can) but scores cold against today: right join, wrong
+// branch. Detected by exact pair lookup, never by heat.
 export const NEAR_TODAY_MAX = 30;
-export const NEAR_PREV_MIN = 60;
 
 export function createState(chainEntries, index) {
   const n = chainEntries.length;
@@ -85,11 +85,10 @@ export function bestHeat(state) {
  * Apply a guess. Heat is semantic (per-day baked row), never edit distance.
  * Inflections resolve to their base word (strings -> string) and count as
  * that word. First guess trends against yesterday's word's heat.
- * Near-yesterday: `prevLookup` (yesterday's heat row) catches semantic
- * closeness; `joins` (a Set of words known to join yesterday's word into a
- * lexical unit) catches exact joins like "tin" on a "can" day.
+ * `joins` is the Set of words known to join yesterday's word into a
+ * lexical unit; a cold guess in that set reads "joins yesterday".
  */
-export function applyGuess(state, rawGuess, lookup, prevLookup = null, joins = null) {
+export function applyGuess(state, rawGuess, lookup, joins = null) {
   if (state.won || state.lost) {
     return { ok: false, reason: "over", state };
   }
@@ -114,11 +113,7 @@ export function applyGuess(state, rawGuess, lookup, prevLookup = null, joins = n
       : state.guesses[state.guesses.length - 1].heat;
   const trend = heatTrend(heat, prev);
   const won = word === state.today;
-  const near =
-    !won &&
-    heat < NEAR_TODAY_MAX &&
-    ((prevLookup !== null && (prevLookup.heat(word) ?? 0) >= NEAR_PREV_MIN) ||
-      (joins !== null && joins.has(word)));
+  const near = !won && heat < NEAR_TODAY_MAX && joins !== null && joins.has(word);
   const guesses = [...state.guesses, { word, heat, trend, near }];
   const lost = !won && guesses.length >= MAX_GUESSES;
   const next = { ...state, guesses, won, lost };

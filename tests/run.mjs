@@ -145,7 +145,7 @@ function synRow(map) {
   return row;
 }
 const synToday = createHeatLookup(SYN_WORDS, synRow({ neighbor: 100, neighbors: 92, friend: 68, wall: 6 }));
-const synPrev = createHeatLookup(SYN_WORDS, synRow({ fence: 100, wall: 95, neighbor: 76 }));
+const SYN_JOINS = new Set(["wall", "gossip"]); // words that join yesterday ("fence")
 const SYN_CHAIN = [{ w: "fence", pivot: "picket fence" }, { w: "neighbor", pivot: "neighborhood watch" }];
 
 test("inflections resolve, preferring the word itself then base forms", () => {
@@ -169,30 +169,25 @@ test("british spellings bridge to the secret", () => {
   assert.ok(r.state.won, "neighbours should catch neighbor");
 });
 
-test("near yesterday: cold vs today but hot vs yesterday flags the guess", () => {
+test("joins yesterday: a cold guess in the join set is flagged", () => {
   let s = createState(SYN_CHAIN, 1);
-  const wall = applyGuess(s, "wall", synToday, synPrev);
-  assert.ok(wall.state.guesses[0].near, "wall should be near-yesterday");
-  const friend = applyGuess(wall.state, "friend", synToday, synPrev);
-  assert.ok(!friend.state.guesses[1].near, "friend is warm vs today, not near");
-  const gossip = applyGuess(friend.state, "gossip", synToday, synPrev);
-  assert.ok(!gossip.state.guesses[2].near, "gossip is cold vs both, plain ice");
+  const wall = applyGuess(s, "wall", synToday, SYN_JOINS);
+  assert.ok(wall.state.guesses[0].near, "wall joins yesterday (stone wall vs fence world)");
+  const friend = applyGuess(wall.state, "friend", synToday, SYN_JOINS);
+  assert.ok(!friend.state.guesses[1].near, "friend is warm vs today, never flagged");
 });
 
-test("without a prev lookup no guess is flagged near", () => {
+test("without a join set no guess is flagged", () => {
   const s = createState(SYN_CHAIN, 1);
   const r = applyGuess(s, "wall", synToday);
   assert.ok(!r.state.guesses[0].near);
 });
 
-test("exact joins with yesterday flag near even when semantically cold", () => {
-  // "gossip" is ice vs both rows, but suppose it joins yesterday's word
-  const joins = new Set(["gossip"]);
+test("a cold guess outside the join set stays plain ice", () => {
   const s = createState(SYN_CHAIN, 1);
-  const r = applyGuess(s, "gossip", synToday, synPrev, joins);
-  assert.ok(r.state.guesses[0].near, "exact join should read near-yesterday");
-  const r2 = applyGuess(s, "friend", synToday, synPrev, joins);
-  assert.ok(!r2.state.guesses[0].near, "warm-vs-today guesses never read near");
+  const joins = new Set(["wall"]);
+  const r = applyGuess(s, "gossip", synToday, joins);
+  assert.ok(!r.state.guesses[0].near, "gossip does not join yesterday");
 });
 
 test("pairs.json covers today's real neighbors of yesterday", () => {
