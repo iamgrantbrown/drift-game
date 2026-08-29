@@ -85,9 +85,11 @@ export function bestHeat(state) {
  * Apply a guess. Heat is semantic (per-day baked row), never edit distance.
  * Inflections resolve to their base word (strings -> string) and count as
  * that word. First guess trends against yesterday's word's heat.
- * `prevLookup` (yesterday's heat row) marks near-yesterday guesses.
+ * Near-yesterday: `prevLookup` (yesterday's heat row) catches semantic
+ * closeness; `joins` (a Set of words known to join yesterday's word into a
+ * lexical unit) catches exact joins like "tin" on a "can" day.
  */
-export function applyGuess(state, rawGuess, lookup, prevLookup = null) {
+export function applyGuess(state, rawGuess, lookup, prevLookup = null, joins = null) {
   if (state.won || state.lost) {
     return { ok: false, reason: "over", state };
   }
@@ -115,8 +117,8 @@ export function applyGuess(state, rawGuess, lookup, prevLookup = null) {
   const near =
     !won &&
     heat < NEAR_TODAY_MAX &&
-    prevLookup !== null &&
-    (prevLookup.heat(word) ?? 0) >= NEAR_PREV_MIN;
+    ((prevLookup !== null && (prevLookup.heat(word) ?? 0) >= NEAR_PREV_MIN) ||
+      (joins !== null && joins.has(word)));
   const guesses = [...state.guesses, { word, heat, trend, near }];
   const lost = !won && guesses.length >= MAX_GUESSES;
   const next = { ...state, guesses, won, lost };

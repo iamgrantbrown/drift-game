@@ -9,34 +9,38 @@ export function createHeatLookup(words, rowBytes) {
   const index = new Map(words.map((w, i) => [w, i]));
   const row = rowBytes instanceof Uint8Array ? rowBytes : new Uint8Array(rowBytes);
 
-  /** All dictionary words this guess could stand for: the word itself,
-   *  then de-inflected base forms (strings -> string, baking -> bake). */
+  /** All dictionary words this guess could stand for: the word itself, then
+   *  de-inflected base forms (strings -> string, baking -> bake), with
+   *  British/American spelling bridges (neighbours -> neighbor) applied to
+   *  every form — even intermediate forms the dictionary doesn't contain. */
   function candidates(word) {
-    const out = [];
-    if (index.has(word)) out.push(word);
-    for (const suf of SUFFIXES) {
-      if (word.length - suf.length < 3 || !word.endsWith(suf)) continue;
-      const stem = word.slice(0, -suf.length);
-      if (index.has(stem) && !out.includes(stem)) out.push(stem);
-      // doubled final consonant: running -> run
-      const undoubled = stem.slice(0, -1);
-      if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2] && index.has(undoubled) && !out.includes(undoubled)) {
-        out.push(undoubled);
+    const raw = new Set([word]);
+    const addStems = (t) => {
+      for (const suf of SUFFIXES) {
+        if (t.length - suf.length < 3 || !t.endsWith(suf)) continue;
+        const stem = t.slice(0, -suf.length);
+        raw.add(stem);
+        if (stem.length >= 3 && stem[stem.length - 1] === stem[stem.length - 2]) {
+          raw.add(stem.slice(0, -1)); // running -> run
+        }
+        raw.add(stem + "e"); // baking -> bake
       }
-      // dropped e: baking -> bake
-      if (index.has(stem + "e") && !out.includes(stem + "e")) out.push(stem + "e");
-    }
-    // British/American spelling bridges: colour<->color, theatre<->theater
-    for (const w of [...out, word]) {
+    };
+    addStems(word);
+    for (const w of [...raw]) {
       for (const v of [
         w.replace(/our/, "or"),
         w.replace(/or(?!.*or)/, "our"),
         w.replace(/re$/, "er"),
         w.replace(/er$/, "re"),
       ]) {
-        if (v !== w && index.has(v) && !out.includes(v)) out.push(v);
+        if (v !== w) raw.add(v);
       }
     }
+    for (const w of [...raw]) addStems(w); // stems of bridged forms
+    const out = [...raw].filter((w) => index.has(w));
+    // the typed word itself, when valid, stays the primary reading
+    out.sort((x, y) => (x === word ? -1 : y === word ? 1 : 0));
     return out;
   }
 

@@ -185,6 +185,26 @@ test("without a prev lookup no guess is flagged near", () => {
   assert.ok(!r.state.guesses[0].near);
 });
 
+test("exact joins with yesterday flag near even when semantically cold", () => {
+  // "gossip" is ice vs both rows, but suppose it joins yesterday's word
+  const joins = new Set(["gossip"]);
+  const s = createState(SYN_CHAIN, 1);
+  const r = applyGuess(s, "gossip", synToday, synPrev, joins);
+  assert.ok(r.state.guesses[0].near, "exact join should read near-yesterday");
+  const r2 = applyGuess(s, "friend", synToday, synPrev, joins);
+  assert.ok(!r2.state.guesses[0].near, "warm-vs-today guesses never read near");
+});
+
+test("pairs.json covers today's real neighbors of yesterday", () => {
+  const pairs = JSON.parse(fs.readFileSync(path.join(root, "data/pairs.json"), "utf8"));
+  const set = new Set(pairs.map(([a, b]) => a + "|" + b));
+  for (let i = 0; i < N; i++) {
+    const prev = chain[(i - 1 + N) % N].w;
+    const cur = chain[i].w;
+    assert.ok(set.has(prev + "|" + cur) || set.has(cur + "|" + prev), `${prev}->${cur} missing from pairs`);
+  }
+});
+
 /* ---------- real heat data (structural spot checks) ---------- */
 
 test("all heat files exist, one byte per word, secret 100, yesterday hot", () => {

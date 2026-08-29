@@ -267,13 +267,21 @@ async function main() {
   const puzNum = puzzleNumber(todayDate, chainPack.epoch);
 
   const prevIdx = (idx - 1 + chain.length) % chain.length;
-  const [words, heatBuf, prevBuf] = await Promise.all([
+  const [words, heatBuf, prevBuf, pairList] = await Promise.all([
     fetch("data/words.json").then((r) => r.json()),
     fetch(`data/heat/${String(idx).padStart(3, "0")}.bin`).then((r) => r.arrayBuffer()),
     fetch(`data/heat/${String(prevIdx).padStart(3, "0")}.bin`).then((r) => r.arrayBuffer()),
+    fetch("data/pairs.json").then((r) => r.json()).catch(() => []),
   ]);
   const lookup = createHeatLookup(words, heatBuf);
   const prevLookup = createHeatLookup(words, prevBuf);
+  const yesterdayWord = chain[prevIdx].w;
+  // every word known to join yesterday's word into a lexical unit
+  const joins = new Set();
+  for (const [a, b] of pairList) {
+    if (a === yesterdayWord) joins.add(b);
+    else if (b === yesterdayWord) joins.add(a);
+  }
 
   let state = createState(chain, idx);
   let store = loadStore();
@@ -321,7 +329,7 @@ async function main() {
   $("form").addEventListener("submit", (ev) => {
     ev.preventDefault();
     const input = $("guess");
-    const result = applyGuess(state, input.value, lookup, prevLookup);
+    const result = applyGuess(state, input.value, lookup, prevLookup, joins);
     if (!result.ok) {
       if (result.reason === "invalid") setStatus(voiceLine("invalid", puzNum + state.guesses.length), "bad");
       else if (result.reason === "duplicate") setStatus(voiceLine("duplicate", puzNum + state.guesses.length), "bad");

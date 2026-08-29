@@ -809,6 +809,17 @@ function findCycle(edges, timeMs = 120000, seedStart = 7) {
 // ---- main ----
 const edges = decodePairs();
 console.log(`decoded ${edges.length} valid pairs over ${new Set(edges.flatMap((e) => [e.a, e.b])).size} words`);
+const writePairs = () => {
+  const pairList = edges.map((e) => [e.a, e.b]).sort((x, y) => (x[0] + x[1] < y[0] + y[1] ? -1 : 1));
+  writeFileSync(new URL("../data/pairs.json", import.meta.url), JSON.stringify(pairList) + "\n");
+  console.log(`wrote data/pairs.json: ${pairList.length} joinable pairs`);
+};
+if (process.argv.includes("--pairs-only")) {
+  // refresh pairs.json without re-solving (a new solve changes the chain,
+  // which would require a full heat rebake)
+  writePairs();
+  process.exit(0);
+}
 const unitOf = new Map();
 for (const e of edges) {
   unitOf.set(e.a + "|" + e.b, e.unit);
@@ -867,5 +878,8 @@ const out = {
   }),
 };
 writeFileSync(new URL("../data/chain.json", import.meta.url), JSON.stringify(out, null, 1) + "\n");
+// the full pair list ships too: the game flags any guess that joins
+// yesterday's word ("tin" on a "can" day) as near-yesterday, exactly.
+writePairs();
 console.log(`wrote data/chain.json: ${out.words.length} words, every link a lexical unit`);
 console.log("first 15:", out.words.slice(0, 15).map((e) => `${e.w} (${e.pivot})`).join(" → "));
