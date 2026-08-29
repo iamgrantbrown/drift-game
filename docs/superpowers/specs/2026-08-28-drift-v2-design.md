@@ -131,3 +131,21 @@ gate 89, wire 80 vs fence) scored ice against the secret. Two changes:
 
 Also: British/American spelling bridges win ("neighbours" → neighbor);
 two pivots reworded so every day's pivot blanks cleanly.
+
+## Addendum 2 (same day): v3 — the lexical-unit chain
+
+Playtesting judgment (Grant): free-phrase links ("race to the finish")
+feel arbitrary — "what kind of human is going to get this?" The fix is a
+hard editorial rule: **every chain link must be a lexical unit** — a
+closed compound (racetrack, tracksuit) or a dictionary-tight two-word
+collocation (coffee bean, record player). This makes every answer
+objectively verifiable, sharpens the clue to "race____", and reinvents a
+beloved old-school format (compound word chains) as a daily.
+
+Implementation: `scripts/compounds.mjs` holds ~2,900 hand-curated valid
+pairs over ~1,600 words; a 2-core prune plus greedy DFS with Pósa
+rotations finds the longest cycle (currently 340 words, starting at
+coffee). The pivot field is the unit itself. Structural tests enforce
+that every pivot contains both adjacent words. Chain length is now
+dynamic (the game wraps at chain.length). Extending the game is a data
+edit: add pairs, re-run the solver.

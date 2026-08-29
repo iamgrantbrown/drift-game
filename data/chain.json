@@ -4,1467 +4,1363 @@
  "words": [
   {
    "w": "coffee",
-   "pivot": "coffee beans"
+   "pivot": "coffee cup"
   },
   {
-   "w": "espresso",
-   "pivot": "espresso is strong coffee"
-  },
-  {
-   "w": "latte",
-   "pivot": "a latte is espresso with milk"
-  },
-  {
-   "w": "milk",
-   "pivot": "the milk in a latte"
-  },
-  {
-   "w": "cow",
-   "pivot": "milk comes from cows"
-  },
-  {
-   "w": "pasture",
-   "pivot": "cows graze in a pasture"
+   "w": "stain",
+   "pivot": "coffee stain"
   },
   {
    "w": "grass",
-   "pivot": "a grassy pasture"
+   "pivot": "grass stain"
   },
   {
-   "w": "lawn",
-   "pivot": "a lawn of grass"
+   "w": "root",
+   "pivot": "grass roots"
   },
   {
-   "w": "garden",
-   "pivot": "a lawn and garden"
+   "w": "beer",
+   "pivot": "root beer"
   },
   {
-   "w": "flower",
-   "pivot": "a flower garden"
+   "w": "ginger",
+   "pivot": "ginger beer"
   },
   {
-   "w": "bee",
-   "pivot": "a bee visits flowers"
+   "w": "snap",
+   "pivot": "gingersnap"
   },
   {
-   "w": "honey",
-   "pivot": "bees make honey"
+   "w": "pea",
+   "pivot": "snap pea"
   },
   {
-   "w": "tea",
-   "pivot": "honey in tea"
+   "w": "nut",
+   "pivot": "peanut"
   },
   {
-   "w": "kettle",
-   "pivot": "a tea kettle"
-  },
-  {
-   "w": "steam",
-   "pivot": "a steaming kettle"
-  },
-  {
-   "w": "cloud",
-   "pivot": "steam rises into clouds"
-  },
-  {
-   "w": "rain",
-   "pivot": "rain falls from clouds"
-  },
-  {
-   "w": "river",
-   "pivot": "rain fills the river"
-  },
-  {
-   "w": "boat",
-   "pivot": "a boat on the river"
-  },
-  {
-   "w": "sail",
-   "pivot": "a sailboat"
-  },
-  {
-   "w": "wind",
-   "pivot": "wind fills the sail"
-  },
-  {
-   "w": "kite",
-   "pivot": "wind lifts a kite"
-  },
-  {
-   "w": "string",
-   "pivot": "a kite string"
-  },
-  {
-   "w": "guitar",
-   "pivot": "a guitar string"
-  },
-  {
-   "w": "music",
-   "pivot": "guitar music"
-  },
-  {
-   "w": "piano",
-   "pivot": "piano music"
-  },
-  {
-   "w": "key",
-   "pivot": "piano keys"
-  },
-  {
-   "w": "lock",
-   "pivot": "a key opens a lock"
-  },
-  {
-   "w": "door",
-   "pivot": "a lock on the door"
-  },
-  {
-   "w": "house",
-   "pivot": "the front door of a house"
-  },
-  {
-   "w": "roof",
-   "pivot": "a house's roof"
-  },
-  {
-   "w": "chimney",
-   "pivot": "a chimney on the roof"
-  },
-  {
-   "w": "smoke",
-   "pivot": "smoke from the chimney"
-  },
-  {
-   "w": "fire",
-   "pivot": "smoke means fire"
-  },
-  {
-   "w": "candle",
-   "pivot": "a fire lights a candle"
-  },
-  {
-   "w": "wax",
-   "pivot": "candle wax"
-  },
-  {
-   "w": "lamp",
-   "pivot": "wax in a lava lamp"
-  },
-  {
-   "w": "bulb",
-   "pivot": "a lamp's bulb"
-  },
-  {
-   "w": "light",
-   "pivot": "a bulb gives light"
-  },
-  {
-   "w": "sun",
-   "pivot": "sunlight"
-  },
-  {
-   "w": "summer",
-   "pivot": "the summer sun"
-  },
-  {
-   "w": "beach",
-   "pivot": "a summer beach"
-  },
-  {
-   "w": "sand",
-   "pivot": "beach sand"
-  },
-  {
-   "w": "glass",
-   "pivot": "sand melts into glass"
-  },
-  {
-   "w": "bottle",
-   "pivot": "a glass bottle"
-  },
-  {
-   "w": "wine",
-   "pivot": "a bottle of wine"
-  },
-  {
-   "w": "grape",
-   "pivot": "wine is made from grapes"
-  },
-  {
-   "w": "vine",
-   "pivot": "grapes grow on the vine"
-  },
-  {
-   "w": "ivy",
-   "pivot": "ivy is a climbing vine"
-  },
-  {
-   "w": "wood",
-   "pivot": "ivy climbing old wood"
-  },
-  {
-   "w": "tree",
-   "pivot": "wood comes from trees"
-  },
-  {
-   "w": "leaf",
-   "pivot": "a leaf on the tree"
-  },
-  {
-   "w": "paper",
-   "pivot": "a leaf of paper"
-  },
-  {
-   "w": "book",
-   "pivot": "pages of paper in a book"
-  },
-  {
-   "w": "library",
-   "pivot": "books in a library"
-  },
-  {
-   "w": "shelf",
-   "pivot": "a library shelf"
-  },
-  {
-   "w": "pantry",
-   "pivot": "a pantry shelf"
-  },
-  {
-   "w": "flour",
-   "pivot": "flour in the pantry"
-  },
-  {
-   "w": "sugar",
-   "pivot": "flour and sugar"
-  },
-  {
-   "w": "cake",
-   "pivot": "sugar in the cake"
-  },
-  {
-   "w": "oven",
-   "pivot": "a cake in the oven"
-  },
-  {
-   "w": "kitchen",
-   "pivot": "an oven in the kitchen"
-  },
-  {
-   "w": "plate",
-   "pivot": "a kitchen plate"
-  },
-  {
-   "w": "ceramic",
-   "pivot": "a ceramic plate"
-  },
-  {
-   "w": "clay",
-   "pivot": "ceramic is fired clay"
-  },
-  {
-   "w": "earth",
-   "pivot": "clay dug from the earth"
-  },
-  {
-   "w": "soil",
-   "pivot": "earth is soil"
-  },
-  {
-   "w": "seed",
-   "pivot": "a seed in the soil"
-  },
-  {
-   "w": "wheat",
-   "pivot": "wheat grows from seed"
-  },
-  {
-   "w": "bread",
-   "pivot": "bread is made from wheat"
-  },
-  {
-   "w": "toast",
-   "pivot": "toasted bread"
-  },
-  {
-   "w": "breakfast",
-   "pivot": "toast for breakfast"
-  },
-  {
-   "w": "egg",
-   "pivot": "a breakfast egg"
-  },
-  {
-   "w": "nest",
-   "pivot": "eggs in a nest"
-  },
-  {
-   "w": "bird",
-   "pivot": "a bird's nest"
-  },
-  {
-   "w": "feather",
-   "pivot": "birds of a feather"
-  },
-  {
-   "w": "pillow",
-   "pivot": "a feather pillow"
-  },
-  {
-   "w": "sleep",
-   "pivot": "sleeping on a pillow"
-  },
-  {
-   "w": "dream",
-   "pivot": "dreams come with sleep"
-  },
-  {
-   "w": "night",
-   "pivot": "dreams belong to the night"
-  },
-  {
-   "w": "owl",
-   "pivot": "a night owl"
-  },
-  {
-   "w": "forest",
-   "pivot": "owls live in the forest"
-  },
-  {
-   "w": "trail",
-   "pivot": "a forest trail"
-  },
-  {
-   "w": "mountain",
-   "pivot": "a mountain trail"
-  },
-  {
-   "w": "peak",
-   "pivot": "a mountain peak"
-  },
-  {
-   "w": "snow",
-   "pivot": "a snowy peak"
-  },
-  {
-   "w": "winter",
-   "pivot": "winter snow"
-  },
-  {
-   "w": "scarf",
-   "pivot": "a winter scarf"
-  },
-  {
-   "w": "wool",
-   "pivot": "a wool scarf"
-  },
-  {
-   "w": "sheep",
-   "pivot": "wool comes from sheep"
-  },
-  {
-   "w": "shepherd",
-   "pivot": "a shepherd keeps sheep"
-  },
-  {
-   "w": "dog",
-   "pivot": "a sheepdog"
-  },
-  {
-   "w": "bone",
-   "pivot": "a dog's bone"
-  },
-  {
-   "w": "skeleton",
-   "pivot": "bones make a skeleton"
-  },
-  {
-   "w": "closet",
-   "pivot": "a skeleton in the closet"
-  },
-  {
-   "w": "coat",
-   "pivot": "a coat in the closet"
-  },
-  {
-   "w": "paint",
-   "pivot": "a coat of paint"
-  },
-  {
-   "w": "brush",
-   "pivot": "a paintbrush"
-  },
-  {
-   "w": "hair",
-   "pivot": "a hairbrush"
-  },
-  {
-   "w": "barber",
-   "pivot": "a barber cuts hair"
-  },
-  {
-   "w": "razor",
-   "pivot": "a barber's razor"
-  },
-  {
-   "w": "blade",
-   "pivot": "a razor blade"
-  },
-  {
-   "w": "knife",
-   "pivot": "a knife's blade"
-  },
-  {
-   "w": "fork",
-   "pivot": "a knife and fork"
-  },
-  {
-   "w": "road",
-   "pivot": "a fork in the road"
-  },
-  {
-   "w": "map",
-   "pivot": "a road map"
-  },
-  {
-   "w": "treasure",
-   "pivot": "a treasure map"
-  },
-  {
-   "w": "chest",
-   "pivot": "a treasure chest"
-  },
-  {
-   "w": "heart",
-   "pivot": "the heart in your chest"
-  },
-  {
-   "w": "beat",
-   "pivot": "a heartbeat"
-  },
-  {
-   "w": "drum",
-   "pivot": "a drum beat"
-  },
-  {
-   "w": "band",
-   "pivot": "a drummer in the band"
-  },
-  {
-   "w": "ring",
-   "pivot": "a wedding band is a ring"
-  },
-  {
-   "w": "bell",
-   "pivot": "ring the bell"
-  },
-  {
-   "w": "church",
-   "pivot": "church bells"
-  },
-  {
-   "w": "choir",
-   "pivot": "the church choir"
-  },
-  {
-   "w": "voice",
-   "pivot": "voices in a choir"
-  },
-  {
-   "w": "echo",
-   "pivot": "a voice echoes"
-  },
-  {
-   "w": "canyon",
-   "pivot": "echoes in a canyon"
-  },
-  {
-   "w": "desert",
-   "pivot": "a desert canyon"
-  },
-  {
-   "w": "camel",
-   "pivot": "a desert camel"
-  },
-  {
-   "w": "oasis",
-   "pivot": "a camel finds an oasis"
-  },
-  {
-   "w": "palm",
-   "pivot": "palms at the oasis"
-  },
-  {
-   "w": "hand",
-   "pivot": "the palm of your hand"
-  },
-  {
-   "w": "glove",
-   "pivot": "a glove on your hand"
-  },
-  {
-   "w": "boxing",
-   "pivot": "boxing gloves"
-  },
-  {
-   "w": "match",
-   "pivot": "a boxing match"
-  },
-  {
-   "w": "flame",
-   "pivot": "a match's flame"
-  },
-  {
-   "w": "moth",
-   "pivot": "a moth to a flame"
-  },
-  {
-   "w": "wing",
-   "pivot": "a moth's wings"
-  },
-  {
-   "w": "airplane",
-   "pivot": "an airplane's wings"
-  },
-  {
-   "w": "pilot",
-   "pivot": "a pilot flies the plane"
-  },
-  {
-   "w": "episode",
-   "pivot": "a pilot episode"
-  },
-  {
-   "w": "series",
-   "pivot": "episodes of a series"
-  },
-  {
-   "w": "season",
-   "pivot": "a season of the series"
-  },
-  {
-   "w": "salt",
-   "pivot": "season with salt"
-  },
-  {
-   "w": "pepper",
-   "pivot": "salt and pepper"
-  },
-  {
-   "w": "spice",
-   "pivot": "pepper is a spice"
-  },
-  {
-   "w": "cinnamon",
-   "pivot": "cinnamon is a spice"
-  },
-  {
-   "w": "roll",
-   "pivot": "a cinnamon roll"
-  },
-  {
-   "w": "dice",
-   "pivot": "roll the dice"
-  },
-  {
-   "w": "casino",
-   "pivot": "dice at the casino"
-  },
-  {
-   "w": "luck",
-   "pivot": "casino luck"
-  },
-  {
-   "w": "clover",
-   "pivot": "a lucky four-leaf clover"
-  },
-  {
-   "w": "field",
-   "pivot": "a field of clover"
-  },
-  {
-   "w": "goal",
-   "pivot": "a field goal"
-  },
-  {
-   "w": "soccer",
-   "pivot": "a soccer goal"
-  },
-  {
-   "w": "stadium",
-   "pivot": "a soccer stadium"
-  },
-  {
-   "w": "crowd",
-   "pivot": "a stadium crowd"
-  },
-  {
-   "w": "wave",
-   "pivot": "the crowd does the wave"
-  },
-  {
-   "w": "ocean",
-   "pivot": "ocean waves"
-  },
-  {
-   "w": "whale",
-   "pivot": "a whale in the ocean"
-  },
-  {
-   "w": "song",
-   "pivot": "whale song"
-  },
-  {
-   "w": "lullaby",
-   "pivot": "a lullaby is a song"
-  },
-  {
-   "w": "baby",
-   "pivot": "sing a baby a lullaby"
-  },
-  {
-   "w": "cradle",
-   "pivot": "a baby's cradle"
-  },
-  {
-   "w": "rock",
-   "pivot": "rock the cradle"
-  },
-  {
-   "w": "stone",
-   "pivot": "a rock is a stone"
-  },
-  {
-   "w": "castle",
-   "pivot": "a stone castle"
-  },
-  {
-   "w": "moat",
-   "pivot": "a castle's moat"
-  },
-  {
-   "w": "dragon",
-   "pivot": "a dragon guards the moat"
-  },
-  {
-   "w": "knight",
-   "pivot": "a knight fights the dragon"
-  },
-  {
-   "w": "armor",
-   "pivot": "a knight's armor"
-  },
-  {
-   "w": "shield",
-   "pivot": "armor and shield"
-  },
-  {
-   "w": "sword",
-   "pivot": "sword and shield"
-  },
-  {
-   "w": "pen",
-   "pivot": "the pen is mightier than the sword"
-  },
-  {
-   "w": "ink",
-   "pivot": "a pen's ink"
-  },
-  {
-   "w": "octopus",
-   "pivot": "an octopus squirts ink"
-  },
-  {
-   "w": "reef",
-   "pivot": "an octopus on the reef"
-  },
-  {
-   "w": "coral",
-   "pivot": "a coral reef"
-  },
-  {
-   "w": "pink",
-   "pivot": "coral pink"
-  },
-  {
-   "w": "rose",
-   "pivot": "rose pink"
-  },
-  {
-   "w": "thorn",
-   "pivot": "every rose has its thorn"
-  },
-  {
-   "w": "cactus",
-   "pivot": "a cactus has thorns"
-  },
-  {
-   "w": "pot",
-   "pivot": "a potted cactus"
-  },
-  {
-   "w": "gold",
-   "pivot": "a pot of gold"
-  },
-  {
-   "w": "medal",
-   "pivot": "a gold medal"
-  },
-  {
-   "w": "champion",
-   "pivot": "a champion's medal"
-  },
-  {
-   "w": "trophy",
-   "pivot": "a champion's trophy"
-  },
-  {
-   "w": "victory",
-   "pivot": "a trophy for the victory"
-  },
-  {
-   "w": "parade",
-   "pivot": "a victory parade"
-  },
-  {
-   "w": "float",
-   "pivot": "a parade float"
-  },
-  {
-   "w": "swim",
-   "pivot": "float or swim"
-  },
-  {
-   "w": "pool",
-   "pivot": "swim in the pool"
-  },
-  {
-   "w": "table",
-   "pivot": "a pool table"
-  },
-  {
-   "w": "chair",
-   "pivot": "a table and chairs"
-  },
-  {
-   "w": "throne",
-   "pivot": "a throne is a chair"
-  },
-  {
-   "w": "crown",
-   "pivot": "the crown on the throne"
-  },
-  {
-   "w": "tooth",
-   "pivot": "a crown on a tooth"
-  },
-  {
-   "w": "fairy",
-   "pivot": "the tooth fairy"
-  },
-  {
-   "w": "tale",
-   "pivot": "a fairy tale"
-  },
-  {
-   "w": "story",
-   "pivot": "a tale is a story"
-  },
-  {
-   "w": "news",
-   "pivot": "a news story"
-  },
-  {
-   "w": "newspaper",
-   "pivot": "news in the newspaper"
-  },
-  {
-   "w": "headline",
-   "pivot": "a newspaper headline"
-  },
-  {
-   "w": "editor",
-   "pivot": "an editor writes headlines"
-  },
-  {
-   "w": "desk",
-   "pivot": "an editor's desk"
-  },
-  {
-   "w": "drawer",
-   "pivot": "a desk drawer"
-  },
-  {
-   "w": "sock",
-   "pivot": "socks in a drawer"
-  },
-  {
-   "w": "shoe",
-   "pivot": "socks and shoes"
-  },
-  {
-   "w": "lace",
-   "pivot": "shoelaces"
-  },
-  {
-   "w": "dress",
-   "pivot": "a lace dress"
-  },
-  {
-   "w": "wedding",
-   "pivot": "a wedding dress"
-  },
-  {
-   "w": "dance",
-   "pivot": "dancing at a wedding"
-  },
-  {
-   "w": "stage",
-   "pivot": "dancers on a stage"
-  },
-  {
-   "w": "curtain",
-   "pivot": "the stage curtain"
-  },
-  {
-   "w": "window",
-   "pivot": "curtains on a window"
-  },
-  {
-   "w": "view",
-   "pivot": "the view from a window"
-  },
-  {
-   "w": "point",
-   "pivot": "a viewpoint"
-  },
-  {
-   "w": "needle",
-   "pivot": "needlepoint"
-  },
-  {
-   "w": "haystack",
-   "pivot": "a needle in a haystack"
-  },
-  {
-   "w": "barn",
-   "pivot": "haystacks in a barn"
-  },
-  {
-   "w": "horse",
-   "pivot": "a horse in the barn"
-  },
-  {
-   "w": "saddle",
-   "pivot": "a horse's saddle"
-  },
-  {
-   "w": "leather",
-   "pivot": "a leather saddle"
-  },
-  {
-   "w": "jacket",
-   "pivot": "a leather jacket"
-  },
-  {
-   "w": "potato",
-   "pivot": "a jacket potato"
-  },
-  {
-   "w": "couch",
-   "pivot": "a couch potato"
-  },
-  {
-   "w": "cushion",
-   "pivot": "couch cushions"
-  },
-  {
-   "w": "pin",
-   "pivot": "a pincushion"
-  },
-  {
-   "w": "bowling",
-   "pivot": "bowling pins"
-  },
-  {
-   "w": "alley",
-   "pivot": "a bowling alley"
-  },
-  {
-   "w": "cat",
-   "pivot": "an alley cat"
-  },
-  {
-   "w": "nap",
-   "pivot": "a cat nap"
-  },
-  {
-   "w": "blanket",
-   "pivot": "a nap under a blanket"
-  },
-  {
-   "w": "fort",
-   "pivot": "a blanket fort"
-  },
-  {
-   "w": "soldier",
-   "pivot": "soldiers in a fort"
-  },
-  {
-   "w": "toy",
-   "pivot": "a toy soldier"
-  },
-  {
-   "w": "doll",
-   "pivot": "a doll is a toy"
-  },
-  {
-   "w": "puppet",
-   "pivot": "a puppet is a doll on strings"
-  },
-  {
-   "w": "show",
-   "pivot": "a puppet show"
-  },
-  {
-   "w": "ticket",
-   "pivot": "a ticket to the show"
-  },
-  {
-   "w": "lottery",
-   "pivot": "a lottery ticket"
-  },
-  {
-   "w": "number",
-   "pivot": "lottery numbers"
-  },
-  {
-   "w": "phone",
-   "pivot": "a phone number"
-  },
-  {
-   "w": "booth",
-   "pivot": "a phone booth"
-  },
-  {
-   "w": "photo",
-   "pivot": "a photo booth"
-  },
-  {
-   "w": "album",
-   "pivot": "a photo album"
-  },
-  {
-   "w": "record",
-   "pivot": "a record album"
-  },
-  {
-   "w": "player",
-   "pivot": "a record player"
-  },
-  {
-   "w": "coach",
-   "pivot": "a player's coach"
-  },
-  {
-   "w": "office",
-   "pivot": "the coach's office"
-  },
-  {
-   "w": "building",
-   "pivot": "an office building"
-  },
-  {
-   "w": "brick",
-   "pivot": "a brick building"
-  },
-  {
-   "w": "wall",
-   "pivot": "a brick wall"
-  },
-  {
-   "w": "mural",
-   "pivot": "a mural on the wall"
-  },
-  {
-   "w": "artist",
-   "pivot": "an artist paints murals"
-  },
-  {
-   "w": "studio",
-   "pivot": "an artist's studio"
-  },
-  {
-   "w": "apartment",
-   "pivot": "a studio apartment"
-  },
-  {
-   "w": "rent",
-   "pivot": "rent an apartment"
-  },
-  {
-   "w": "landlord",
-   "pivot": "pay the landlord rent"
-  },
-  {
-   "w": "property",
-   "pivot": "a landlord's property"
-  },
-  {
-   "w": "fence",
-   "pivot": "a fence around the property"
-  },
-  {
-   "w": "neighbor",
-   "pivot": "a fence between neighbors"
-  },
-  {
-   "w": "borrow",
-   "pivot": "borrow from a neighbor"
-  },
-  {
-   "w": "loan",
-   "pivot": "a borrowed loan"
-  },
-  {
-   "w": "bank",
-   "pivot": "a bank loan"
-  },
-  {
-   "w": "vault",
-   "pivot": "a bank vault"
-  },
-  {
-   "w": "gym",
-   "pivot": "a gymnast's vault"
-  },
-  {
-   "w": "sweat",
-   "pivot": "sweat at the gym"
-  },
-  {
-   "w": "towel",
-   "pivot": "towel off the sweat"
-  },
-  {
-   "w": "shower",
-   "pivot": "a towel after the shower"
-  },
-  {
-   "w": "gift",
-   "pivot": "a bridal shower gift"
-  },
-  {
-   "w": "ribbon",
-   "pivot": "a gift's ribbon"
-  },
-  {
-   "w": "bow",
-   "pivot": "a ribbon tied in a bow"
-  },
-  {
-   "w": "arrow",
-   "pivot": "a bow and arrow"
-  },
-  {
-   "w": "target",
-   "pivot": "an arrow hits the target"
-  },
-  {
-   "w": "dart",
-   "pivot": "darts hit targets"
-  },
-  {
-   "w": "frog",
-   "pivot": "a poison dart frog"
-  },
-  {
-   "w": "pond",
-   "pivot": "a frog in the pond"
-  },
-  {
-   "w": "lily",
-   "pivot": "a pond lily"
-  },
-  {
-   "w": "valley",
-   "pivot": "lily of the valley"
-  },
-  {
-   "w": "fog",
-   "pivot": "fog in the valley"
-  },
-  {
-   "w": "horn",
-   "pivot": "a foghorn"
-  },
-  {
-   "w": "trumpet",
-   "pivot": "a trumpet is a horn"
-  },
-  {
-   "w": "jazz",
-   "pivot": "jazz trumpet"
-  },
-  {
-   "w": "club",
-   "pivot": "a jazz club"
-  },
-  {
-   "w": "sandwich",
-   "pivot": "a club sandwich"
-  },
-  {
-   "w": "picnic",
-   "pivot": "picnic sandwiches"
-  },
-  {
-   "w": "basket",
-   "pivot": "a picnic basket"
-  },
-  {
-   "w": "hoop",
-   "pivot": "a basketball hoop"
-  },
-  {
-   "w": "earring",
-   "pivot": "hoop earrings"
-  },
-  {
-   "w": "pearl",
-   "pivot": "pearl earrings"
-  },
-  {
-   "w": "oyster",
-   "pivot": "a pearl in an oyster"
-  },
-  {
-   "w": "shell",
-   "pivot": "an oyster's shell"
-  },
-  {
-   "w": "turtle",
-   "pivot": "a turtle's shell"
-  },
-  {
-   "w": "slow",
-   "pivot": "slow as a turtle"
-  },
-  {
-   "w": "snail",
-   "pivot": "slow as a snail"
-  },
-  {
-   "w": "mail",
-   "pivot": "snail mail"
-  },
-  {
-   "w": "stamp",
-   "pivot": "a mail stamp"
-  },
-  {
-   "w": "passport",
-   "pivot": "a passport stamp"
-  },
-  {
-   "w": "travel",
-   "pivot": "a passport for travel"
-  },
-  {
-   "w": "suitcase",
-   "pivot": "pack a suitcase to travel"
-  },
-  {
-   "w": "wheel",
-   "pivot": "a suitcase wheel"
-  },
-  {
-   "w": "hamster",
-   "pivot": "a hamster wheel"
-  },
-  {
-   "w": "cage",
-   "pivot": "a hamster cage"
-  },
-  {
-   "w": "canary",
-   "pivot": "a canary in a cage"
-  },
-  {
-   "w": "yellow",
-   "pivot": "canary yellow"
-  },
-  {
-   "w": "taxi",
-   "pivot": "a yellow taxi"
-  },
-  {
-   "w": "city",
-   "pivot": "a city taxi"
-  },
-  {
-   "w": "skyline",
-   "pivot": "the city skyline"
-  },
-  {
-   "w": "sunset",
-   "pivot": "sunset on the skyline"
-  },
-  {
-   "w": "orange",
-   "pivot": "sunset orange"
-  },
-  {
-   "w": "juice",
-   "pivot": "orange juice"
-  },
-  {
-   "w": "squeeze",
-   "pivot": "squeeze the juice"
-  },
-  {
-   "w": "lemon",
-   "pivot": "squeeze a lemon"
-  },
-  {
-   "w": "car",
-   "pivot": "a lemon of a car"
-  },
-  {
-   "w": "engine",
-   "pivot": "a car engine"
-  },
-  {
-   "w": "train",
-   "pivot": "a train engine"
-  },
-  {
-   "w": "track",
-   "pivot": "train tracks"
-  },
-  {
-   "w": "race",
-   "pivot": "a racetrack"
-  },
-  {
-   "w": "finish",
-   "pivot": "a race to the finish"
-  },
-  {
-   "w": "line",
-   "pivot": "the finish line"
-  },
-  {
-   "w": "fishing",
-   "pivot": "a fishing line"
-  },
-  {
-   "w": "hook",
-   "pivot": "a fishing hook"
-  },
-  {
-   "w": "bait",
-   "pivot": "bait on the hook"
-  },
-  {
-   "w": "worm",
-   "pivot": "a worm as bait"
-  },
-  {
-   "w": "apple",
-   "pivot": "a worm in the apple"
-  },
-  {
-   "w": "orchard",
-   "pivot": "an apple orchard"
-  },
-  {
-   "w": "harvest",
-   "pivot": "the orchard harvest"
-  },
-  {
-   "w": "moon",
-   "pivot": "a harvest moon"
-  },
-  {
-   "w": "tide",
-   "pivot": "the moon pulls the tide"
-  },
-  {
-   "w": "shore",
-   "pivot": "the tide meets the shore"
-  },
-  {
-   "w": "lighthouse",
-   "pivot": "a lighthouse on the shore"
-  },
-  {
-   "w": "beam",
-   "pivot": "a lighthouse beam"
-  },
-  {
-   "w": "smile",
-   "pivot": "a beaming smile"
-  },
-  {
-   "w": "dimple",
-   "pivot": "a smile with dimples"
-  },
-  {
-   "w": "golf",
-   "pivot": "a golf ball's dimples"
-  },
-  {
-   "w": "green",
-   "pivot": "the golf green"
-  },
-  {
-   "w": "salad",
-   "pivot": "a green salad"
-  },
-  {
-   "w": "dressing",
-   "pivot": "salad dressing"
-  },
-  {
-   "w": "wound",
-   "pivot": "dressing a wound"
-  },
-  {
-   "w": "bandage",
-   "pivot": "a bandage on the wound"
-  },
-  {
-   "w": "mummy",
-   "pivot": "a mummy wrapped in bandages"
-  },
-  {
-   "w": "pyramid",
-   "pivot": "a mummy in a pyramid"
-  },
-  {
-   "w": "triangle",
-   "pivot": "a pyramid is a triangle"
-  },
-  {
-   "w": "angle",
-   "pivot": "a triangle's angles"
-  },
-  {
-   "w": "corner",
-   "pivot": "an angle makes a corner"
-  },
-  {
-   "w": "street",
-   "pivot": "a street corner"
-  },
-  {
-   "w": "market",
-   "pivot": "a street market"
-  },
-  {
-   "w": "stock",
-   "pivot": "the stock market"
-  },
-  {
-   "w": "soup",
-   "pivot": "soup stock"
-  },
-  {
-   "w": "spoon",
-   "pivot": "soup with a spoon"
-  },
-  {
-   "w": "silver",
-   "pivot": "a silver spoon"
-  },
-  {
-   "w": "screen",
-   "pivot": "the silver screen"
-  },
-  {
-   "w": "movie",
-   "pivot": "a movie on the screen"
-  },
-  {
-   "w": "popcorn",
-   "pivot": "movie popcorn"
-  },
-  {
-   "w": "kernel",
-   "pivot": "a popcorn kernel"
-  },
-  {
-   "w": "corn",
-   "pivot": "kernels of corn"
-  },
-  {
-   "w": "maze",
-   "pivot": "a corn maze"
-  },
-  {
-   "w": "puzzle",
-   "pivot": "a maze is a puzzle"
-  },
-  {
-   "w": "piece",
-   "pivot": "a puzzle piece"
-  },
-  {
-   "w": "pie",
-   "pivot": "a piece of pie"
-  },
-  {
-   "w": "crust",
-   "pivot": "a pie crust"
+   "w": "dough",
+   "pivot": "doughnut"
   },
   {
    "w": "pizza",
-   "pivot": "a pizza crust"
+   "pivot": "pizza dough"
   },
   {
-   "w": "slice",
-   "pivot": "a pizza slice"
+   "w": "delivery",
+   "pivot": "pizza delivery"
   },
   {
-   "w": "tennis",
-   "pivot": "a slice serve in tennis"
+   "w": "truck",
+   "pivot": "delivery truck"
   },
   {
-   "w": "court",
-   "pivot": "a tennis court"
+   "w": "monster",
+   "pivot": "monster truck"
   },
   {
-   "w": "judge",
-   "pivot": "a judge holds court"
+   "w": "movie",
+   "pivot": "monster movie"
   },
   {
-   "w": "jury",
-   "pivot": "judge and jury"
+   "w": "action",
+   "pivot": "action movie"
   },
   {
-   "w": "verdict",
-   "pivot": "the jury's verdict"
+   "w": "figure",
+   "pivot": "action figure"
   },
   {
-   "w": "guilty",
-   "pivot": "a guilty verdict"
+   "w": "stick",
+   "pivot": "stick figure"
   },
   {
-   "w": "pleasure",
-   "pivot": "a guilty pleasure"
+   "w": "lip",
+   "pivot": "lipstick"
   },
   {
-   "w": "chocolate",
-   "pivot": "chocolate is a pleasure"
+   "w": "service",
+   "pivot": "lip service"
   },
   {
-   "w": "cocoa",
-   "pivot": "chocolate comes from cocoa"
+   "w": "secret",
+   "pivot": "secret service"
   },
   {
-   "w": "bean",
-   "pivot": "a cocoa bean"
+   "w": "recipe",
+   "pivot": "secret recipe"
+  },
+  {
+   "w": "disaster",
+   "pivot": "recipe for disaster"
+  },
+  {
+   "w": "natural",
+   "pivot": "natural disaster"
+  },
+  {
+   "w": "history",
+   "pivot": "natural history"
+  },
+  {
+   "w": "browser",
+   "pivot": "browser history"
+  },
+  {
+   "w": "web",
+   "pivot": "web browser"
+  },
+  {
+   "w": "spider",
+   "pivot": "spider web"
+  },
+  {
+   "w": "silk",
+   "pivot": "spider silk"
+  },
+  {
+   "w": "worm",
+   "pivot": "silkworm"
+  },
+  {
+   "w": "glow",
+   "pivot": "glowworm"
+  },
+  {
+   "w": "candle",
+   "pivot": "candle glow"
+  },
+  {
+   "w": "light",
+   "pivot": "candlelight"
+  },
+  {
+   "w": "beam",
+   "pivot": "light beam"
+  },
+  {
+   "w": "moon",
+   "pivot": "moonbeam"
+  },
+  {
+   "w": "full",
+   "pivot": "full moon"
+  },
+  {
+   "w": "house",
+   "pivot": "full house"
+  },
+  {
+   "w": "slipper",
+   "pivot": "house slipper"
+  },
+  {
+   "w": "glass",
+   "pivot": "glass slipper"
+  },
+  {
+   "w": "wine",
+   "pivot": "wine glass"
+  },
+  {
+   "w": "cellar",
+   "pivot": "wine cellar"
+  },
+  {
+   "w": "door",
+   "pivot": "cellar door"
+  },
+  {
+   "w": "garage",
+   "pivot": "garage door"
+  },
+  {
+   "w": "band",
+   "pivot": "garage band"
+  },
+  {
+   "w": "cover",
+   "pivot": "cover band"
+  },
+  {
+   "w": "album",
+   "pivot": "album cover"
+  },
+  {
+   "w": "photo",
+   "pivot": "photo album"
+  },
+  {
+   "w": "editor",
+   "pivot": "photo editor"
+  },
+  {
+   "w": "video",
+   "pivot": "video editor"
+  },
+  {
+   "w": "camera",
+   "pivot": "video camera"
+  },
+  {
+   "w": "security",
+   "pivot": "security camera"
+  },
+  {
+   "w": "job",
+   "pivot": "job security"
+  },
+  {
+   "w": "dream",
+   "pivot": "dream job"
+  },
+  {
+   "w": "catcher",
+   "pivot": "dreamcatcher"
+  },
+  {
+   "w": "mitt",
+   "pivot": "catcher's mitt"
+  },
+  {
+   "w": "oven",
+   "pivot": "oven mitt"
+  },
+  {
+   "w": "brick",
+   "pivot": "brick oven"
+  },
+  {
+   "w": "wall",
+   "pivot": "brick wall"
+  },
+  {
+   "w": "flower",
+   "pivot": "wallflower"
+  },
+  {
+   "w": "girl",
+   "pivot": "flower girl"
+  },
+  {
+   "w": "guide",
+   "pivot": "girl guide"
+  },
+  {
+   "w": "spirit",
+   "pivot": "spirit guide"
+  },
+  {
+   "w": "team",
+   "pivot": "team spirit"
+  },
+  {
+   "w": "captain",
+   "pivot": "team captain"
+  },
+  {
+   "w": "ship",
+   "pivot": "ship captain"
+  },
+  {
+   "w": "cruise",
+   "pivot": "cruise ship"
+  },
+  {
+   "w": "jungle",
+   "pivot": "jungle cruise"
+  },
+  {
+   "w": "gym",
+   "pivot": "jungle gym"
+  },
+  {
+   "w": "teacher",
+   "pivot": "gym teacher"
+  },
+  {
+   "w": "pet",
+   "pivot": "teacher's pet"
+  },
+  {
+   "w": "sitter",
+   "pivot": "pet sitter"
+  },
+  {
+   "w": "fence",
+   "pivot": "fence sitter"
+  },
+  {
+   "w": "picket",
+   "pivot": "picket fence"
+  },
+  {
+   "w": "sign",
+   "pivot": "picket sign"
+  },
+  {
+   "w": "language",
+   "pivot": "sign language"
+  },
+  {
+   "w": "body",
+   "pivot": "body language"
+  },
+  {
+   "w": "count",
+   "pivot": "body count"
+  },
+  {
+   "w": "thread",
+   "pivot": "thread count"
+  },
+  {
+   "w": "common",
+   "pivot": "common thread"
+  },
+  {
+   "w": "ground",
+   "pivot": "common ground"
+  },
+  {
+   "w": "play",
+   "pivot": "playground"
+  },
+  {
+   "w": "pen",
+   "pivot": "playpen"
+  },
+  {
+   "w": "bull",
+   "pivot": "bullpen"
+  },
+  {
+   "w": "frog",
+   "pivot": "bullfrog"
+  },
+  {
+   "w": "leap",
+   "pivot": "leapfrog"
+  },
+  {
+   "w": "year",
+   "pivot": "leap year"
+  },
+  {
+   "w": "school",
+   "pivot": "school year"
+  },
+  {
+   "w": "charm",
+   "pivot": "charm school"
+  },
+  {
+   "w": "luck",
+   "pivot": "lucky charm"
+  },
+  {
+   "w": "pot",
+   "pivot": "potluck"
+  },
+  {
+   "w": "melting",
+   "pivot": "melting pot"
+  },
+  {
+   "w": "point",
+   "pivot": "melting point"
+  },
+  {
+   "w": "blank",
+   "pivot": "point blank"
+  },
+  {
+   "w": "page",
+   "pivot": "blank page"
+  },
+  {
+   "w": "sports",
+   "pivot": "sports page"
+  },
+  {
+   "w": "car",
+   "pivot": "sports car"
+  },
+  {
+   "w": "clown",
+   "pivot": "clown car"
+  },
+  {
+   "w": "class",
+   "pivot": "class clown"
+  },
+  {
+   "w": "reunion",
+   "pivot": "class reunion"
+  },
+  {
+   "w": "family",
+   "pivot": "family reunion"
+  },
+  {
+   "w": "business",
+   "pivot": "family business"
+  },
+  {
+   "w": "suit",
+   "pivot": "business suit"
+  },
+  {
+   "w": "jacket",
+   "pivot": "suit jacket"
+  },
+  {
+   "w": "dust",
+   "pivot": "dust jacket"
+  },
+  {
+   "w": "fairy",
+   "pivot": "fairy dust"
+  },
+  {
+   "w": "tooth",
+   "pivot": "tooth fairy"
+  },
+  {
+   "w": "brush",
+   "pivot": "toothbrush"
+  },
+  {
+   "w": "stroke",
+   "pivot": "brush stroke"
+  },
+  {
+   "w": "heat",
+   "pivot": "heat stroke"
+  },
+  {
+   "w": "dead",
+   "pivot": "dead heat"
+  },
+  {
+   "w": "center",
+   "pivot": "dead center"
+  },
+  {
+   "w": "shopping",
+   "pivot": "shopping center"
+  },
+  {
+   "w": "bag",
+   "pivot": "shopping bag"
+  },
+  {
+   "w": "sleeping",
+   "pivot": "sleeping bag"
+  },
+  {
+   "w": "spell",
+   "pivot": "sleeping spell"
+  },
+  {
+   "w": "dry",
+   "pivot": "dry spell"
+  },
+  {
+   "w": "run",
+   "pivot": "dry run"
+  },
+  {
+   "w": "end",
+   "pivot": "end run"
+  },
+  {
+   "w": "zone",
+   "pivot": "end zone"
+  },
+  {
+   "w": "comfort",
+   "pivot": "comfort zone"
+  },
+  {
+   "w": "food",
+   "pivot": "comfort food"
+  },
+  {
+   "w": "junk",
+   "pivot": "junk food"
+  },
+  {
+   "w": "yard",
+   "pivot": "junkyard"
+  },
+  {
+   "w": "vine",
+   "pivot": "vineyard"
+  },
+  {
+   "w": "grape",
+   "pivot": "grapevine"
+  },
+  {
+   "w": "fruit",
+   "pivot": "grapefruit"
+  },
+  {
+   "w": "punch",
+   "pivot": "fruit punch"
+  },
+  {
+   "w": "line",
+   "pivot": "punch line"
+  },
+  {
+   "w": "shore",
+   "pivot": "shoreline"
+  },
+  {
+   "w": "sea",
+   "pivot": "seashore"
+  },
+  {
+   "w": "sick",
+   "pivot": "seasick"
+  },
+  {
+   "w": "home",
+   "pivot": "homesick"
+  },
+  {
+   "w": "base",
+   "pivot": "home base"
+  },
+  {
+   "w": "camp",
+   "pivot": "base camp"
+  },
+  {
+   "w": "site",
+   "pivot": "campsite"
+  },
+  {
+   "w": "launch",
+   "pivot": "launch site"
+  },
+  {
+   "w": "rocket",
+   "pivot": "rocket launch"
+  },
+  {
+   "w": "model",
+   "pivot": "model rocket"
+  },
+  {
+   "w": "aircraft",
+   "pivot": "model aircraft"
+  },
+  {
+   "w": "hangar",
+   "pivot": "aircraft hangar"
+  },
+  {
+   "w": "airplane",
+   "pivot": "airplane hangar"
+  },
+  {
+   "w": "pilot",
+   "pivot": "airplane pilot"
+  },
+  {
+   "w": "test",
+   "pivot": "test pilot"
+  },
+  {
+   "w": "drive",
+   "pivot": "test drive"
+  },
+  {
+   "w": "hard",
+   "pivot": "hard drive"
+  },
+  {
+   "w": "hat",
+   "pivot": "hard hat"
+  },
+  {
+   "w": "cowboy",
+   "pivot": "cowboy hat"
+  },
+  {
+   "w": "boot",
+   "pivot": "cowboy boot"
+  },
+  {
+   "w": "ski",
+   "pivot": "ski boot"
+  },
+  {
+   "w": "mask",
+   "pivot": "ski mask"
+  },
+  {
+   "w": "gas",
+   "pivot": "gas mask"
+  },
+  {
+   "w": "tank",
+   "pivot": "gas tank"
+  },
+  {
+   "w": "fish",
+   "pivot": "fish tank"
+  },
+  {
+   "w": "hook",
+   "pivot": "fishhook"
+  },
+  {
+   "w": "fishing",
+   "pivot": "fishing hook"
+  },
+  {
+   "w": "rod",
+   "pivot": "fishing rod"
+  },
+  {
+   "w": "lightning",
+   "pivot": "lightning rod"
+  },
+  {
+   "w": "storm",
+   "pivot": "lightning storm"
+  },
+  {
+   "w": "thunder",
+   "pivot": "thunderstorm"
+  },
+  {
+   "w": "bird",
+   "pivot": "thunderbird"
+  },
+  {
+   "w": "nest",
+   "pivot": "bird nest"
+  },
+  {
+   "w": "egg",
+   "pivot": "nest egg"
+  },
+  {
+   "w": "robin",
+   "pivot": "robin's egg"
+  },
+  {
+   "w": "round",
+   "pivot": "round robin"
+  },
+  {
+   "w": "trip",
+   "pivot": "round trip"
+  },
+  {
+   "w": "canoe",
+   "pivot": "canoe trip"
+  },
+  {
+   "w": "paddle",
+   "pivot": "canoe paddle"
+  },
+  {
+   "w": "boat",
+   "pivot": "paddle boat"
+  },
+  {
+   "w": "tug",
+   "pivot": "tugboat"
+  },
+  {
+   "w": "war",
+   "pivot": "tug of war"
+  },
+  {
+   "w": "path",
+   "pivot": "warpath"
+  },
+  {
+   "w": "garden",
+   "pivot": "garden path"
+  },
+  {
+   "w": "victory",
+   "pivot": "victory garden"
+  },
+  {
+   "w": "dance",
+   "pivot": "victory dance"
+  },
+  {
+   "w": "slow",
+   "pivot": "slow dance"
+  },
+  {
+   "w": "cooker",
+   "pivot": "slow cooker"
+  },
+  {
+   "w": "rice",
+   "pivot": "rice cooker"
+  },
+  {
+   "w": "paddy",
+   "pivot": "rice paddy"
+  },
+  {
+   "w": "wagon",
+   "pivot": "paddy wagon"
+  },
+  {
+   "w": "welcome",
+   "pivot": "welcome wagon"
+  },
+  {
+   "w": "warm",
+   "pivot": "warm welcome"
+  },
+  {
+   "w": "front",
+   "pivot": "warm front"
+  },
+  {
+   "w": "battle",
+   "pivot": "battlefront"
+  },
+  {
+   "w": "field",
+   "pivot": "battlefield"
+  },
+  {
+   "w": "strawberry",
+   "pivot": "strawberry field"
+  },
+  {
+   "w": "jam",
+   "pivot": "strawberry jam"
+  },
+  {
+   "w": "toe",
+   "pivot": "toe jam"
+  },
+  {
+   "w": "tip",
+   "pivot": "tiptoe"
+  },
+  {
+   "w": "jar",
+   "pivot": "tip jar"
+  },
+  {
+   "w": "cookie",
+   "pivot": "cookie jar"
+  },
+  {
+   "w": "crumb",
+   "pivot": "cookie crumb"
+  },
+  {
+   "w": "bread",
+   "pivot": "breadcrumb"
+  },
+  {
+   "w": "bin",
+   "pivot": "bread bin"
+  },
+  {
+   "w": "trash",
+   "pivot": "trash bin"
+  },
+  {
+   "w": "heap",
+   "pivot": "trash heap"
+  },
+  {
+   "w": "compost",
+   "pivot": "compost heap"
+  },
+  {
+   "w": "pile",
+   "pivot": "compost pile"
+  },
+  {
+   "w": "scrap",
+   "pivot": "scrap pile"
+  },
+  {
+   "w": "book",
+   "pivot": "scrapbook"
+  },
+  {
+   "w": "comic",
+   "pivot": "comic book"
+  },
+  {
+   "w": "relief",
+   "pivot": "comic relief"
+  },
+  {
+   "w": "pitcher",
+   "pivot": "relief pitcher"
+  },
+  {
+   "w": "plant",
+   "pivot": "pitcher plant"
+  },
+  {
+   "w": "kingdom",
+   "pivot": "plant kingdom"
+  },
+  {
+   "w": "animal",
+   "pivot": "animal kingdom"
+  },
+  {
+   "w": "stuffed",
+   "pivot": "stuffed animal"
+  },
+  {
+   "w": "shirt",
+   "pivot": "stuffed shirt"
+  },
+  {
+   "w": "muscle",
+   "pivot": "muscle shirt"
+  },
+  {
+   "w": "memory",
+   "pivot": "muscle memory"
+  },
+  {
+   "w": "foam",
+   "pivot": "memory foam"
+  },
+  {
+   "w": "finger",
+   "pivot": "foam finger"
+  },
+  {
+   "w": "puppet",
+   "pivot": "finger puppet"
+  },
+  {
+   "w": "show",
+   "pivot": "puppet show"
+  },
+  {
+   "w": "quiz",
+   "pivot": "quiz show"
+  },
+  {
+   "w": "pop",
+   "pivot": "pop quiz"
+  },
+  {
+   "w": "art",
+   "pivot": "pop art"
+  },
+  {
+   "w": "studio",
+   "pivot": "art studio"
+  },
+  {
+   "w": "apartment",
+   "pivot": "studio apartment"
+  },
+  {
+   "w": "building",
+   "pivot": "apartment building"
+  },
+  {
+   "w": "block",
+   "pivot": "building block"
+  },
+  {
+   "w": "writer",
+   "pivot": "writer's block"
+  },
+  {
+   "w": "cramp",
+   "pivot": "writer's cramp"
+  },
+  {
+   "w": "stomach",
+   "pivot": "stomach cramp"
+  },
+  {
+   "w": "ache",
+   "pivot": "stomachache"
+  },
+  {
+   "w": "belly",
+   "pivot": "bellyache"
+  },
+  {
+   "w": "button",
+   "pivot": "belly button"
+  },
+  {
+   "w": "nose",
+   "pivot": "button nose"
+  },
+  {
+   "w": "brown",
+   "pivot": "brown nose"
+  },
+  {
+   "w": "sugar",
+   "pivot": "brown sugar"
+  },
+  {
+   "w": "cane",
+   "pivot": "sugar cane"
+  },
+  {
+   "w": "candy",
+   "pivot": "candy cane"
+  },
+  {
+   "w": "cotton",
+   "pivot": "cotton candy"
+  },
+  {
+   "w": "mouth",
+   "pivot": "cottonmouth"
+  },
+  {
+   "w": "big",
+   "pivot": "big mouth"
+  },
+  {
+   "w": "city",
+   "pivot": "big city"
+  },
+  {
+   "w": "capital",
+   "pivot": "capital city"
+  },
+  {
+   "w": "letter",
+   "pivot": "capital letter"
+  },
+  {
+   "w": "opener",
+   "pivot": "letter opener"
+  },
+  {
+   "w": "can",
+   "pivot": "can opener"
+  },
+  {
+   "w": "soda",
+   "pivot": "soda can"
+  },
+  {
+   "w": "club",
+   "pivot": "club soda"
+  },
+  {
+   "w": "golf",
+   "pivot": "golf club"
+  },
+  {
+   "w": "driver",
+   "pivot": "golf driver"
+  },
+  {
+   "w": "taxi",
+   "pivot": "taxi driver"
+  },
+  {
+   "w": "stand",
+   "pivot": "taxi stand"
+  },
+  {
+   "w": "last",
+   "pivot": "last stand"
+  },
+  {
+   "w": "word",
+   "pivot": "last word"
+  },
+  {
+   "w": "cross",
+   "pivot": "crossword"
+  },
+  {
+   "w": "road",
+   "pivot": "crossroad"
+  },
+  {
+   "w": "dirt",
+   "pivot": "dirt road"
+  },
+  {
+   "w": "bike",
+   "pivot": "dirt bike"
+  },
+  {
+   "w": "mountain",
+   "pivot": "mountain bike"
+  },
+  {
+   "w": "top",
+   "pivot": "mountaintop"
+  },
+  {
+   "w": "spinning",
+   "pivot": "spinning top"
+  },
+  {
+   "w": "wheel",
+   "pivot": "spinning wheel"
+  },
+  {
+   "w": "hamster",
+   "pivot": "hamster wheel"
+  },
+  {
+   "w": "cage",
+   "pivot": "hamster cage"
+  },
+  {
+   "w": "rib",
+   "pivot": "rib cage"
+  },
+  {
+   "w": "short",
+   "pivot": "short rib"
+  },
+  {
+   "w": "story",
+   "pivot": "short story"
+  },
+  {
+   "w": "ghost",
+   "pivot": "ghost story"
+  },
+  {
+   "w": "town",
+   "pivot": "ghost town"
+  },
+  {
+   "w": "meeting",
+   "pivot": "town meeting"
+  },
+  {
+   "w": "staff",
+   "pivot": "staff meeting"
+  },
+  {
+   "w": "chief",
+   "pivot": "chief of staff"
+  },
+  {
+   "w": "police",
+   "pivot": "police chief"
+  },
+  {
+   "w": "sketch",
+   "pivot": "police sketch"
+  },
+  {
+   "w": "artist",
+   "pivot": "sketch artist"
+  },
+  {
+   "w": "solo",
+   "pivot": "solo artist"
+  },
+  {
+   "w": "flight",
+   "pivot": "solo flight"
+  },
+  {
+   "w": "risk",
+   "pivot": "flight risk"
+  },
+  {
+   "w": "factor",
+   "pivot": "risk factor"
+  },
+  {
+   "w": "fear",
+   "pivot": "fear factor"
+  },
+  {
+   "w": "dark",
+   "pivot": "fear of the dark"
+  },
+  {
+   "w": "cloud",
+   "pivot": "dark cloud"
+  },
+  {
+   "w": "nine",
+   "pivot": "cloud nine"
+  },
+  {
+   "w": "iron",
+   "pivot": "nine iron"
+  },
+  {
+   "w": "will",
+   "pivot": "iron will"
+  },
+  {
+   "w": "free",
+   "pivot": "free will"
+  },
+  {
+   "w": "throw",
+   "pivot": "free throw"
+  },
+  {
+   "w": "pillow",
+   "pivot": "throw pillow"
+  },
+  {
+   "w": "talk",
+   "pivot": "pillow talk"
+  },
+  {
+   "w": "small",
+   "pivot": "small talk"
+  },
+  {
+   "w": "fortune",
+   "pivot": "small fortune"
+  },
+  {
+   "w": "fame",
+   "pivot": "fame and fortune"
+  },
+  {
+   "w": "hall",
+   "pivot": "hall of fame"
+  },
+  {
+   "w": "pass",
+   "pivot": "hall pass"
+  },
+  {
+   "w": "press",
+   "pivot": "press pass"
+  },
+  {
+   "w": "french",
+   "pivot": "french press"
+  },
+  {
+   "w": "horn",
+   "pivot": "french horn"
+  },
+  {
+   "w": "fog",
+   "pivot": "foghorn"
+  },
+  {
+   "w": "brain",
+   "pivot": "brain fog"
+  },
+  {
+   "w": "freeze",
+   "pivot": "brain freeze"
+  },
+  {
+   "w": "frame",
+   "pivot": "freeze frame"
+  },
+  {
+   "w": "picture",
+   "pivot": "picture frame"
+  },
+  {
+   "w": "perfect",
+   "pivot": "picture perfect"
+  },
+  {
+   "w": "match",
+   "pivot": "perfect match"
+  },
+  {
+   "w": "boxing",
+   "pivot": "boxing match"
+  },
+  {
+   "w": "glove",
+   "pivot": "boxing glove"
+  },
+  {
+   "w": "rubber",
+   "pivot": "rubber glove"
+  },
+  {
+   "w": "duck",
+   "pivot": "rubber duck"
+  },
+  {
+   "w": "pond",
+   "pivot": "duck pond"
+  },
+  {
+   "w": "mill",
+   "pivot": "mill pond"
+  },
+  {
+   "w": "pepper",
+   "pivot": "pepper mill"
+  },
+  {
+   "w": "mint",
+   "pivot": "peppermint"
+  },
+  {
+   "w": "spear",
+   "pivot": "spearmint"
+  },
+  {
+   "w": "head",
+   "pivot": "spearhead"
+  },
+  {
+   "w": "hammer",
+   "pivot": "hammerhead"
+  },
+  {
+   "w": "jack",
+   "pivot": "jackhammer"
+  },
+  {
+   "w": "knife",
+   "pivot": "jackknife"
+  },
+  {
+   "w": "pocket",
+   "pivot": "pocket knife"
+  },
+  {
+   "w": "change",
+   "pivot": "pocket change"
+  },
+  {
+   "w": "lane",
+   "pivot": "lane change"
+  },
+  {
+   "w": "bowling",
+   "pivot": "bowling lane"
+  },
+  {
+   "w": "alley",
+   "pivot": "bowling alley"
+  },
+  {
+   "w": "back",
+   "pivot": "back alley"
+  },
+  {
+   "w": "porch",
+   "pivot": "back porch"
+  },
+  {
+   "w": "swing",
+   "pivot": "porch swing"
+  },
+  {
+   "w": "state",
+   "pivot": "swing state"
+  },
+  {
+   "w": "fair",
+   "pivot": "state fair"
+  },
+  {
+   "w": "fun",
+   "pivot": "funfair"
+  },
+  {
+   "w": "size",
+   "pivot": "fun size"
+  },
+  {
+   "w": "matter",
+   "pivot": "size matters"
+  },
+  {
+   "w": "fact",
+   "pivot": "matter of fact"
+  },
+  {
+   "w": "fiction",
+   "pivot": "fact and fiction"
+  },
+  {
+   "w": "fan",
+   "pivot": "fan fiction"
+  },
+  {
+   "w": "belt",
+   "pivot": "fan belt"
+  },
+  {
+   "w": "seat",
+   "pivot": "seat belt"
+  },
+  {
+   "w": "cushion",
+   "pivot": "seat cushion"
+  },
+  {
+   "w": "couch",
+   "pivot": "couch cushion"
+  },
+  {
+   "w": "potato",
+   "pivot": "couch potato"
+  },
+  {
+   "w": "sweet",
+   "pivot": "sweet potato"
+  },
+  {
+   "w": "spot",
+   "pivot": "sweet spot"
+  },
+  {
+   "w": "sun",
+   "pivot": "sunspot"
+  },
+  {
+   "w": "burn",
+   "pivot": "sunburn"
+  },
+  {
+   "w": "heart",
+   "pivot": "heartburn"
+  },
+  {
+   "w": "broken",
+   "pivot": "broken heart"
+  },
+  {
+   "w": "record",
+   "pivot": "broken record"
+  },
+  {
+   "w": "world",
+   "pivot": "world record"
+  },
+  {
+   "w": "cup",
+   "pivot": "world cup"
   }
  ]
 }

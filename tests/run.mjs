@@ -25,6 +25,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const chainPack = JSON.parse(fs.readFileSync(path.join(root, "data/chain.json"), "utf8"));
 const words = JSON.parse(fs.readFileSync(path.join(root, "data/words.json"), "utf8"));
 const chain = chainPack.words;
+const N = chain.length;
 
 function heatRow(day) {
   return new Uint8Array(
@@ -47,16 +48,28 @@ function test(name, fn) {
   }
 }
 
-/* ---------- chain ---------- */
+/* ---------- chain: every link is a lexical unit ---------- */
 
-test("chain has 366 unique lowercase words with pivots", () => {
-  assert.equal(chain.length, 366);
+test("chain is long, unique, lowercase, with a unit pivot per step", () => {
+  assert.ok(N >= 250, `chain length ${N}`);
   const seen = new Set();
   for (const e of chain) {
     assert.match(e.w, /^[a-z]+$/, e.w);
     assert.ok(typeof e.pivot === "string" && e.pivot.length >= 4, `pivot for ${e.w}`);
     assert.ok(!seen.has(e.w), `duplicate ${e.w}`);
     seen.add(e.w);
+  }
+  assert.equal(chain[0].w, "coffee");
+});
+
+test("lexical-unit rule: every pivot contains BOTH adjacent words", () => {
+  for (let i = 0; i < N; i++) {
+    const prev = chain[(i - 1 + N) % N].w;
+    const cur = chain[i].w;
+    const flat = chain[i].pivot.toLowerCase().replace(/[^a-z]/g, " ");
+    const compact = flat.replace(/ /g, "");
+    assert.ok(compact.includes(prev), `${chain[i].pivot}: missing yesterday "${prev}"`);
+    assert.ok(compact.includes(cur), `${chain[i].pivot}: missing today "${cur}"`);
   }
 });
 
@@ -65,19 +78,21 @@ test("every chain word is in the dictionary", () => {
   for (const e of chain) assert.ok(dict.has(e.w), e.w);
 });
 
-test("v1 chain opening is preserved", () => {
-  assert.equal(chain[0].w, "coffee");
-  assert.equal(chain[22].w, "string");
-  assert.equal(chain[23].w, "guitar");
-  assert.equal(chain[71].w, "breakfast");
+test("every day's pivot blanks to a usable clue", () => {
+  for (const e of chain) {
+    const clue = blankPivot(e.pivot, e.w);
+    assert.notEqual(clue, e.pivot, `${e.w}: pivot never blanked`);
+    assert.ok(!new RegExp(`\\b${e.w}\\b`, "i").test(clue), `${e.w}: still visible in "${clue}"`);
+  }
 });
 
 /* ---------- calendar ---------- */
 
 test("dayIndex wraps the chain by pacific day", () => {
-  assert.equal(dayIndex("2026-01-01", chain.length), 0);
-  assert.equal(dayIndex("2026-01-02", chain.length), 1);
-  assert.equal(dayIndex("2027-01-02", chain.length), 0); // 366 days later
+  assert.equal(dayIndex("2026-01-01", N), 0);
+  assert.equal(dayIndex("2026-01-02", N), 1);
+  const far = daysBetween(EPOCH, "2027-06-15");
+  assert.equal(dayIndex("2027-06-15", N), ((far % N) + N) % N);
 });
 
 test("puzzleNumber counts from epoch", () => {
@@ -92,7 +107,6 @@ test("daysBetween handles month boundaries", () => {
 
 test("pacificDateString returns YYYY-MM-DD", () => {
   assert.match(pacificDateString(new Date()), /^\d{4}-\d{2}-\d{2}$/);
-  assert.equal(EPOCH, "2026-01-01");
 });
 
 /* ---------- bands & trend ---------- */
@@ -117,161 +131,144 @@ test("bandFor folds lukewarm into warm", () => {
 test("heatTrend: band change or 10+ delta is notable", () => {
   assert.equal(heatTrend(80, 40), "hotter");
   assert.equal(heatTrend(20, 60), "colder");
-  assert.equal(heatTrend(22, 20), "same"); // same band, small delta
-  assert.equal(heatTrend(8, 5), "same"); // ice twitching is never a trend
-  assert.equal(heatTrend(31, 28), "hotter"); // band changed cold -> cool
+  assert.equal(heatTrend(22, 20), "same");
+  assert.equal(heatTrend(8, 5), "same");
+  assert.equal(heatTrend(31, 28), "hotter");
 });
 
-/* ---------- lookup & inflections ---------- */
+/* ---------- lookup & inflections (synthetic — data-independent) ---------- */
 
-const day23 = createHeatLookup(words, heatRow(23)); // guitar
+const SYN_WORDS = ["fence", "neighbor", "neighbors", "neighbours", "wall", "friend", "gossip", "walls", "bake", "baking"];
+function synRow(map) {
+  const row = new Uint8Array(SYN_WORDS.length).fill(5);
+  for (const [w, h] of Object.entries(map)) row[SYN_WORDS.indexOf(w)] = h;
+  return row;
+}
+const synToday = createHeatLookup(SYN_WORDS, synRow({ neighbor: 100, neighbors: 92, friend: 68, wall: 6 }));
+const synPrev = createHeatLookup(SYN_WORDS, synRow({ fence: 100, wall: 95, neighbor: 76 }));
+const SYN_CHAIN = [{ w: "fence", pivot: "picket fence" }, { w: "neighbor", pivot: "neighborhood watch" }];
 
 test("inflections resolve, preferring the word itself then base forms", () => {
-  assert.ok(day23.candidates("strings").includes("string"));
-  assert.equal(day23.resolve("string"), "string");
-  assert.equal(day23.resolve("guitars"), "guitar");
-  assert.equal(day23.resolve("zzzzzz"), null);
+  assert.ok(synToday.candidates("walls").includes("wall"));
+  assert.equal(synToday.resolve("baking"), "baking");
+  assert.ok(synToday.candidates("baking").includes("bake"));
+  assert.equal(synToday.resolve("zzzzzz"), null);
+});
+
+test("an inflection of the secret wins even when it is its own dict word", () => {
+  const s = createState(SYN_CHAIN, 1);
+  const r = applyGuess(s, "neighbors", synToday);
+  assert.ok(r.ok);
+  assert.ok(r.state.won, "neighbors should catch neighbor");
 });
 
 test("british spellings bridge to the secret", () => {
-  const day253 = createHeatLookup(words, heatRow(253)); // neighbor
-  let s = createState(chain, 253);
-  const r = applyGuess(s, "neighbours", day253);
+  const s = createState(SYN_CHAIN, 1);
+  const r = applyGuess(s, "neighbours", synToday);
   assert.ok(r.ok);
   assert.ok(r.state.won, "neighbours should catch neighbor");
 });
 
-test("an inflection of the secret wins even when it is its own dict word", () => {
-  const day22 = createHeatLookup(words, heatRow(22)); // string
-  let s = createState(chain, 22);
-  const r = applyGuess(s, "strings", day22);
-  assert.ok(r.ok);
-  assert.ok(r.state.won, "strings should catch string");
+test("near yesterday: cold vs today but hot vs yesterday flags the guess", () => {
+  let s = createState(SYN_CHAIN, 1);
+  const wall = applyGuess(s, "wall", synToday, synPrev);
+  assert.ok(wall.state.guesses[0].near, "wall should be near-yesterday");
+  const friend = applyGuess(wall.state, "friend", synToday, synPrev);
+  assert.ok(!friend.state.guesses[1].near, "friend is warm vs today, not near");
+  const gossip = applyGuess(friend.state, "gossip", synToday, synPrev);
+  assert.ok(!gossip.state.guesses[2].near, "gossip is cold vs both, plain ice");
 });
 
-test("guitar day: secret is 100, yesterday is hot, neighbors grade down", () => {
-  assert.equal(day23.heat("guitar"), 100);
-  assert.ok(day23.heat("string") >= 76, String(day23.heat("string")));
-  assert.ok(day23.heat("violin") >= 60, String(day23.heat("violin")));
-  assert.ok(day23.heat("banjo") >= 75, String(day23.heat("banjo")));
-  const carHeat = day23.heat("car");
-  assert.ok(carHeat < 45, `car should not be warm for guitar: ${carHeat}`);
+test("without a prev lookup no guess is flagged near", () => {
+  const s = createState(SYN_CHAIN, 1);
+  const r = applyGuess(s, "wall", synToday);
+  assert.ok(!r.state.guesses[0].near);
 });
 
-test("dense signal: every sampled day has hundreds of graded words", () => {
-  for (const day of [0, 23, 100, 200, 300, 365]) {
-    const row = heatRow(day);
+/* ---------- real heat data (structural spot checks) ---------- */
+
+test("all heat files exist, one byte per word, secret 100, yesterday hot", () => {
+  const index = new Map(words.map((w, i) => [w, i]));
+  for (const d of [0, 1, Math.floor(N / 2), N - 1]) {
+    const row = heatRow(d);
+    assert.equal(row.length, words.length, `day ${d} row size`);
+    assert.equal(row[index.get(chain[d].w)], 100, `day ${d} secret`);
+    const yest = chain[(d - 1 + N) % N].w;
+    assert.ok(row[index.get(yest)] >= 76, `day ${d} yesterday ${yest}`);
     const above = row.reduce((n, h) => n + (h >= 15 ? 1 : 0), 0);
-    assert.ok(above >= 150, `day ${day}: only ${above} words above ice`);
-    assert.equal(row.length, words.length);
+    assert.ok(above >= 150, `day ${d}: only ${above} words above ice`);
   }
-});
-
-test("all 366 heat files exist and are one byte per word", () => {
-  for (let d = 0; d < 366; d++) {
-    assert.equal(heatRow(d).length, words.length, `day ${d}`);
+  for (let d = 0; d < N; d++) {
+    assert.ok(fs.existsSync(path.join(root, "data/heat", String(d).padStart(3, "0") + ".bin")), `day ${d} file`);
   }
 });
 
 /* ---------- game flow ---------- */
 
 test("createState exposes today, yesterday, and the pivot", () => {
-  const s = createState(chain, 23);
-  assert.equal(s.today, "guitar");
-  assert.equal(s.yesterday, "string");
-  assert.equal(s.pivot, "a guitar string");
+  const s = createState(chain, 1);
+  assert.equal(s.today, chain[1].w);
+  assert.equal(s.yesterday, chain[0].w);
+  assert.equal(s.pivot, chain[1].pivot);
 });
 
-test("win on exact guess; inflection of the secret also wins", () => {
-  let s = createState(chain, 23);
-  let r = applyGuess(s, "Guitars", day23);
-  assert.ok(r.ok);
-  assert.ok(r.state.won);
-  assert.equal(r.state.guesses[0].heat, 100);
+test("six misses lose the game; win stops play", () => {
+  let s = createState(SYN_CHAIN, 1);
+  for (const w of ["wall", "friend", "gossip", "bake", "fence", "walls"]) {
+    const r = applyGuess(s, w, synToday);
+    if (r.ok) s = r.state;
+  }
+  assert.ok(s.lost);
+  assert.equal(s.guesses.length, MAX_GUESSES);
+  const over = applyGuess(s, "neighbor", synToday);
+  assert.equal(over.ok, false);
+  assert.equal(over.reason, "over");
 });
 
 test("invalid and duplicate guesses are rejected without consuming a turn", () => {
-  let s = createState(chain, 23);
-  assert.equal(applyGuess(s, "qqqq", day23).ok, false);
-  assert.equal(applyGuess(s, "not a word!", day23).ok, false);
-  s = applyGuess(s, "violin", day23).state;
-  const dup = applyGuess(s, "violins", day23); // resolves to violin
+  let s = createState(SYN_CHAIN, 1);
+  assert.equal(applyGuess(s, "qqqq", synToday).ok, false);
+  assert.equal(applyGuess(s, "not a word!", synToday).ok, false);
+  s = applyGuess(s, "friend", synToday).state;
+  const dup = applyGuess(s, "friend", synToday);
   assert.equal(dup.ok, false);
   assert.equal(dup.reason, "duplicate");
   assert.equal(s.guesses.length, 1);
 });
 
-test("six misses lose the game", () => {
-  let s = createState(chain, 23);
-  for (const w of ["tea", "rain", "cloud", "sand", "wine", "bread"]) {
-    s = applyGuess(s, w, day23).state;
-  }
-  assert.ok(s.lost);
-  assert.ok(!s.won);
-  assert.equal(s.guesses.length, MAX_GUESSES);
-});
-
-test("near yesterday: cold vs today but hot vs yesterday flags the guess", () => {
-  const day253 = createHeatLookup(words, heatRow(253)); // neighbor
-  const day252 = createHeatLookup(words, heatRow(252)); // fence
-  let s = createState(chain, 253);
-  assert.equal(s.today, "neighbor");
-  assert.equal(s.yesterday, "fence");
-  const wall = applyGuess(s, "wall", day253, day252);
-  assert.ok(wall.state.guesses[0].near, "wall should be near-yesterday");
-  const friend = applyGuess(wall.state, "friend", day253, day252);
-  assert.ok(!friend.state.guesses[1].near, "friend is warm vs today, not near");
-  const gossip = applyGuess(friend.state, "gossip", day253, day252);
-  assert.ok(!gossip.state.guesses[2].near, "gossip is cold vs both, plain ice");
-});
-
-test("without a prev lookup no guess is flagged near", () => {
-  let s = createState(chain, 253);
-  const day253 = createHeatLookup(words, heatRow(253));
-  const r = applyGuess(s, "wall", day253);
-  assert.ok(!r.state.guesses[0].near);
-});
-
 test("clue appears after three misses, never after the game ends", () => {
-  let s = createState(chain, 23);
+  let s = createState(SYN_CHAIN, 1);
   assert.ok(!clueAvailable(s));
-  for (const w of ["tea", "rain", "cloud"]) s = applyGuess(s, w, day23).state;
+  for (const w of ["wall", "friend", "gossip"]) s = applyGuess(s, w, synToday).state;
   assert.ok(clueAvailable(s));
-  const won = applyGuess(s, "guitar", day23).state;
+  const won = applyGuess(s, "neighbor", synToday).state;
   assert.ok(!clueAvailable(won));
 });
 
-test("blankPivot hides the secret, inflections and compounds included", () => {
-  assert.equal(blankPivot("a fence between neighbors", "neighbor"), "a fence between ______");
-  assert.equal(blankPivot("a record player", "player"), "a record ______");
-  assert.equal(blankPivot("a sheepdog", "dog"), "a sheep___");
-  assert.equal(blankPivot("the coach's office", "office"), "the coach's ______");
-});
-
-test("every day's pivot blanks to a usable clue", () => {
-  for (const e of chain) {
-    const clue = blankPivot(e.pivot, e.w);
-    assert.notEqual(clue, e.pivot, `${e.w}: pivot never blanked`);
-    assert.ok(!new RegExp(`\\b${e.w}\\b`, "i").test(clue), `${e.w}: still visible in "${clue}"`);
-  }
-});
-
 test("bestHeat tracks the maximum", () => {
-  let s = createState(chain, 23);
-  s = applyGuess(s, "violin", day23).state;
-  s = applyGuess(s, "tea", day23).state;
-  assert.equal(bestHeat(s), s.guesses[0].heat);
+  let s = createState(SYN_CHAIN, 1);
+  s = applyGuess(s, "friend", synToday).state;
+  s = applyGuess(s, "gossip", synToday).state;
+  assert.equal(bestHeat(s), 68);
+});
+
+test("blankPivot hides the secret in compounds, idioms, and inflections", () => {
+  assert.equal(blankPivot("coffee bean", "bean"), "coffee ______");
+  assert.equal(blankPivot("racetrack", "track"), "race_____");
+  assert.equal(blankPivot("grass roots", "root"), "grass ______");
+  assert.equal(blankPivot("tug of war", "war"), "tug of ______");
+  assert.equal(blankPivot("catcher's mitt", "mitt"), "catcher's ______");
 });
 
 /* ---------- share ---------- */
 
 test("share text never contains the secret and maps bands to emoji", () => {
-  let s = createState(chain, 23);
-  s = applyGuess(s, "tea", day23).state;
-  s = applyGuess(s, "violin", day23).state;
-  s = applyGuess(s, "guitar", day23).state;
+  let s = createState(SYN_CHAIN, 1);
+  s = applyGuess(s, "gossip", synToday).state;
+  s = applyGuess(s, "friend", synToday).state;
+  s = applyGuess(s, "neighbor", synToday).state;
   const text = shareText({ puzzleNumber: 240, guesses: s.guesses, won: s.won });
-  assert.ok(!text.includes("guitar"), text);
+  assert.ok(!text.includes("neighbor"), text);
   assert.ok(text.includes("Drift #240"));
   assert.ok(text.includes("caught the drift in 3"));
   assert.ok(text.includes("🟩"));
