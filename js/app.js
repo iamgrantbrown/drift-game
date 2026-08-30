@@ -1,5 +1,12 @@
-import { MAX_GUESSES, applyGuess, blankPivot, clueAvailable, createState } from "./game.js";
-import { bandFor, bandRank, createHeatLookup } from "./heat.js";
+import {
+  MAX_GUESSES,
+  applyGuess,
+  createState,
+  hintAvailable,
+  hintText,
+  useHint,
+} from "./game.js";
+import { bandFor, bandRank, createHeatLookup, heatSteps, relationshipBoosts } from "./heat.js";
 import { dayIndex, daysBetween, pacificDateString, puzzleNumber, TIMEZONE } from "./calendar.js";
 import { shareText } from "./share.js";
 import { voiceLine, winLine } from "./voice.js";
@@ -69,8 +76,15 @@ function recordResult(store, date, won, guessCount) {
 
 const TREND_ARROW = { hotter: "▲", colder: "▼" };
 
-/** The notebook page: guessed words scribble out and stack up; the write
- *  line moves down with you; empty rules wait below. */
+function heatMeter(heat) {
+  const steps = heatSteps(heat);
+  return `<span class="heat-meter" style="--heat:${Math.max(3, Math.min(100, heat))}%" aria-hidden="true">${Array.from(
+    { length: 6 },
+    (_, i) => `<i${i < steps ? ' class="filled"' : ""}></i>`,
+  ).join("")}</span>`;
+}
+
+/** The notebook page is a record of evidence. Guesses stay fully legible. */
 function renderPage(state) {
   const trail = $("trail");
   trail.innerHTML = "";
@@ -78,17 +92,18 @@ function renderPage(state) {
     const g = state.guesses[i];
     const found = g.word === state.today;
     const band = found ? "found" : g.near ? "near" : bandFor(g.heat);
-    const label = g.near ? "joins yesterday" : band;
+    const label = g.near ? `another ${state.yesterday.toUpperCase()} pairing` : band;
     const line = document.createElement("div");
     line.className = "page-line line-guess band-" + band;
     if (i === state.guesses.length - 1) line.classList.add("latest");
-    const showArrow = !found && !g.near && TREND_ARROW[g.trend];
+    const showArrow = i > 0 && !found && !g.near && TREND_ARROW[g.trend];
     const arrow = showArrow ? `<span class="trend ${g.trend}" aria-hidden="true">${TREND_ARROW[g.trend]}</span>` : "";
     line.setAttribute("aria-label", `${g.word}: ${label}${showArrow ? ", " + g.trend : ""}`);
     line.innerHTML = `
-      <span class="line-word ${found ? "line-found" : "scribbled"}">${escapeHtml(g.word)}</span>
-      <span class="band-chip band-${band}">
-        <span class="band-dot" aria-hidden="true"></span>
+      <span class="guess-number" aria-hidden="true">${i + 1}</span>
+      <span class="line-word ${found ? "line-found" : "line-evidence"}">${escapeHtml(g.word)}</span>
+      <span class="guess-result ${g.near ? "result-near" : ""}">
+        ${found || g.near ? "" : heatMeter(g.heat)}
         <span class="band-name">${label}</span>${arrow}
       </span>
     `;
@@ -98,7 +113,7 @@ function renderPage(state) {
   if (state.lost) {
     const line = document.createElement("div");
     line.className = "page-line line-guess line-reveal";
-    line.innerHTML = `<span class="line-word line-revealed">${escapeHtml(state.today)}</span><span class="reveal-note">the drift</span>`;
+    line.innerHTML = `<span class="guess-number" aria-hidden="true">→</span><span class="line-word line-revealed">${escapeHtml(state.today)}</span><span class="reveal-note">answer</span>`;
     trail.appendChild(line);
   }
   const over = state.won || state.lost;
@@ -146,20 +161,35 @@ function renderEnd(state, puzNum, store) {
     puzzleNumber: puzNum,
     guesses: state.guesses,
     won: state.won,
+    hintsUsed: state.hintsUsed,
     maxGuesses: MAX_GUESSES,
   });
   $("end-title").textContent = state.won ? "You caught the drift" : "It drifted away";
   $("end-body").textContent = state.won
     ? `${winLine(state.guesses.length, puzNum)} In ${state.guesses.length} of ${MAX_GUESSES}.`
     : voiceLine("loss", puzNum);
-  $("pivot-line").innerHTML =
-    `From “<b>${escapeHtml(state.yesterday)}</b>”, the word drifted through ` +
-    `“<i>${escapeHtml(state.pivot)}</i>” to “<b>${escapeHtml(state.today)}</b>”.`;
-  $("tomorrow-line").textContent = `Tomorrow drifts from “${state.today}”.`;
+  $("connection-sum").textContent = `${state.yesterday} + ${state.today}`;
+  $("connection-pivot").textContent = state.pivot;
+  $("tomorrow-line").textContent = `Tomorrow starts from ${state.today.toUpperCase()}.`;
   $("form").hidden = true;
   renderStats(store);
   startCountdown();
   panel.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function celebrateKite() {
+  const kite = document.querySelector(".kite-mark");
+  if (!kite || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  kite.classList.remove("kite-celebrate");
+  void kite.getBoundingClientRect();
+  kite.classList.add("kite-celebrate");
+  kite.addEventListener(
+    "animationend",
+    (event) => {
+      if (event.animationName === "kite-catch") kite.classList.remove("kite-celebrate");
+    },
+    { once: true },
+  );
 }
 
 /* ---------- stats dialog ---------- */
@@ -271,12 +301,14 @@ async function main() {
   const puzNum = puzzleNumber(todayDate, chainPack.epoch);
 
   const prevIdx = (idx - 1 + chain.length) % chain.length;
-  const [words, heatBuf, pairList] = await Promise.all([
+  const [words, heatBuf, pairList, corrections] = await Promise.all([
     fetch("data/words.json").then((r) => r.json()),
     fetch(`data/heat/${String(idx).padStart(3, "0")}.bin`).then((r) => r.arrayBuffer()),
     fetch("data/pairs.json").then((r) => r.json()).catch(() => []),
+    fetch("data/heat-overrides.json").then((r) => r.json()).catch(() => ({})),
   ]);
-  const lookup = createHeatLookup(words, heatBuf);
+  const boosts = relationshipBoosts(pairList, chain[idx].w, corrections);
+  const lookup = createHeatLookup(words, heatBuf, boosts);
   const yesterdayWord = chain[prevIdx].w;
   // every word known to join yesterday's word into a lexical unit
   const joins = new Set();
@@ -292,34 +324,59 @@ async function main() {
     state = {
       ...state,
       guesses: store.today.guesses,
+      hintsUsed: Number(store.today.hintsUsed) || 0,
       won: !!store.today.won,
       lost: !!store.today.lost,
     };
   } else {
-    store = { ...store, today: { date: todayDate, guesses: [], won: false, lost: false } };
+    store = { ...store, today: { date: todayDate, guesses: [], hintsUsed: 0, won: false, lost: false } };
     saveStore(store);
   }
 
   $("yesterday").textContent = state.yesterday;
+  $("prompt-yesterday").textContent = state.yesterday.toUpperCase();
   $("puzzle-num").textContent = `#${puzNum}`;
   renderPage(state);
   renderProgress(state);
   renderStats(store);
 
-  const renderClue = () => {
-    const note = $("clue");
-    if (clueAvailable(state)) {
-      $("clue-text").textContent = blankPivot(state.pivot, state.today);
-      note.hidden = false;
-    } else {
-      note.hidden = true;
-    }
+  const renderHints = () => {
+    const wrap = $("hint-wrap");
+    const note = $("hint-note");
+    const button = $("hint-btn");
+    const lock = $("hint-lock");
+    const active = !state.won && !state.lost;
+    wrap.hidden = !active || (state.guesses.length < 3 && state.hintsUsed === 0);
+    note.hidden = state.hintsUsed === 0;
+    $("hint-text").textContent = hintText(state);
+    const available = hintAvailable(state);
+    button.hidden = !available;
+    button.textContent = state.hintsUsed === 0 ? "Need a hint?" : "Open another hint";
+    lock.hidden = !(active && state.hintsUsed === 1 && state.guesses.length < 4);
   };
-  renderClue();
+  renderHints();
+
+  $("hint-btn").addEventListener("click", () => {
+    const result = useHint(state);
+    if (!result.ok) return;
+    state = result.state;
+    store = {
+      ...store,
+      today: {
+        date: todayDate,
+        guesses: state.guesses,
+        hintsUsed: state.hintsUsed,
+        won: state.won,
+        lost: state.lost,
+      },
+    };
+    saveStore(store);
+    renderHints();
+  });
 
   if (state.won || state.lost) {
     renderEnd(state, puzNum, store);
-    setStatus(voiceLine("done", puzNum));
+    setStatus("");
   }
 
   const shake = (input) => {
@@ -343,7 +400,13 @@ async function main() {
     state = result.state;
     store = {
       ...store,
-      today: { date: todayDate, guesses: state.guesses, won: state.won, lost: state.lost },
+      today: {
+        date: todayDate,
+        guesses: state.guesses,
+        hintsUsed: state.hintsUsed,
+        won: state.won,
+        lost: state.lost,
+      },
     };
     if (state.won || state.lost) {
       store = recordResult(store, todayDate, state.won, state.guesses.length);
@@ -352,19 +415,24 @@ async function main() {
     renderPage(state);
     renderProgress(state);
     renderStats(store);
-    renderClue();
+    renderHints();
     input.value = "";
     if (!state.won && !state.lost) input.focus();
     const seed = puzNum * 7 + state.guesses.length;
     if (state.won) {
-      setStatus(`caught it: ${state.today}.`, "good");
+      setStatus("");
       renderEnd(state, puzNum, store);
+      celebrateKite();
       burstScraps($("trail").lastElementChild || $("trail"));
     } else if (state.lost) {
-      setStatus(voiceLine("loss", puzNum), "bad");
+      setStatus("");
       renderEnd(state, puzNum, store);
     } else if (state.guesses[state.guesses.length - 1].near) {
-      setStatus(voiceLine("near", seed), "nudge");
+      const guessWord = state.guesses[state.guesses.length - 1].word;
+      setStatus(
+        `${guessWord.toUpperCase()} also pairs with ${state.yesterday.toUpperCase()}, but it is not today’s answer.`,
+        "nudge",
+      );
     } else {
       setStatus(voiceLine(bandFor(result.heat), seed));
     }

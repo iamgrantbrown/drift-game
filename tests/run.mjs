@@ -14,11 +14,20 @@ import {
   applyGuess,
   bestHeat,
   blankPivot,
-  clueAvailable,
   createState,
+  hintAvailable,
+  hintText,
   MAX_GUESSES,
+  useHint,
 } from "../js/game.js";
-import { bandFor, createHeatLookup, heatLabel, heatTrend } from "../js/heat.js";
+import {
+  bandFor,
+  createHeatLookup,
+  heatLabel,
+  heatSteps,
+  heatTrend,
+  relationshipBoosts,
+} from "../js/heat.js";
 import { shareText } from "../js/share.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -116,16 +125,20 @@ test("heatLabel band thresholds", () => {
   assert.equal(heatLabel(95), "scorching");
   assert.equal(heatLabel(80), "hot");
   assert.equal(heatLabel(65), "warm");
-  assert.equal(heatLabel(50), "lukewarm");
+  assert.equal(heatLabel(50), "warm");
   assert.equal(heatLabel(35), "cool");
   assert.equal(heatLabel(20), "cold");
   assert.equal(heatLabel(5), "ice");
 });
 
-test("bandFor folds lukewarm into warm", () => {
+test("bandFor exposes six stable temperature steps", () => {
   assert.equal(bandFor(50), "warm");
   assert.equal(bandFor(65), "warm");
   assert.equal(bandFor(35), "cool");
+  assert.equal(heatSteps(5), 1);
+  assert.equal(heatSteps(35), 3);
+  assert.equal(heatSteps(72), 5);
+  assert.equal(heatSteps(92), 6);
 });
 
 test("heatTrend: band change or 10+ delta is notable", () => {
@@ -200,6 +213,34 @@ test("pairs.json covers today's real neighbors of yesterday", () => {
   }
 });
 
+test("answer relationships receive a trustworthy hot-floor", () => {
+  const pairs = JSON.parse(fs.readFileSync(path.join(root, "data/pairs.json"), "utf8"));
+  for (const entry of chain) {
+    const boosts = relationshipBoosts(pairs, entry.w);
+    for (const [a, b] of pairs) {
+      const related = a === entry.w ? b : b === entry.w ? a : null;
+      if (related) assert.ok(boosts.get(related) >= 78, `${related} should be hot for ${entry.w}`);
+    }
+  }
+});
+
+test("human corrections cover intuitive polysemous relationships", () => {
+  const pairs = JSON.parse(fs.readFileSync(path.join(root, "data/pairs.json"), "utf8"));
+  const corrections = JSON.parse(fs.readFileSync(path.join(root, "data/heat-overrides.json"), "utf8"));
+  const dict = new Set(words);
+  for (const [answer, guesses] of Object.entries(corrections)) {
+    assert.ok(chain.some((entry) => entry.w === answer), `${answer} is not in the daily chain`);
+    const boosts = relationshipBoosts(pairs, answer, corrections);
+    for (const [guess, expected] of Object.entries(guesses)) {
+      assert.ok(dict.has(guess), `${answer}/${guess} is not in the dictionary`);
+      assert.ok(boosts.get(guess) >= expected, `${answer}/${guess}`);
+    }
+  }
+  const club = relationshipBoosts(pairs, "club", corrections);
+  assert.ok(club.get("golf") > club.get("team"));
+  assert.ok(club.get("team") > club.get("dance"));
+});
+
 /* ---------- real heat data (structural spot checks) ---------- */
 
 test("all heat files exist, one byte per word, secret 100, yesterday hot", () => {
@@ -251,13 +292,23 @@ test("invalid and duplicate guesses are rejected without consuming a turn", () =
   assert.equal(s.guesses.length, 1);
 });
 
-test("clue appears after three misses, never after the game ends", () => {
+test("hints are optional, staged, and unavailable after the game ends", () => {
   let s = createState(SYN_CHAIN, 1);
-  assert.ok(!clueAvailable(s));
+  assert.ok(!hintAvailable(s));
   for (const w of ["wall", "friend", "gossip"]) s = applyGuess(s, w, synToday).state;
-  assert.ok(clueAvailable(s));
+  assert.ok(hintAvailable(s));
+  assert.equal(s.hintsUsed, 0, "a hint never appears automatically");
+  s = useHint(s).state;
+  assert.equal(s.hintsUsed, 1);
+  assert.equal(hintText(s), "8 letters.");
+  assert.ok(!hintAvailable(s), "second hint waits for another guess");
+  s = applyGuess(s, "bake", synToday).state;
+  assert.ok(hintAvailable(s));
+  s = useHint(s).state;
+  assert.equal(s.hintsUsed, 2);
+  assert.match(hintText(s), /______hood watch/);
   const won = applyGuess(s, "neighbor", synToday).state;
-  assert.ok(!clueAvailable(won));
+  assert.ok(!hintAvailable(won));
 });
 
 test("bestHeat tracks the maximum", () => {
@@ -282,11 +333,12 @@ test("share text never contains the secret and maps bands to emoji", () => {
   s = applyGuess(s, "gossip", synToday).state;
   s = applyGuess(s, "friend", synToday).state;
   s = applyGuess(s, "neighbor", synToday).state;
-  const text = shareText({ puzzleNumber: 240, guesses: s.guesses, won: s.won });
+  const text = shareText({ puzzleNumber: 240, guesses: s.guesses, won: s.won, hintsUsed: 1 });
   assert.ok(!text.includes("neighbor"), text);
   assert.ok(text.includes("Drift #240"));
   assert.ok(text.includes("caught the drift in 3"));
   assert.ok(text.includes("🟩"));
+  assert.ok(text.includes("💡"));
   assert.ok(text.includes("⬜⬜⬜"));
 });
 
@@ -294,7 +346,7 @@ test("share text never contains the secret and maps bands to emoji", () => {
 
 test("voice lines: deterministic, non-empty, function-critical kinds distinct", async () => {
   const { voiceLine, winLine } = await import("../js/voice.js");
-  for (const kind of ["ice", "cold", "cool", "warm", "hot", "scorching", "near", "invalid", "duplicate", "loss", "done"]) {
+  for (const kind of ["ice", "cold", "cool", "warm", "hot", "scorching", "invalid", "duplicate", "loss", "done"]) {
     for (const seed of [0, 1, 2, 100]) {
       const line = voiceLine(kind, seed);
       assert.ok(line.length > 0, `${kind} seed ${seed}`);
@@ -302,7 +354,7 @@ test("voice lines: deterministic, non-empty, function-critical kinds distinct", 
     }
   }
   assert.ok(winLine(1, 0).length > 0);
-  assert.notEqual(winLine(1, 0), winLine(5, 0), "quick and clue wins read differently");
+  assert.notEqual(winLine(1, 0), winLine(5, 0), "quick and late wins read differently");
   assert.equal(voiceLine("nope", 0), "");
 });
 

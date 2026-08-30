@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node tests/run.mjs",
+    "audit:heat": "node scripts/audit_heat.mjs",
     "build:chain": "node scripts/chain_v2.mjs",
     "build:heat": "node scripts/build_heat_v2.mjs",
     "start": "python3 -m http.server 8080"

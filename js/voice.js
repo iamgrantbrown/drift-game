@@ -30,18 +30,13 @@ const LINES = {
   ],
   hot: [
     "it pulls now.",
-    "close. the trail is warm.",
+    "close. stay with it.",
     "hot wind. stay with it.",
   ],
   scorching: [
     "nearly overhead. look up.",
     "so close it hums.",
     "right there.",
-  ],
-  near: [
-    "a real join, but it's yesterday's. today went another way.",
-    "that joins yesterday. the drift moved on.",
-    "yesterday's join. try another direction.",
   ],
   invalid: [
     "not a word this game knows.",
@@ -52,8 +47,7 @@ const LINES = {
     "that one's already on the page.",
   ],
   loss: [
-    "it got away. it drifts again tomorrow.",
-    "the wind kept it. another chance tomorrow.",
+    "You used all six guesses. The answer is below.",
   ],
   done: [
     "today's page is done. back after midnight pacific.",
@@ -63,7 +57,7 @@ const LINES = {
 const WIN = {
   quick: ["first line, first try.", "one guess. straight ink."],
   clean: ["a clean catch.", "caught mid-drift."],
-  clue: ["the clue did its work.", "the drift showed itself, and you took it."],
+  late: ["you followed it home.", "the trail opened up, and you took it."],
 };
 
 /** Deterministic line for a message kind. Same seed -> same line. */
@@ -75,6 +69,6 @@ export function voiceLine(kind, seed = 0) {
 
 /** Win line by how the catch happened. */
 export function winLine(guessCount, seed = 0) {
-  const pool = guessCount <= 1 ? WIN.quick : guessCount <= 3 ? WIN.clean : WIN.clue;
+  const pool = guessCount <= 1 ? WIN.quick : guessCount <= 3 ? WIN.clean : WIN.late;
   return pool[Math.abs(seed) % pool.length];
 }

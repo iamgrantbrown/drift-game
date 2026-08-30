@@ -1,0 +1,36 @@
+{
+  "club": {
+    "golf": 94,
+    "bar": 86,
+    "team": 82,
+    "member": 80,
+    "association": 78,
+    "night": 76,
+    "dance": 72,
+    "weapon": 72
+  },
+  "coffee": {
+    "espresso": 95,
+    "caffeine": 92,
+    "bean": 90,
+    "cafe": 86,
+    "drink": 80
+  },
+  "run": {
+    "jog": 95,
+    "race": 92,
+    "sprint": 90,
+    "running": 88,
+    "marathon": 86,
+    "dash": 84,
+    "operate": 82,
+    "series": 76
+  },
+  "light": {
+    "lamp": 94,
+    "bright": 90,
+    "sun": 86,
+    "glow": 84,
+    "dark": 72
+  }
+}

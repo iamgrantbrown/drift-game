@@ -1,7 +1,7 @@
 # Drift
 
-A tiny daily word game. Yesterday's secret is shown. Today's secret JOINS
-it: the two words always form one word or a common phrase.
+A tiny daily word game. Yesterday's answer is shown. Find today's word, which
+makes one familiar word or phrase with yesterday's.
 
 Play: https://iamgrantbrown.github.io/drift-game/
 
@@ -9,10 +9,9 @@ If yesterday was **race**, today might be **track** (racetrack), and
 tomorrow **suit** (tracksuit). Six guesses; every guess shows how close
 its meaning is: ice · cold · cool · warm · hot · scorching.
 
-The game is a fieldnote notebook: you write your guess on the page, wrong
-guesses stay lightly scribbled out (they are clues), verdicts stamp down
-beside them, and the sky behind the page warms when you run hot and cools
-when you drift cold.
+The game is a fieldnote notebook: every guess stays legible as evidence, a
+six-dot temperature scale shows exactly how the trail is moving, and the sky
+behind the page warms when you run hot and cools when you drift cold.
 
 ## Play
 
@@ -26,14 +25,17 @@ Then open http://localhost:8080/
 
 - Six guesses at today's word. One puzzle per day, rolling at midnight
   Pacific (America/Los_Angeles); everyone gets the same word.
-- Every guess shows its heat band (meaning-closeness, never spelling),
-  plus a hotter/colder arrow when the band moved against your last guess.
+- Every guess shows its heat band and a persistent six-dot scale
+  (meaning-closeness, never spelling), plus a hotter/colder arrow from the
+  second guess onward.
 - A guess that joins yesterday's word into a real unit but is cold against
-  today ("tin" on a "can" day) is tagged "joins yesterday": right join,
-  wrong branch. Detected by exact pair lookup in `data/pairs.json`.
-- After three misses, the clue appears: the joined unit with today's half
-  blanked ("race\_\_\_\_"). Solving in 1-2 is the brag; the clue keeps
-  3-6 fair.
+  today ("tin" on a "can" day) is explained as another pairing with
+  yesterday, but not today's answer. Detected by exact pair lookup in
+  `data/pairs.json`.
+- Hints are optional. The first unlocks after three misses and reveals word
+  length; the second unlocks after the next miss and reveals the joined unit
+  with today's half blanked ("race\_\_\_\_"). Hints are marked on the share
+  card without being treated as a failure.
 - Unknown words are rejected; inflections and British/American spellings
   of the secret win ("neighbours" catches "neighbor").
 - Win or lose, the end card tells the drift as a sentence and counts down
@@ -64,16 +66,20 @@ itself is static and calls no APIs.
 
 - `data/chain.json` - the word cycle; each entry carries its joining unit.
 - `data/words.json` - the 20k-word guess dictionary.
-- `data/pairs.json` - every known joinable pair, for the "joins yesterday"
-  tag.
+- `data/pairs.json` - every known familiar pairing, for the alternative-pairing
+  explanation and answer-relationship heat floor.
+- `data/heat-overrides.json` - small human-reviewed corrections for intuitive
+  polysemous relationships that broad semantic data underestimates.
 - `data/heat/NNN.bin` - one Uint8 row per day (`NNN` = day index); the app
   fetches only today's ~20KB file.
 - Heat is built by `scripts/build_heat_v2.mjs` from Datamuse means-like
   lists (~1000 ranked neighbors per secret), triggers, syn/spc/gen
   relations, a 2-hop expansion, and the curated seeds in
   `scripts/related_seeds.json` / `scripts/boosts.txt`. Around a thousand
-  words per day carry real gradient; everything else is flat ice.
-  Yesterday's word is pinned hot (≥76).
+  words per day carry real gradient; everything else is flat ice. Words that
+  form a familiar unit with the answer receive a hot floor at runtime, and
+  reviewed puzzle-specific overrides win when they are stronger. Yesterday's
+  word is pinned hot (≥76).
 
 ## Rebuild
 
@@ -81,6 +87,7 @@ itself is static and calls no APIs.
     node scripts/compounds.mjs --pairs-only   # refresh pairs.json without re-solving
     node scripts/build_heat_v2.mjs            # fetch (cached) + bake words + heat
     node tests/run.mjs
+    npm run audit:heat                         # review calibrated puzzle samples
 
 Re-solving the chain changes which word falls on which day and requires a
 full heat rebake; adding pairs and refreshing with `--pairs-only` does
@@ -93,8 +100,9 @@ Run: `node tests/run.mjs`
 
 Covers calendar math; chain integrity (unique lowercase words, and the
 structural rule that every pivot contains both adjacent words); pivot
-blanking for the clue; band thresholds and trend fixtures; inflection and
+blanking for the second hint; band thresholds and trend fixtures; inflection and
 spelling-bridge resolution (inflections of the secret win); the
-"joins yesterday" flag; dense-signal spot checks on the baked heat files;
-game flow (win, lose, duplicate, clue timing); the share card; and the
+"another pairing" flag; relationship heat floors and reviewed polysemy
+corrections; dense-signal spot checks on the baked heat files; game flow (win,
+lose, duplicate, staged optional hint timing); the share card; and the
 deterministic voice lines.

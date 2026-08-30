@@ -5,7 +5,7 @@
 
 const SUFFIXES = ["s", "es", "ed", "ing", "er"];
 
-export function createHeatLookup(words, rowBytes) {
+export function createHeatLookup(words, rowBytes, boosts = new Map()) {
   const index = new Map(words.map((w, i) => [w, i]));
   const row = rowBytes instanceof Uint8Array ? rowBytes : new Uint8Array(rowBytes);
 
@@ -58,33 +58,54 @@ export function createHeatLookup(words, rowBytes) {
     heat(guess) {
       const w = resolve(guess);
       if (w === null) return null;
-      return row[index.get(w)];
+      return Math.max(row[index.get(w)], boosts.get(w) || 0);
     },
   };
+}
+
+/**
+ * A familiar phrase with the answer is strong evidence of meaning. The baked
+ * semantic row remains the broad signal; this layer prevents obvious lexical
+ * relationships from feeling arbitrarily cool. Per-puzzle corrections handle
+ * polysemy and especially intuitive associations that the source data missed.
+ */
+export function relationshipBoosts(pairs, answer, corrections = {}) {
+  const boosts = new Map();
+  for (const [a, b] of pairs) {
+    if (a === answer) boosts.set(b, Math.max(boosts.get(b) || 0, 78));
+    else if (b === answer) boosts.set(a, Math.max(boosts.get(a) || 0, 78));
+  }
+  for (const [word, heat] of Object.entries(corrections[answer] || {})) {
+    boosts.set(word, Math.max(boosts.get(word) || 0, heat));
+  }
+  return boosts;
 }
 
 /** Internal bands (data thresholds). */
 export function heatLabel(heat) {
   if (heat >= 100) return "found";
-  if (heat >= 90) return "scorching";
-  if (heat >= 75) return "hot";
-  if (heat >= 60) return "warm";
-  if (heat >= 45) return "lukewarm";
+  if (heat >= 88) return "scorching";
+  if (heat >= 70) return "hot";
+  if (heat >= 50) return "warm";
   if (heat >= 30) return "cool";
   if (heat >= 15) return "cold";
   return "ice";
 }
 
-/** Display band: lukewarm folds into warm — six visible steps. */
 export function bandFor(heat) {
-  const label = heatLabel(heat);
-  return label === "lukewarm" ? "warm" : label;
+  return heatLabel(heat);
 }
 
 export const BAND_ORDER = ["ice", "cold", "cool", "warm", "hot", "scorching", "found"];
 
 export function bandRank(heat) {
   return BAND_ORDER.indexOf(bandFor(heat));
+}
+
+/** One to six filled notebook dots for a valid miss; six for a find. */
+export function heatSteps(heat) {
+  if (heat >= 100) return 6;
+  return Math.max(1, bandRank(heat) + 1);
 }
 
 /**

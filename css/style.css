@@ -1,6 +1,5 @@
-/* Drift: a fieldnote notebook that travels through your day. Each guess
-   moves it to a new surface (home, coffee shop, commute, office, park,
-   kitchen, lamplit night). Wrong guesses scribble out; verdicts stamp. */
+/* Drift: a fieldnote notebook. Guesses remain readable evidence while the
+   sky and continuous heat trail show movement toward the answer. */
 
 :root {
   --warmth: 0;
@@ -72,7 +71,7 @@ body {
 /* ---------- layout ---------- */
 
 .wrap {
-  max-width: 430px;
+  max-width: 470px;
   margin: 0 auto;
   padding: 14px 16px calc(28px + env(safe-area-inset-bottom));
   position: relative;
@@ -104,6 +103,41 @@ h1 {
   letter-spacing: 0.01em;
 }
 
+.kite-mark {
+  overflow: visible;
+  transform-origin: 50% 52%;
+  animation: kite-arrive 800ms cubic-bezier(0.2, 0.8, 0.3, 1) both;
+}
+
+.kite-tail {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: kite-tail-breeze 9s ease-in-out 1.2s infinite;
+}
+
+.kite-mark.kite-celebrate {
+  animation: kite-catch 900ms cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@keyframes kite-arrive {
+  0% { opacity: 0.45; transform: translateY(4px) rotate(-3deg); }
+  55% { opacity: 1; transform: translateY(-2px) rotate(1.5deg); }
+  100% { opacity: 1; transform: translateY(0) rotate(0); }
+}
+
+@keyframes kite-tail-breeze {
+  0%, 34%, 48%, 100% { transform: rotate(0); }
+  38% { transform: rotate(5deg); }
+  42% { transform: rotate(-4deg); }
+  45% { transform: rotate(2deg); }
+}
+
+@keyframes kite-catch {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  35% { transform: translateY(-5px) rotate(3deg); }
+  65% { transform: translateY(-2px) rotate(-1.5deg); }
+}
+
 .topbar-btns { display: flex; gap: 8px; min-width: 56px; justify-content: flex-end; }
 
 .icon-btn {
@@ -125,7 +159,7 @@ h1 {
 .rule {
   text-align: center;
   font-size: 13.5px;
-  color: var(--ink-soft);
+  color: #6f675a;
   margin-top: 6px;
 }
 
@@ -134,18 +168,10 @@ h1 {
 .page {
   position: relative;
   margin: 18px 0 10px;
-  background:
-    repeating-linear-gradient(
-      180deg,
-      transparent 0,
-      transparent 43px,
-      rgba(140, 120, 90, 0.18) 43px,
-      rgba(140, 120, 90, 0.18) 44px
-    ),
-    var(--paper);
+  background: var(--paper);
   border: 1.5px solid var(--paper-edge);
   border-radius: 4px 8px 5px 9px;
-  padding: 6px 16px 10px 18px;
+  padding: 6px 18px 12px;
   box-shadow: 0 2px 0 rgba(120, 100, 70, 0.12);
 }
 
@@ -163,10 +189,11 @@ h1 {
 
 .page-line {
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   gap: 10px;
   min-height: 44px;
-  padding: 8px 0 0;
+  padding: 6px 0 3px;
+  border-bottom: 1px solid rgba(140, 120, 90, 0.18);
 }
 
 .line-label {
@@ -187,7 +214,26 @@ h1 {
 
 .line-yesterday .line-word { font-weight: 600; }
 
-.line-guess { justify-content: space-between; }
+.page-prompt {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 0 5px;
+  border-bottom: 1px solid rgba(140, 120, 90, 0.18);
+  color: var(--ink-soft);
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+.page-prompt strong { color: var(--ink); letter-spacing: 0.05em; }
+
+.line-guess {
+  display: grid;
+  grid-template-columns: 20px minmax(76px, 1fr) auto;
+  align-items: end;
+  gap: 8px;
+}
 .line-guess.latest .line-word { animation: ink-in 0.35s ease; }
 
 @keyframes ink-in {
@@ -195,21 +241,112 @@ h1 {
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* wrong guesses: lightly scribbled out, still readable (they are clues) */
-.scribbled {
-  color: rgba(59, 55, 48, 0.68);
-  text-decoration-line: line-through;
-  text-decoration-style: wavy;
-  text-decoration-color: rgba(176, 90, 54, 0.75);
-  text-decoration-thickness: 2px;
-  transform: rotate(-0.4deg);
+.guess-number {
+  color: #a89d8a;
+  font: 800 10px "Nunito", sans-serif;
+  font-variant-numeric: tabular-nums;
 }
+
+.line-evidence { color: var(--ink); }
+
+.guess-result {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 7px;
+  min-width: 160px;
+  color: var(--stamp, var(--ink-soft));
+}
+
+.guess-result .band-name {
+  min-width: 66px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.heat-meter {
+  --heat: 66%;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 0;
+}
+
+.heat-meter::before,
+.heat-meter::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  left: 3px;
+  top: 50%;
+  height: 2px;
+  border-radius: 2px;
+  transform: translateY(-50%);
+}
+
+.heat-meter::before {
+  right: 3px;
+  background: currentColor;
+  opacity: 0.18;
+}
+
+.heat-meter::after {
+  width: max(2px, calc(var(--heat) - 6px));
+  max-width: calc(100% - 6px);
+  background: currentColor;
+  opacity: 0.75;
+}
+
+.heat-meter i {
+  position: relative;
+  z-index: 1;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  opacity: 0.38;
+}
+
+.heat-meter i.filled { background: currentColor; opacity: 1; }
+
+.band-ice { --stamp: #6f95bd; }
+.band-cold { --stamp: #5d87b6; }
+.band-cool { --stamp: #858d55; }
+.band-warm { --stamp: #b3822c; }
+.band-hot { --stamp: #b96728; }
+.band-scorching { --stamp: #ad421e; }
+.band-found { --stamp: #8f3d20; }
+
+.result-near {
+  min-width: 0;
+  max-width: 190px;
+  color: #766a54;
+  padding: 4px 8px;
+  border: 1px dashed #b9a888;
+  border-radius: 5px;
+  background: rgba(224, 208, 176, 0.42);
+}
+.result-near .band-name { min-width: 0; text-align: center; }
 
 .line-found {
   color: var(--accent-deep);
   font-weight: 600;
   animation: stamp 0.5s cubic-bezier(0.2, 1.6, 0.4, 1);
 }
+
+.band-found .guess-result {
+  justify-self: end;
+  min-width: 0;
+  padding: 4px 11px;
+  border: 2px solid var(--stamp);
+  border-radius: 5px 8px 4px 9px;
+  transform: rotate(-2deg);
+}
+.band-found .guess-result .band-name { min-width: 0; }
 
 @keyframes stamp {
   0% { transform: scale(1.5) rotate(-6deg); opacity: 0; }
@@ -233,7 +370,7 @@ h1 {
   flex: 1;
   min-width: 0;
   display: flex;
-  align-items: baseline;
+  align-items: flex-end;
   gap: 8px;
 }
 
@@ -256,75 +393,16 @@ h1 {
   font: 800 12px "Nunito", sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent-deep);
-  background: none;
-  border: 1.5px solid var(--accent);
+  color: #fffaf2;
+  background: var(--accent-deep);
+  border: 1.5px solid var(--accent-deep);
   border-radius: 5px 8px 5px 7px;
   padding: 6px 13px;
   cursor: pointer;
   align-self: center;
 }
-#form button:hover { background: rgba(208, 120, 80, 0.12); }
+#form button:hover { background: #934827; }
 #form button:active { transform: translateY(1px); }
-
-/* ---------- guesses ---------- */
-
-/* band chips as rubber stamps: outlined ink on the paper */
-.band-chip {
-  --stamp: #6f95bd;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 3px 10px;
-  border: 2px solid var(--stamp);
-  border-radius: 5px 8px 4px 9px;
-  transform: rotate(-2.5deg) translateY(-5px);
-  color: var(--stamp);
-  background: color-mix(in srgb, var(--stamp) 10%, transparent);
-}
-
-.band-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--stamp); opacity: 0.8; }
-
-.band-chip.band-ice { --stamp: #6f95bd; }
-.band-chip.band-cold { --stamp: #5d87b6; }
-.band-chip.band-cool { --stamp: #8f9153; }
-.band-chip.band-warm { --stamp: #b3822c; }
-.band-chip.band-hot { --stamp: #b06426; }
-.band-chip.band-scorching { --stamp: #b04618; animation: sizzle 1.4s ease-in-out infinite; }
-.band-chip.band-found {
-  --stamp: #9c3f1d;
-  border-width: 2.5px;
-  font-size: 12px;
-  padding: 4px 13px;
-  transform: rotate(-4deg) translateY(-5px);
-  background: color-mix(in srgb, var(--stamp) 14%, transparent);
-}
-/* "joins yesterday" stays a taped annotation, not a stamp */
-.band-chip.band-near {
-  border: 1.5px dashed #b9a888;
-  color: #7c7057;
-  background: rgba(224, 208, 176, 0.55);
-}
-.band-chip.band-near .band-dot { background: #b9a888; }
-
-/* the latest verdict slams down like a stamp */
-.line-guess.latest .band-chip { animation: stamp-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1); }
-.line-guess.latest .band-chip.band-scorching { animation: stamp-in 0.45s cubic-bezier(0.2, 1.5, 0.4, 1), sizzle 1.4s ease-in-out 0.5s infinite; }
-
-@keyframes stamp-in {
-  0% { transform: rotate(-16deg) translateY(-5px) scale(2); opacity: 0; }
-  55% { transform: rotate(1deg) translateY(-5px) scale(0.93); opacity: 1; }
-  100% { transform: rotate(-2.5deg) translateY(-5px) scale(1); }
-}
-
-@keyframes sizzle {
-  0%, 100% { transform: rotate(-3deg) translateY(-5px); }
-  50% { transform: rotate(0.5deg) translateY(-5px); }
-}
 
 .trend { font-size: 10px; }
 
@@ -348,8 +426,27 @@ h1 {
 
 /* ---------- clue note ---------- */
 
+.hint-wrap { margin-top: 12px; text-align: center; }
+
+.hint-button {
+  border: 0;
+  border-bottom: 1px solid rgba(176, 90, 54, 0.5);
+  background: transparent;
+  color: var(--accent-deep);
+  padding: 4px 2px;
+  font: italic 500 15px "Fraunces", serif;
+  cursor: pointer;
+}
+.hint-button:hover { border-bottom-color: var(--accent-deep); }
+
+.hint-lock {
+  margin-top: 8px;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
 .clue-note {
-  margin-top: 12px;
+  margin-top: 10px;
   position: relative;
   background: var(--paper);
   border: 1.5px solid var(--paper-edge);
@@ -388,6 +485,7 @@ h1 {
   font-size: 14px;
   color: var(--ink-soft);
 }
+.status:empty { min-height: 0; margin-top: 0; }
 .status.bad { color: #b3543a; }
 .status.good { color: #6d8a4e; }
 .status.nudge {
@@ -418,16 +516,27 @@ h1 {
 
 .end #end-body { margin-top: 4px; font-size: 14.5px; color: var(--ink-soft); }
 
-.pivot-line {
-  font-family: "Fraunces", serif;
-  font-style: italic;
-  font-weight: 500;
-  font-size: 16.5px;
-  margin: 12px auto 0;
-  max-width: 320px;
-  line-height: 1.45;
+.connection {
+  margin: 16px auto 0;
+  max-width: 330px;
+  padding: 13px 12px;
+  border-top: 1px solid var(--paper-edge);
+  border-bottom: 1px solid var(--paper-edge);
 }
-.pivot-line b { font-style: normal; color: var(--accent-deep); }
+
+.connection-sum {
+  color: var(--ink-soft);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.connection-pivot {
+  margin-top: 3px;
+  color: var(--accent-deep);
+  font: 600 25px "Fraunces", serif;
+}
 
 .tomorrow-line { margin-top: 10px; font-size: 13.5px; color: var(--ink-soft); }
 
@@ -525,16 +634,50 @@ footer a { color: var(--accent-deep); }
 }
 .dialog-close:hover { color: var(--ink); }
 
-.howto ol { padding-left: 20px; display: grid; gap: 6px; font-size: 14.5px; }
-.howto-samples { display: grid; margin: 10px 0 4px; }
-.sample-line {
-  min-height: 38px;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(140, 120, 90, 0.18);
+.howto-steps { display: grid; gap: 14px; }
+.howto-step { display: flex; align-items: flex-start; gap: 11px; }
+.howto-step .step-number {
+  display: inline-grid;
+  flex: 0 0 25px;
+  height: 25px;
+  place-items: center;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  color: var(--accent-deep);
+  font-size: 11px;
+  font-weight: 800;
 }
-.sample-line .line-word { font-size: 18px; }
+.howto-step b { font-size: 14px; }
+.howto-step p { margin-top: 2px; color: var(--ink-soft); font-size: 13px; line-height: 1.45; }
+.howto-step strong { color: var(--accent-deep); }
+
+.sample-result {
+  display: grid;
+  grid-template-columns: 1fr auto 50px;
+  align-items: center;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 10px 12px;
+  border: 1px solid rgba(140, 120, 90, 0.18);
+  border-radius: 6px;
+  color: #b3822c;
+}
+.sample-word { color: var(--ink); font: 500 18px "Fraunces", serif; }
+.sample-label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.heat-meter.compact i { width: 6px; height: 6px; }
 .howto-note { font-size: 13px; color: var(--ink-soft); margin-top: 10px; line-height: 1.5; }
-.howto .primary { width: 100%; margin-top: 14px; }
+.howto .primary {
+  width: 100%;
+  margin-top: 14px;
+  border: 1.5px solid var(--accent-deep);
+  border-radius: 6px 9px 6px 8px;
+  background: var(--accent-deep);
+  color: #fffaf2;
+  padding: 10px 14px;
+  font: 800 14px "Nunito", sans-serif;
+  cursor: pointer;
+}
+.howto .primary:hover { background: #934827; }
 
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .stat {
@@ -617,8 +760,8 @@ footer a { color: var(--accent-deep); }
 :focus-visible { outline: 2px solid var(--accent-deep); outline-offset: 2px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .band-chip.band-scorching { animation: none; }
-  .line-guess.latest .line-word, .line-found, .line-guess.latest .band-chip { animation: none; }
+  .line-guess.latest .line-word, .line-found { animation: none; }
+  .kite-mark, .kite-tail { animation: none !important; }
   .cloud { animation: none; }
   .sky-warm { transition: none; }
 }
@@ -626,7 +769,14 @@ footer a { color: var(--accent-deep); }
 @media (max-width: 430px) {
   h1 { font-size: 30px; }
   .line-label { min-width: 58px; font-size: 9px; }
+  .page-prompt { margin-left: 68px; }
   .line-word, #guess { font-size: 18px; }
+  .line-guess { grid-template-columns: 16px minmax(62px, 1fr) auto; gap: 6px; }
+  .guess-result { min-width: 137px; gap: 5px; }
+  .guess-result .band-name { min-width: 57px; font-size: 9px; letter-spacing: 0.07em; }
+  .heat-meter { gap: 3px; }
+  .heat-meter i { width: 6px; height: 6px; }
+  .result-near { max-width: 155px; }
   #guess::placeholder { font-size: 15px; }
   #form button { padding: 5px 10px; font-size: 11px; }
 }

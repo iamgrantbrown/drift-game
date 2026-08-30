@@ -15,10 +15,11 @@ export function heatBlock(heat) {
 }
 
 /** Share card intentionally omits today's word. */
-export function shareText({ puzzleNumber, guesses, won, maxGuesses = 6 }) {
+export function shareText({ puzzleNumber, guesses, won, hintsUsed = 0, maxGuesses = 6 }) {
   const bars =
     guesses.map((g) => heatBlock(g.heat)).join("") +
     "⬜".repeat(Math.max(0, maxGuesses - guesses.length));
   const line = won ? `caught the drift in ${guesses.length}` : "it drifted away";
-  return `Drift #${puzzleNumber} 🪁\n${line}\n${bars}\nhttps://iamgrantbrown.github.io/drift-game/`;
+  const hints = hintsUsed ? ` · ${"💡".repeat(hintsUsed)}` : "";
+  return `Drift #${puzzleNumber} 🪁\n${line}${hints}\n${bars}\nhttps://iamgrantbrown.github.io/drift-game/`;
 }

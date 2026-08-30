@@ -1,11 +1,13 @@
 import { heatTrend } from "./heat.js";
 
 export const MAX_GUESSES = 6;
-export const CLUE_AFTER = 3; // misses before the blanked pivot clue appears
+export const FIRST_HINT_AFTER = 3;
+export const SECOND_HINT_AFTER = 4;
+export const MAX_HINTS = 2;
 
-// "joins yesterday": the guess forms a real lexical unit with yesterday's
-// word (tin -> tin can) but scores cold against today: right join, wrong
-// branch. Detected by exact pair lookup, never by heat.
+// Alternative pairing: the guess forms a familiar unit with yesterday's word
+// (tin -> tin can) but scores cold against today. Detected by exact pair
+// lookup, never by heat.
 export const NEAR_TODAY_MAX = 30;
 
 export function createState(chainEntries, index) {
@@ -18,6 +20,7 @@ export function createState(chainEntries, index) {
     pivot: entry.pivot,
     yesterday: chainEntries[(dayIndex - 1 + n) % n].w,
     guesses: [],
+    hintsUsed: 0,
     won: false,
     lost: false,
   };
@@ -27,9 +30,22 @@ export function normalizeGuess(raw) {
   return String(raw || "").trim().toLowerCase();
 }
 
-/** True once the blanked-pivot clue should be showing. */
-export function clueAvailable(state) {
-  return !state.won && !state.lost && state.guesses.length >= CLUE_AFTER;
+/** Optional hints unlock in stages; they never appear without a player click. */
+export function hintAvailable(state) {
+  if (state.won || state.lost || state.hintsUsed >= MAX_HINTS) return false;
+  const needed = state.hintsUsed === 0 ? FIRST_HINT_AFTER : SECOND_HINT_AFTER;
+  return state.guesses.length >= needed;
+}
+
+export function useHint(state) {
+  if (!hintAvailable(state)) return { ok: false, state };
+  return { ok: true, state: { ...state, hintsUsed: state.hintsUsed + 1 } };
+}
+
+export function hintText(state, stage = state.hintsUsed) {
+  if (stage <= 0) return "";
+  if (stage === 1) return `${state.today.length} letters.`;
+  return `It completes: ${blankPivot(state.pivot, state.today)}`;
 }
 
 const PIVOT_SUFFIXES = ["s", "es", "ed", "ing", "er"];
@@ -84,9 +100,9 @@ export function bestHeat(state) {
 /**
  * Apply a guess. Heat is semantic (per-day baked row), never edit distance.
  * Inflections resolve to their base word (strings -> string) and count as
- * that word. First guess trends against yesterday's word's heat.
- * `joins` is the Set of words known to join yesterday's word into a
- * lexical unit; a cold guess in that set reads "joins yesterday".
+ * that word. The first guess has no comparison arrow.
+ * `joins` is the Set of words known to pair with yesterday's word; a cold
+ * guess in that set receives the explicit alternative-pairing explanation.
  */
 export function applyGuess(state, rawGuess, lookup, joins = null) {
   if (state.won || state.lost) {
@@ -107,10 +123,7 @@ export function applyGuess(state, rawGuess, lookup, joins = null) {
     return { ok: false, reason: "duplicate", state };
   }
   const heat = word === state.today ? 100 : lookup.heat(word);
-  const prev =
-    state.guesses.length === 0
-      ? lookup.heat(state.yesterday)
-      : state.guesses[state.guesses.length - 1].heat;
+  const prev = state.guesses.length === 0 ? null : state.guesses[state.guesses.length - 1].heat;
   const trend = heatTrend(heat, prev);
   const won = word === state.today;
   const near = !won && heat < NEAR_TODAY_MAX && joins !== null && joins.has(word);
