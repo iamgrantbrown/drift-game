@@ -1,14 +1,9 @@
-import { heatTrend } from "./heat.js";
+import { distanceTrend } from "./heat.js";
 
 export const MAX_GUESSES = 6;
 export const FIRST_HINT_AFTER = 3;
 export const SECOND_HINT_AFTER = 4;
 export const MAX_HINTS = 2;
-
-// Alternative pairing: the guess forms a familiar unit with yesterday's word
-// (tin -> tin can) but scores cold against today. Detected by exact pair
-// lookup, never by heat.
-export const NEAR_TODAY_MAX = 30;
 
 export function createState(chainEntries, index) {
   const n = chainEntries.length;
@@ -21,6 +16,7 @@ export function createState(chainEntries, index) {
     yesterday: chainEntries[(dayIndex - 1 + n) % n].w,
     guesses: [],
     hintsUsed: 0,
+    firstHintGuessCount: null,
     won: false,
     lost: false,
   };
@@ -33,18 +29,27 @@ export function normalizeGuess(raw) {
 /** Optional hints unlock in stages; they never appear without a player click. */
 export function hintAvailable(state) {
   if (state.won || state.lost || state.hintsUsed >= MAX_HINTS) return false;
-  const needed = state.hintsUsed === 0 ? FIRST_HINT_AFTER : SECOND_HINT_AFTER;
+  const needed = state.hintsUsed === 0
+    ? FIRST_HINT_AFTER
+    : Math.max(SECOND_HINT_AFTER, (state.firstHintGuessCount ?? FIRST_HINT_AFTER) + 1);
   return state.guesses.length >= needed;
 }
 
 export function useHint(state) {
   if (!hintAvailable(state)) return { ok: false, state };
-  return { ok: true, state: { ...state, hintsUsed: state.hintsUsed + 1 } };
+  return {
+    ok: true,
+    state: {
+      ...state,
+      hintsUsed: state.hintsUsed + 1,
+      firstHintGuessCount: state.hintsUsed === 0 ? state.guesses.length : state.firstHintGuessCount,
+    },
+  };
 }
 
 export function hintText(state, stage = state.hintsUsed) {
   if (stage <= 0) return "";
-  if (stage === 1) return `${state.today.length} letters.`;
+  if (stage === 1) return `${state.today.length} letters. Starts with ${state.today[0].toUpperCase()}.`;
   return `It completes: ${blankPivot(state.pivot, state.today)}`;
 }
 
@@ -92,17 +97,21 @@ export function blankPivot(pivot, word) {
     .join(" ");
 }
 
-/** Best heat reached so far (0 when no guesses). Drives the kite + sky. */
+/** Best semantic progress reached so far. Alternative pairings are separate. */
 export function bestHeat(state) {
-  return state.guesses.reduce((m, g) => Math.max(m, g.heat), 0);
+  return state.guesses.reduce(
+    (m, g) => (g.alternative ?? g.near ? m : Math.max(m, g.heat)),
+    0,
+  );
 }
 
 /**
- * Apply a guess. Heat is semantic (per-day baked row), never edit distance.
+ * Apply a guess. Distance progress is semantic (per-day baked row), never edit distance.
  * Inflections resolve to their base word (strings -> string) and count as
  * that word. The first guess has no comparison arrow.
- * `joins` is the Set of words known to pair with yesterday's word; a cold
- * guess in that set receives the explicit alternative-pairing explanation.
+ * `joins` is the Set of words known to pair with yesterday's word. A guess in
+ * that set receives the explicit alternative-pairing explanation regardless
+ * of its semantic distance from today's answer.
  */
 export function applyGuess(state, rawGuess, lookup, joins = null) {
   if (state.won || state.lost) {
@@ -123,11 +132,17 @@ export function applyGuess(state, rawGuess, lookup, joins = null) {
     return { ok: false, reason: "duplicate", state };
   }
   const heat = word === state.today ? 100 : lookup.heat(word);
-  const prev = state.guesses.length === 0 ? null : state.guesses[state.guesses.length - 1].heat;
-  const trend = heatTrend(heat, prev);
+  const previousDistanceGuess = [...state.guesses]
+    .reverse()
+    .find((guess) => !(guess.alternative ?? guess.near));
+  const prev = previousDistanceGuess?.heat ?? null;
+  const trend = distanceTrend(heat, prev);
   const won = word === state.today;
-  const near = !won && heat < NEAR_TODAY_MAX && joins !== null && joins.has(word);
-  const guesses = [...state.guesses, { word, heat, trend, near }];
+  // Pair validity and semantic distance answer different questions. A known
+  // pairing with yesterday is always explained, even when it is also close in
+  // meaning to today's answer.
+  const alternative = !won && joins !== null && joins.has(word);
+  const guesses = [...state.guesses, { word, heat, trend, alternative }];
   const lost = !won && guesses.length >= MAX_GUESSES;
   const next = { ...state, guesses, won, lost };
   let reason = "continue";

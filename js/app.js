@@ -1,13 +1,28 @@
 import {
   MAX_GUESSES,
   applyGuess,
+  bestHeat,
   createState,
   hintAvailable,
   hintText,
   useHint,
 } from "./game.js";
-import { bandFor, bandRank, createHeatLookup, heatSteps, relationshipBoosts } from "./heat.js";
-import { dayIndex, daysBetween, pacificDateString, puzzleNumber, TIMEZONE } from "./calendar.js";
+import {
+  calibrationBoosts,
+  calibrationCaps,
+  createHeatLookup,
+  distanceLabel,
+  distanceRank,
+  distanceSteps,
+  distanceText,
+} from "./heat.js";
+import {
+  dayIndex,
+  daysBetween,
+  millisecondsUntilNextPacificMidnight,
+  pacificDateString,
+  puzzleNumber,
+} from "./calendar.js";
 import { shareText } from "./share.js";
 import { voiceLine, winLine } from "./voice.js";
 
@@ -74,11 +89,11 @@ function recordResult(store, date, won, guessCount) {
 
 /* ---------- rendering ---------- */
 
-const TREND_ARROW = { hotter: "▲", colder: "▼" };
+const TREND_ARROW = { closer: "▲", farther: "▼" };
 
-function heatMeter(heat) {
-  const steps = heatSteps(heat);
-  return `<span class="heat-meter" style="--heat:${Math.max(3, Math.min(100, heat))}%" aria-hidden="true">${Array.from(
+function distanceMeter(heat) {
+  const steps = distanceSteps(heat);
+  return `<span class="distance-meter" style="--progress:${Math.max(6, Math.min(94, heat))}%" aria-hidden="true">${Array.from(
     { length: 6 },
     (_, i) => `<i${i < steps ? ' class="filled"' : ""}></i>`,
   ).join("")}</span>`;
@@ -91,19 +106,20 @@ function renderPage(state) {
   for (let i = 0; i < state.guesses.length; i++) {
     const g = state.guesses[i];
     const found = g.word === state.today;
-    const band = found ? "found" : g.near ? "near" : bandFor(g.heat);
-    const label = g.near ? `another ${state.yesterday.toUpperCase()} pairing` : band;
+    const alternative = !!(g.alternative ?? g.near);
+    const band = found ? "found" : alternative ? "alternative" : distanceLabel(g.heat);
+    const label = alternative ? `another ${state.yesterday.toUpperCase()} pair` : distanceText(g.heat);
     const line = document.createElement("div");
     line.className = "page-line line-guess band-" + band;
     if (i === state.guesses.length - 1) line.classList.add("latest");
-    const showArrow = i > 0 && !found && !g.near && TREND_ARROW[g.trend];
+    const showArrow = i > 0 && !found && !alternative && TREND_ARROW[g.trend];
     const arrow = showArrow ? `<span class="trend ${g.trend}" aria-hidden="true">${TREND_ARROW[g.trend]}</span>` : "";
     line.setAttribute("aria-label", `${g.word}: ${label}${showArrow ? ", " + g.trend : ""}`);
     line.innerHTML = `
       <span class="guess-number" aria-hidden="true">${i + 1}</span>
       <span class="line-word ${found ? "line-found" : "line-evidence"}">${escapeHtml(g.word)}</span>
-      <span class="guess-result ${g.near ? "result-near" : ""}">
-        ${found || g.near ? "" : heatMeter(g.heat)}
+      <span class="guess-result ${alternative ? "result-alternative" : ""}">
+        ${found || alternative ? "" : distanceMeter(g.heat)}
         <span class="band-name">${label}</span>${arrow}
       </span>
     `;
@@ -145,13 +161,13 @@ function setStatus(msg, kind = "") {
   el.className = "status " + kind;
 }
 
-/** Sky warmth is a live thermometer: it follows the LATEST guess, warming
- *  when you run hot and cooling again when you drift cold. */
+/** The sky remembers the closest point reached, so progress never appears to
+ *  be taken away after an exploratory guess. */
 function renderProgress(state) {
-  const last = state.guesses[state.guesses.length - 1];
-  const rank = state.won ? 6 : last ? bandRank(last.heat) : 0;
-  const warmth = Math.min(1, rank / 5);
-  document.documentElement.style.setProperty("--warmth", warmth.toFixed(3));
+  const best = bestHeat(state);
+  const rank = state.won ? 6 : distanceRank(best);
+  const arrival = Math.min(1, Math.max(0, rank) / 5);
+  document.documentElement.style.setProperty("--arrival", arrival.toFixed(3));
 }
 
 function renderEnd(state, puzNum, store) {
@@ -207,7 +223,7 @@ function renderStats(store) {
   dist.forEach((n, i) => {
     const row = document.createElement("div");
     row.className = "dist-row";
-    row.innerHTML = `<span class="dist-n">${i + 1}</span><span class="dist-bar" style="--w:${Math.round((100 * n) / max)}%"><b>${n}</b></span>`;
+    row.innerHTML = `<span class="dist-n">${i + 1}</span><span class="dist-bar${n ? " has-value" : ""}" style="--w:${Math.round((100 * n) / max)}%"><b>${n}</b></span>`;
     root.appendChild(row);
   });
 }
@@ -240,16 +256,7 @@ function startCountdown() {
   if (countdownTimer) clearInterval(countdownTimer);
   const tick = () => {
     const now = new Date();
-    const parts = new Intl.DateTimeFormat("en-US", {
-      timeZone: TIMEZONE,
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-      hour12: false,
-    }).formatToParts(now);
-    const get = (t) => Number(parts.find((p) => p.type === t).value);
-    const secsToday = (get("hour") % 24) * 3600 + get("minute") * 60 + get("second");
-    const left = 86400 - secsToday;
+    const left = Math.max(0, Math.ceil(millisecondsUntilNextPacificMidnight(now) / 1000));
     const h = String(Math.floor(left / 3600)).padStart(2, "0");
     const m = String(Math.floor((left % 3600) / 60)).padStart(2, "0");
     const s = String(left % 60).padStart(2, "0");
@@ -301,14 +308,17 @@ async function main() {
   const puzNum = puzzleNumber(todayDate, chainPack.epoch);
 
   const prevIdx = (idx - 1 + chain.length) % chain.length;
-  const [words, heatBuf, pairList, corrections] = await Promise.all([
+  const [words, heatBuf, basePairs, pairOverrides, corrections, caps] = await Promise.all([
     fetch("data/words.json").then((r) => r.json()),
     fetch(`data/heat/${String(idx).padStart(3, "0")}.bin`).then((r) => r.arrayBuffer()),
     fetch("data/pairs.json").then((r) => r.json()).catch(() => []),
+    fetch("data/pair-overrides.json").then((r) => r.json()).catch(() => []),
     fetch("data/heat-overrides.json").then((r) => r.json()).catch(() => ({})),
+    fetch("data/heat-caps.json").then((r) => r.json()).catch(() => ({})),
   ]);
-  const boosts = relationshipBoosts(pairList, chain[idx].w, corrections);
-  const lookup = createHeatLookup(words, heatBuf, boosts);
+  const pairList = [...basePairs, ...pairOverrides];
+  const boosts = calibrationBoosts(chain[idx].w, corrections);
+  const lookup = createHeatLookup(words, heatBuf, boosts, calibrationCaps(chain[idx].w, caps));
   const yesterdayWord = chain[prevIdx].w;
   // every word known to join yesterday's word into a lexical unit
   const joins = new Set();
@@ -323,13 +333,30 @@ async function main() {
   if (store.today && store.today.date === todayDate && Array.isArray(store.today.guesses)) {
     state = {
       ...state,
-      guesses: store.today.guesses,
+      guesses: store.today.guesses.map((guess) => ({
+        ...guess,
+        alternative: !!(guess.alternative ?? guess.near),
+        trend: guess.trend === "hotter" ? "closer" : guess.trend === "colder" ? "farther" : guess.trend,
+      })),
       hintsUsed: Number(store.today.hintsUsed) || 0,
+      firstHintGuessCount: Number.isInteger(store.today.firstHintGuessCount)
+        ? store.today.firstHintGuessCount
+        : null,
       won: !!store.today.won,
       lost: !!store.today.lost,
     };
   } else {
-    store = { ...store, today: { date: todayDate, guesses: [], hintsUsed: 0, won: false, lost: false } };
+    store = {
+      ...store,
+      today: {
+        date: todayDate,
+        guesses: [],
+        hintsUsed: 0,
+        firstHintGuessCount: null,
+        won: false,
+        lost: false,
+      },
+    };
     saveStore(store);
   }
 
@@ -352,7 +379,7 @@ async function main() {
     const available = hintAvailable(state);
     button.hidden = !available;
     button.textContent = state.hintsUsed === 0 ? "Need a hint?" : "Open another hint";
-    lock.hidden = !(active && state.hintsUsed === 1 && state.guesses.length < 4);
+    lock.hidden = !(active && state.hintsUsed === 1 && !available);
   };
   renderHints();
 
@@ -366,6 +393,7 @@ async function main() {
         date: todayDate,
         guesses: state.guesses,
         hintsUsed: state.hintsUsed,
+        firstHintGuessCount: state.firstHintGuessCount,
         won: state.won,
         lost: state.lost,
       },
@@ -404,6 +432,7 @@ async function main() {
         date: todayDate,
         guesses: state.guesses,
         hintsUsed: state.hintsUsed,
+        firstHintGuessCount: state.firstHintGuessCount,
         won: state.won,
         lost: state.lost,
       },
@@ -427,14 +456,14 @@ async function main() {
     } else if (state.lost) {
       setStatus("");
       renderEnd(state, puzNum, store);
-    } else if (state.guesses[state.guesses.length - 1].near) {
+    } else if (state.guesses[state.guesses.length - 1].alternative) {
       const guessWord = state.guesses[state.guesses.length - 1].word;
       setStatus(
         `${guessWord.toUpperCase()} also pairs with ${state.yesterday.toUpperCase()}, but it is not today’s answer.`,
         "nudge",
       );
     } else {
-      setStatus(voiceLine(bandFor(result.heat), seed));
+      setStatus(voiceLine(distanceLabel(result.heat), seed));
     }
   });
 

@@ -2,15 +2,20 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { bandFor, createHeatLookup, relationshipBoosts } from "../js/heat.js";
+import {
+  calibrationBoosts,
+  calibrationCaps,
+  createHeatLookup,
+  distanceText,
+} from "../js/heat.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const chain = JSON.parse(fs.readFileSync(path.join(root, "data/chain.json"), "utf8")).words;
 const words = JSON.parse(fs.readFileSync(path.join(root, "data/words.json"), "utf8"));
-const pairs = JSON.parse(fs.readFileSync(path.join(root, "data/pairs.json"), "utf8"));
 const corrections = JSON.parse(
   fs.readFileSync(path.join(root, "data/heat-overrides.json"), "utf8"),
 );
+const caps = JSON.parse(fs.readFileSync(path.join(root, "data/heat-caps.json"), "utf8"));
 
 let failures = 0;
 
@@ -25,14 +30,41 @@ for (const [answer, expected] of Object.entries(corrections)) {
     fs.readFileSync(path.join(root, "data/heat", `${String(day).padStart(3, "0")}.bin`)),
   );
   const raw = createHeatLookup(words, row);
-  const calibrated = createHeatLookup(words, row, relationshipBoosts(pairs, answer, corrections));
+  const calibrated = createHeatLookup(
+    words,
+    row,
+    calibrationBoosts(answer, corrections),
+    calibrationCaps(answer, caps),
+  );
   console.log(`\n${answer.toUpperCase()} · day ${day}`);
   for (const [guess, floor] of Object.entries(expected)) {
     const before = raw.heat(guess);
     const after = calibrated.heat(guess);
     const ok = after >= floor;
     console.log(
-      `  ${guess.padEnd(12)} ${String(before).padStart(3)} → ${String(after).padStart(3)}  ${bandFor(after)}${ok ? "" : "  FAIL"}`,
+      `  ${guess.padEnd(12)} ${String(before).padStart(3)} → ${String(after).padStart(3)}  ${distanceText(after)}${ok ? "" : "  FAIL"}`,
+    );
+    if (!ok) failures += 1;
+  }
+}
+
+for (const [answer, expected] of Object.entries(caps)) {
+  const day = chain.findIndex((entry) => entry.w === answer);
+  const row = new Uint8Array(
+    fs.readFileSync(path.join(root, "data", "heat", `${String(day).padStart(3, "0")}.bin`)),
+  );
+  const calibrated = createHeatLookup(
+    words,
+    row,
+    calibrationBoosts(answer, corrections),
+    calibrationCaps(answer, caps),
+  );
+  console.log(`\n${answer.toUpperCase()} · wrong-sense caps`);
+  for (const [guess, cap] of Object.entries(expected)) {
+    const after = calibrated.heat(guess);
+    const ok = after <= cap;
+    console.log(
+      `  ${guess.padEnd(12)} ${String(after).padStart(3)} ≤ ${String(cap).padStart(3)}  ${distanceText(after)}${ok ? "" : "  FAIL"}`,
     );
     if (!ok) failures += 1;
   }
@@ -43,4 +75,4 @@ if (failures) {
   process.exit(1);
 }
 
-console.log(`\n${Object.keys(corrections).length} representative puzzles passed`);
+console.log(`\n${new Set([...Object.keys(corrections), ...Object.keys(caps)]).size} representative puzzles passed`);

@@ -1,11 +1,11 @@
-/** Heat: semantic relatedness rank, 0-100, baked at build time.
+/** Distance progress: sense-aware semantic relatedness, 0-100, baked at build time.
  *  v2 serves one Uint8 row per day (data/heat/NNN.bin), indexed by the
  *  shared dictionary order in data/words.json.
  */
 
 const SUFFIXES = ["s", "es", "ed", "ing", "er"];
 
-export function createHeatLookup(words, rowBytes, boosts = new Map()) {
+export function createHeatLookup(words, rowBytes, boosts = new Map(), caps = new Map()) {
   const index = new Map(words.map((w, i) => [w, i]));
   const row = rowBytes instanceof Uint8Array ? rowBytes : new Uint8Array(rowBytes);
 
@@ -58,67 +58,76 @@ export function createHeatLookup(words, rowBytes, boosts = new Map()) {
     heat(guess) {
       const w = resolve(guess);
       if (w === null) return null;
-      return Math.max(row[index.get(w)], boosts.get(w) || 0);
+      return Math.min(Math.max(row[index.get(w)], boosts.get(w) || 0), caps.get(w) ?? 100);
     },
   };
 }
 
 /**
- * A familiar phrase with the answer is strong evidence of meaning. The baked
- * semantic row remains the broad signal; this layer prevents obvious lexical
- * relationships from feeling arbitrarily cool. Per-puzzle corrections handle
- * polysemy and especially intuitive associations that the source data missed.
+ * Human-reviewed corrections supplement the phrase-conditioned baked row.
+ * Pair data is deliberately not used here: a word can form a phrase with the
+ * answer while belonging to the wrong sense for today's connection.
  */
-export function relationshipBoosts(pairs, answer, corrections = {}) {
+export function calibrationBoosts(answer, corrections = {}) {
   const boosts = new Map();
-  for (const [a, b] of pairs) {
-    if (a === answer) boosts.set(b, Math.max(boosts.get(b) || 0, 78));
-    else if (b === answer) boosts.set(a, Math.max(boosts.get(a) || 0, 78));
-  }
   for (const [word, heat] of Object.entries(corrections[answer] || {})) {
     boosts.set(word, Math.max(boosts.get(word) || 0, heat));
   }
   return boosts;
 }
 
-/** Internal bands (data thresholds). */
-export function heatLabel(heat) {
+export function calibrationCaps(answer, corrections = {}) {
+  return new Map(Object.entries(corrections[answer] || {}));
+}
+
+/** Internal distance bands (data thresholds). */
+export function distanceLabel(heat) {
   if (heat >= 100) return "found";
-  if (heat >= 88) return "scorching";
-  if (heat >= 70) return "hot";
-  if (heat >= 50) return "warm";
-  if (heat >= 30) return "cool";
-  if (heat >= 15) return "cold";
-  return "ice";
+  if (heat >= 88) return "almost";
+  if (heat >= 70) return "very-close";
+  if (heat >= 50) return "close";
+  if (heat >= 30) return "in-sight";
+  if (heat >= 15) return "distant";
+  return "far";
 }
 
-export function bandFor(heat) {
-  return heatLabel(heat);
+export const DISTANCE_TEXT = {
+  far: "far away",
+  distant: "distant",
+  "in-sight": "in sight",
+  close: "close",
+  "very-close": "very close",
+  almost: "almost there",
+  found: "found",
+};
+
+export function distanceText(heat) {
+  return DISTANCE_TEXT[distanceLabel(heat)];
 }
 
-export const BAND_ORDER = ["ice", "cold", "cool", "warm", "hot", "scorching", "found"];
+export const DISTANCE_ORDER = ["far", "distant", "in-sight", "close", "very-close", "almost", "found"];
 
-export function bandRank(heat) {
-  return BAND_ORDER.indexOf(bandFor(heat));
+export function distanceRank(heat) {
+  return DISTANCE_ORDER.indexOf(distanceLabel(heat));
 }
 
 /** One to six filled notebook dots for a valid miss; six for a find. */
-export function heatSteps(heat) {
+export function distanceSteps(heat) {
   if (heat >= 100) return 6;
-  return Math.max(1, bandRank(heat) + 1);
+  return Math.max(1, distanceRank(heat) + 1);
 }
 
 /**
- * Trend vs the previous guess: hotter/colder when the display band changes
+ * Trend vs the previous guess: closer/farther when the display band changes
  * or the score moves 10+. Otherwise "same" — the band chip itself carries
  * the information now, so there is no "still cold" filler state.
  */
-export function heatTrend(heat, prev) {
+export function distanceTrend(heat, prev) {
   if (prev == null || heat == null) return "same";
   const delta = heat - prev;
-  const notable = bandFor(heat) !== bandFor(prev) || Math.abs(delta) >= 10;
+  const notable = distanceLabel(heat) !== distanceLabel(prev) || Math.abs(delta) >= 10;
   if (!notable) return "same";
-  if (delta > 0) return "hotter";
-  if (delta < 0) return "colder";
+  if (delta > 0) return "closer";
+  if (delta < 0) return "farther";
   return "same";
 }

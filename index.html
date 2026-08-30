@@ -6,6 +6,13 @@
   <meta name="theme-color" content="#dfeefa" />
   <title>Drift, a daily word game</title>
   <meta name="description" content="Find today’s word. Together with yesterday’s, it makes a word or familiar phrase: racetrack, tracksuit. Six guesses, free, no ads, same puzzle for everyone." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Drift, a daily word game" />
+  <meta property="og:description" content="Find the word that connects to yesterday’s. Follow the kite, six guesses, one shared daily puzzle." />
+  <meta property="og:url" content="https://iamgrantbrown.github.io/drift-game/" />
+  <meta property="og:image" content="https://iamgrantbrown.github.io/drift-game/assets/drift-social.png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="assets/kite.svg" type="image/svg+xml" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet" />
@@ -13,7 +20,7 @@
 </head>
 <body>
   <div class="sky" aria-hidden="true">
-    <div class="sky-warm"></div>
+    <div class="sky-near"></div>
     <span class="cloud c1"></span>
     <span class="cloud c2"></span>
     <span class="cloud c3"></span>
@@ -116,17 +123,17 @@
       </section>
       <section class="howto-step">
         <span class="step-number">2</span>
-        <div><b>Find today’s connected word</b><p><strong>RACE + TRACK</strong> makes <em>racetrack</em>.</p></div>
+        <div><b>Find its chosen partner</b><p>RACE pairs with many words. Today’s answer is <strong>TRACK</strong>: <em>racetrack</em>.</p></div>
       </section>
       <section class="howto-step">
         <span class="step-number">3</span>
-        <div><b>Follow the temperature</b><p>Each guess shows how close its meaning is to today’s answer.</p></div>
+        <div><b>Follow the kite</b><p>Each guess shows its distance from today’s answer. Other valid RACE pairings are called out.</p></div>
       </section>
     </div>
     <div class="sample-result" aria-hidden="true">
       <span class="sample-word">field</span>
-      <span class="heat-meter compact"><i class="filled"></i><i class="filled"></i><i class="filled"></i><i class="filled"></i><i></i><i></i></span>
-      <span class="sample-label">warm</span>
+      <span class="distance-meter compact" style="--progress:66%"><i class="filled"></i><i class="filled"></i><i class="filled"></i><i class="filled"></i><i></i><i></i></span>
+      <span class="sample-label">close</span>
     </div>
     <p class="howto-note">You have six guesses. Optional hints become available if you get stuck.</p>
     <button type="button" class="primary" id="howto-play">Play today’s puzzle</button>

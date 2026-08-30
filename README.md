@@ -7,11 +7,11 @@ Play: https://iamgrantbrown.github.io/drift-game/
 
 If yesterday was **race**, today might be **track** (racetrack), and
 tomorrow **suit** (tracksuit). Six guesses; every guess shows how close
-its meaning is: ice · cold · cool · warm · hot · scorching.
+its meaning is: far away · distant · in sight · close · very close · almost there.
 
 The game is a fieldnote notebook: every guess stays legible as evidence, a
-six-dot temperature scale shows exactly how the trail is moving, and the sky
-behind the page warms when you run hot and cools when you drift cold.
+six-knot kite line shows the distance, and the sky remembers the closest point
+you have reached.
 
 ## Play
 
@@ -25,15 +25,14 @@ Then open http://localhost:8080/
 
 - Six guesses at today's word. One puzzle per day, rolling at midnight
   Pacific (America/Los_Angeles); everyone gets the same word.
-- Every guess shows its heat band and a persistent six-dot scale
-  (meaning-closeness, never spelling), plus a hotter/colder arrow from the
+- Every guess shows its distance band and a persistent six-knot scale
+  (meaning-closeness, never spelling), plus a closer/farther arrow from the
   second guess onward.
-- A guess that joins yesterday's word into a real unit but is cold against
-  today ("tin" on a "can" day) is explained as another pairing with
-  yesterday, but not today's answer. Detected by exact pair lookup in
-  `data/pairs.json`.
+- A guess that joins yesterday's word into a real unit is always explained as
+  another pairing with yesterday, regardless of its semantic distance from
+  today's answer. Pair validity and distance are independent signals.
 - Hints are optional. The first unlocks after three misses and reveals word
-  length; the second unlocks after the next miss and reveals the joined unit
+  length plus its first letter; the second unlocks after the next miss and reveals the joined unit
   with today's half blanked ("race\_\_\_\_"). Hints are marked on the share
   card without being treated as a failure.
 - Unknown words are rejected; inflections and British/American spellings
@@ -42,8 +41,8 @@ Then open http://localhost:8080/
   to the next puzzle.
 - Streak and stats live in the browser on your device. No accounts, ads,
   or payments.
-- The share card shows puzzle number, guess count, and band bars. It never
-  names the word.
+- The share card shows puzzle number, guess count, and distance bars. A link
+  marks another valid pairing. It never names the word.
 
 ## Daily seeding
 
@@ -61,37 +60,38 @@ longest-cycle search. Puzzle 1 is 1 January 2026 Pacific.
 
 ## Data
 
-Heat 0-100 is semantic relatedness rank, baked at build time; the game
+Distance progress 0-100 is sense-aware semantic relatedness, baked at build time; the game
 itself is static and calls no APIs.
 
 - `data/chain.json` - the word cycle; each entry carries its joining unit.
 - `data/words.json` - the 20k-word guess dictionary.
-- `data/pairs.json` - every known familiar pairing, for the alternative-pairing
-  explanation and answer-relationship heat floor.
+- `data/pairs.json` - the generated familiar-pair catalog.
+- `data/pair-overrides.json` - reviewed additions to the pair catalog.
 - `data/heat-overrides.json` - small human-reviewed corrections for intuitive
   polysemous relationships that broad semantic data underestimates.
+- `data/heat-caps.json` - reviewed caps for misleading alternative senses.
 - `data/heat/NNN.bin` - one Uint8 row per day (`NNN` = day index); the app
   fetches only today's ~20KB file.
-- Heat is built by `scripts/build_heat_v2.mjs` from Datamuse means-like
-  lists (~1000 ranked neighbors per secret), triggers, syn/spc/gen
+- Distance is built by `scripts/build_heat_v2.mjs` from Datamuse means-like
+  lists, a second query for the authored connection's intended sense, triggers, syn/spc/gen
   relations, a 2-hop expansion, and the curated seeds in
   `scripts/related_seeds.json` / `scripts/boosts.txt`. Around a thousand
-  words per day carry real gradient; everything else is flat ice. Words that
-  form a familiar unit with the answer receive a hot floor at runtime, and
-  reviewed puzzle-specific overrides win when they are stronger. Yesterday's
-  word is pinned hot (≥76).
+  words per day carry a real gradient; everything else is far away. Raw
+  isolated-word matches cannot claim a close band without intended-sense
+  support, and reviewed puzzle-specific boosts and caps handle difficult
+  polysemy. Yesterday's word is pinned as a strong connection (≥76).
 
 ## Rebuild
 
-    node scripts/compounds.mjs                # solve + write chain.json + pairs.json
+    node scripts/chain_v2.mjs                 # validate the reviewed production chain
     node scripts/compounds.mjs --pairs-only   # refresh pairs.json without re-solving
     node scripts/build_heat_v2.mjs            # fetch (cached) + bake words + heat
     node tests/run.mjs
     npm run audit:heat                         # review calibrated puzzle samples
 
-Re-solving the chain changes which word falls on which day and requires a
-full heat rebake; adding pairs and refreshing with `--pairs-only` does
-not. Datamuse is queried only at build time, with a resumable disk cache
+Changing the chain changes which word falls on which day and requires a full
+heat rebake. `data/chain.json` is calendar-sensitive and is never overwritten
+by the validator. Datamuse is queried only at build time, with a resumable disk cache
 in `scripts/datamuse_v2/` (gitignored).
 
 ## Tests
@@ -100,9 +100,9 @@ Run: `node tests/run.mjs`
 
 Covers calendar math; chain integrity (unique lowercase words, and the
 structural rule that every pivot contains both adjacent words); pivot
-blanking for the second hint; band thresholds and trend fixtures; inflection and
+blanking for the second hint; distance thresholds and trend fixtures; inflection and
 spelling-bridge resolution (inflections of the secret win); the
-"another pairing" flag; relationship heat floors and reviewed polysemy
+"another pairing" flag; independent pair/distance signals and reviewed polysemy
 corrections; dense-signal spot checks on the baked heat files; game flow (win,
 lose, duplicate, staged optional hint timing); the share card; and the
 deterministic voice lines.

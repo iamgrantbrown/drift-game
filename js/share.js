@@ -1,23 +1,24 @@
-import { bandFor } from "./heat.js";
+import { distanceLabel } from "./heat.js";
 
-const BAND_EMOJI = {
-  ice: "🟦",
-  cold: "🟦",
-  cool: "🟨",
-  warm: "🟨",
-  hot: "🟧",
-  scorching: "🟧",
+const DISTANCE_EMOJI = {
+  far: "🟦",
+  distant: "🟦",
+  "in-sight": "🟨",
+  close: "🟨",
+  "very-close": "🟧",
+  almost: "🟧",
   found: "🟩",
 };
 
-export function heatBlock(heat) {
-  return BAND_EMOJI[bandFor(heat)] || "🟦";
+export function resultBlock(guess) {
+  if (guess.alternative ?? guess.near) return "🔗";
+  return DISTANCE_EMOJI[distanceLabel(guess.heat)] || "🟦";
 }
 
 /** Share card intentionally omits today's word. */
 export function shareText({ puzzleNumber, guesses, won, hintsUsed = 0, maxGuesses = 6 }) {
   const bars =
-    guesses.map((g) => heatBlock(g.heat)).join("") +
+    guesses.map(resultBlock).join("") +
     "⬜".repeat(Math.max(0, maxGuesses - guesses.length));
   const line = won ? `caught the drift in ${guesses.length}` : "it drifted away";
   const hints = hintsUsed ? ` · ${"💡".repeat(hintsUsed)}` : "";

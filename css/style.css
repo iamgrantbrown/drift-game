@@ -1,8 +1,8 @@
 /* Drift: a fieldnote notebook. Guesses remain readable evidence while the
-   sky and continuous heat trail show movement toward the answer. */
+   kite line and clearing sky show movement toward the answer. */
 
 :root {
-  --warmth: 0;
+  --arrival: 0;
   --paper: #fffaf2;
   --paper-edge: #e3d7c2;
   --ink: #3b3730;
@@ -10,13 +10,13 @@
   --accent: #d07850;
   --accent-deep: #b05a36;
   --tail: #c4ae94;
-  --band-ice: #a9c9e6;
-  --band-cold: #7fa8cf;
-  --band-cool: #bcbd85;
-  --band-warm: #e2b45a;
-  --band-hot: #dd8a44;
-  --band-scorching: #cf5f30;
-  --band-found: #b05a36;
+  --distance-far: #6f95bd;
+  --distance-distant: #688dad;
+  --distance-in-sight: #858d55;
+  --distance-close: #b3822c;
+  --distance-very-close: #b96728;
+  --distance-almost: #ad421e;
+  --distance-found: #8f3d20;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -43,11 +43,11 @@ body {
   background: linear-gradient(180deg, #d3e8f9 0%, #e6f1f9 46%, #f3ede2 100%);
 }
 
-.sky-warm {
+.sky-near {
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg, #f6cf9a 0%, #f8e3bd 48%, #f7ecd8 100%);
-  opacity: var(--warmth);
+  opacity: var(--arrival);
   transition: opacity 1.4s ease;
 }
 
@@ -267,8 +267,8 @@ h1 {
   text-transform: uppercase;
 }
 
-.heat-meter {
-  --heat: 66%;
+.distance-meter {
+  --progress: 66%;
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -276,8 +276,8 @@ h1 {
   padding: 3px 0;
 }
 
-.heat-meter::before,
-.heat-meter::after {
+.distance-meter::before,
+.distance-meter::after {
   content: "";
   position: absolute;
   z-index: 0;
@@ -288,20 +288,25 @@ h1 {
   transform: translateY(-50%);
 }
 
-.heat-meter::before {
+.distance-meter::before {
   right: 3px;
   background: currentColor;
   opacity: 0.18;
 }
 
-.heat-meter::after {
-  width: max(2px, calc(var(--heat) - 6px));
-  max-width: calc(100% - 6px);
-  background: currentColor;
-  opacity: 0.75;
+.distance-meter::after {
+  left: var(--progress);
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid currentColor;
+  border-radius: 0;
+  background: var(--paper);
+  opacity: 1;
+  transform: translate(-50%, -50%) rotate(45deg);
+  transition: left 500ms ease;
 }
 
-.heat-meter i {
+.distance-meter i {
   position: relative;
   z-index: 1;
   width: 7px;
@@ -311,17 +316,17 @@ h1 {
   opacity: 0.38;
 }
 
-.heat-meter i.filled { background: currentColor; opacity: 1; }
+.distance-meter i.filled { background: currentColor; opacity: 1; }
 
-.band-ice { --stamp: #6f95bd; }
-.band-cold { --stamp: #5d87b6; }
-.band-cool { --stamp: #858d55; }
-.band-warm { --stamp: #b3822c; }
-.band-hot { --stamp: #b96728; }
-.band-scorching { --stamp: #ad421e; }
+.band-far { --stamp: var(--distance-far); }
+.band-distant { --stamp: var(--distance-distant); }
+.band-in-sight { --stamp: var(--distance-in-sight); }
+.band-close { --stamp: var(--distance-close); }
+.band-very-close { --stamp: var(--distance-very-close); }
+.band-almost { --stamp: var(--distance-almost); }
 .band-found { --stamp: #8f3d20; }
 
-.result-near {
+.result-alternative {
   min-width: 0;
   max-width: 190px;
   color: #766a54;
@@ -330,7 +335,7 @@ h1 {
   border-radius: 5px;
   background: rgba(224, 208, 176, 0.42);
 }
-.result-near .band-name { min-width: 0; text-align: center; }
+.result-alternative .band-name { min-width: 0; text-align: center; }
 
 .line-found {
   color: var(--accent-deep);
@@ -664,7 +669,7 @@ footer a { color: var(--accent-deep); }
 }
 .sample-word { color: var(--ink); font: 500 18px "Fraunces", serif; }
 .sample-label { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
-.heat-meter.compact i { width: 6px; height: 6px; }
+.distance-meter.compact i { width: 6px; height: 6px; }
 .howto-note { font-size: 13px; color: var(--ink-soft); margin-top: 10px; line-height: 1.5; }
 .howto .primary {
   width: 100%;
@@ -705,10 +710,11 @@ footer a { color: var(--accent-deep); }
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: max(var(--w), 7%);
-  background: var(--band-warm);
+  width: 0;
+  background: var(--distance-close);
   border-radius: 4px;
 }
+.dist-bar.has-value::before { width: max(var(--w), 7%); }
 .dist-bar b {
   position: absolute;
   left: 8px;
@@ -718,7 +724,7 @@ footer a { color: var(--accent-deep); }
   z-index: 1;
 }
 
-/* ---------- warmth: shake + paper scraps ---------- */
+/* ---------- motion: shake + paper scraps ---------- */
 
 #guess.shake { animation: shake 0.4s ease; }
 
@@ -763,7 +769,8 @@ footer a { color: var(--accent-deep); }
   .line-guess.latest .line-word, .line-found { animation: none; }
   .kite-mark, .kite-tail { animation: none !important; }
   .cloud { animation: none; }
-  .sky-warm { transition: none; }
+  .sky-near { transition: none; }
+  .distance-meter::after { transition: none; }
 }
 
 @media (max-width: 430px) {
@@ -774,9 +781,9 @@ footer a { color: var(--accent-deep); }
   .line-guess { grid-template-columns: 16px minmax(62px, 1fr) auto; gap: 6px; }
   .guess-result { min-width: 137px; gap: 5px; }
   .guess-result .band-name { min-width: 57px; font-size: 9px; letter-spacing: 0.07em; }
-  .heat-meter { gap: 3px; }
-  .heat-meter i { width: 6px; height: 6px; }
-  .result-near { max-width: 155px; }
+  .distance-meter { gap: 3px; }
+  .distance-meter i { width: 6px; height: 6px; }
+  .result-alternative { max-width: 155px; }
   #guess::placeholder { font-size: 15px; }
   #form button { padding: 5px 10px; font-size: 11px; }
 }

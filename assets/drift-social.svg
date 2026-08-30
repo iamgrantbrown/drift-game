@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#d3e8f9"/>
+      <stop offset="1" stop-color="#f3ede2"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#sky)"/>
+  <g transform="translate(145 123)">
+    <path d="M92 5 174 87 92 169 10 87Z" fill="#fffaf2" stroke="#d07850" stroke-width="10" stroke-linejoin="round"/>
+    <path d="M92 5v164M10 87h164" fill="none" stroke="#d07850" stroke-width="6"/>
+    <path d="M92 169q34 28 12 61-22 28 4 55" fill="none" stroke="#9d8c72" stroke-width="7" stroke-linecap="round"/>
+  </g>
+  <text x="360" y="272" fill="#3b3730" font-family="DejaVu Serif" font-size="150" font-weight="700">Drift</text>
+  <text x="365" y="355" fill="#6f675a" font-family="DejaVu Sans" font-size="36" font-weight="700">A DAILY WORD GAME</text>
+  <text x="365" y="425" fill="#857c6b" font-family="DejaVu Sans" font-size="30">Find the word that connects to yesterday’s.</text>
+</svg>

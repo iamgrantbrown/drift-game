@@ -7,6 +7,7 @@ import {
   EPOCH,
   dayIndex,
   daysBetween,
+  millisecondsUntilNextPacificMidnight,
   pacificDateString,
   puzzleNumber,
 } from "../js/calendar.js";
@@ -21,12 +22,13 @@ import {
   useHint,
 } from "../js/game.js";
 import {
-  bandFor,
+  calibrationBoosts,
+  calibrationCaps,
   createHeatLookup,
-  heatLabel,
-  heatSteps,
-  heatTrend,
-  relationshipBoosts,
+  distanceLabel,
+  distanceSteps,
+  distanceText,
+  distanceTrend,
 } from "../js/heat.js";
 import { shareText } from "../js/share.js";
 
@@ -35,6 +37,10 @@ const chainPack = JSON.parse(fs.readFileSync(path.join(root, "data/chain.json"),
 const words = JSON.parse(fs.readFileSync(path.join(root, "data/words.json"), "utf8"));
 const chain = chainPack.words;
 const N = chain.length;
+const pairs = [
+  ...JSON.parse(fs.readFileSync(path.join(root, "data/pairs.json"), "utf8")),
+  ...JSON.parse(fs.readFileSync(path.join(root, "data/pair-overrides.json"), "utf8")),
+];
 
 function heatRow(day) {
   return new Uint8Array(
@@ -118,35 +124,38 @@ test("pacificDateString returns YYYY-MM-DD", () => {
   assert.match(pacificDateString(new Date()), /^\d{4}-\d{2}-\d{2}$/);
 });
 
+test("countdown reaches the real next Pacific midnight across DST", () => {
+  assert.equal(millisecondsUntilNextPacificMidnight(new Date("2026-03-08T08:00:00Z")), 23 * 3600000);
+  assert.equal(millisecondsUntilNextPacificMidnight(new Date("2026-11-01T07:00:00Z")), 25 * 3600000);
+  assert.equal(millisecondsUntilNextPacificMidnight(new Date("2026-08-30T19:00:00Z")), 12 * 3600000);
+});
+
 /* ---------- bands & trend ---------- */
 
-test("heatLabel band thresholds", () => {
-  assert.equal(heatLabel(100), "found");
-  assert.equal(heatLabel(95), "scorching");
-  assert.equal(heatLabel(80), "hot");
-  assert.equal(heatLabel(65), "warm");
-  assert.equal(heatLabel(50), "warm");
-  assert.equal(heatLabel(35), "cool");
-  assert.equal(heatLabel(20), "cold");
-  assert.equal(heatLabel(5), "ice");
+test("distance labels use plain, stable thresholds", () => {
+  assert.equal(distanceLabel(100), "found");
+  assert.equal(distanceLabel(95), "almost");
+  assert.equal(distanceLabel(80), "very-close");
+  assert.equal(distanceLabel(65), "close");
+  assert.equal(distanceLabel(35), "in-sight");
+  assert.equal(distanceLabel(20), "distant");
+  assert.equal(distanceLabel(5), "far");
+  assert.equal(distanceText(95), "almost there");
 });
 
-test("bandFor exposes six stable temperature steps", () => {
-  assert.equal(bandFor(50), "warm");
-  assert.equal(bandFor(65), "warm");
-  assert.equal(bandFor(35), "cool");
-  assert.equal(heatSteps(5), 1);
-  assert.equal(heatSteps(35), 3);
-  assert.equal(heatSteps(72), 5);
-  assert.equal(heatSteps(92), 6);
+test("distance meter exposes six stable steps", () => {
+  assert.equal(distanceSteps(5), 1);
+  assert.equal(distanceSteps(35), 3);
+  assert.equal(distanceSteps(72), 5);
+  assert.equal(distanceSteps(92), 6);
 });
 
-test("heatTrend: band change or 10+ delta is notable", () => {
-  assert.equal(heatTrend(80, 40), "hotter");
-  assert.equal(heatTrend(20, 60), "colder");
-  assert.equal(heatTrend(22, 20), "same");
-  assert.equal(heatTrend(8, 5), "same");
-  assert.equal(heatTrend(31, 28), "hotter");
+test("distance trend reports closer and farther", () => {
+  assert.equal(distanceTrend(80, 40), "closer");
+  assert.equal(distanceTrend(20, 60), "farther");
+  assert.equal(distanceTrend(22, 20), "same");
+  assert.equal(distanceTrend(8, 5), "same");
+  assert.equal(distanceTrend(31, 28), "closer");
 });
 
 /* ---------- lookup & inflections (synthetic — data-independent) ---------- */
@@ -182,29 +191,28 @@ test("british spellings bridge to the secret", () => {
   assert.ok(r.state.won, "neighbours should catch neighbor");
 });
 
-test("joins yesterday: a cold guess in the join set is flagged", () => {
+test("a known alternative pairing is flagged independently of distance", () => {
   let s = createState(SYN_CHAIN, 1);
   const wall = applyGuess(s, "wall", synToday, SYN_JOINS);
-  assert.ok(wall.state.guesses[0].near, "wall joins yesterday (stone wall vs fence world)");
-  const friend = applyGuess(wall.state, "friend", synToday, SYN_JOINS);
-  assert.ok(!friend.state.guesses[1].near, "friend is warm vs today, never flagged");
+  assert.ok(wall.state.guesses[0].alternative, "wall joins yesterday");
+  const friend = applyGuess(wall.state, "friend", synToday, new Set(["friend"]));
+  assert.ok(friend.state.guesses[1].alternative, "a close guess can still be another pairing");
 });
 
 test("without a join set no guess is flagged", () => {
   const s = createState(SYN_CHAIN, 1);
   const r = applyGuess(s, "wall", synToday);
-  assert.ok(!r.state.guesses[0].near);
+  assert.ok(!r.state.guesses[0].alternative);
 });
 
-test("a cold guess outside the join set stays plain ice", () => {
+test("a distant guess outside the join set stays a normal distance result", () => {
   const s = createState(SYN_CHAIN, 1);
   const joins = new Set(["wall"]);
   const r = applyGuess(s, "gossip", synToday, joins);
-  assert.ok(!r.state.guesses[0].near, "gossip does not join yesterday");
+  assert.ok(!r.state.guesses[0].alternative, "gossip does not join yesterday");
 });
 
 test("pairs.json covers today's real neighbors of yesterday", () => {
-  const pairs = JSON.parse(fs.readFileSync(path.join(root, "data/pairs.json"), "utf8"));
   const set = new Set(pairs.map(([a, b]) => a + "|" + b));
   for (let i = 0; i < N; i++) {
     const prev = chain[(i - 1 + N) % N].w;
@@ -213,37 +221,36 @@ test("pairs.json covers today's real neighbors of yesterday", () => {
   }
 });
 
-test("answer relationships receive a trustworthy hot-floor", () => {
-  const pairs = JSON.parse(fs.readFileSync(path.join(root, "data/pairs.json"), "utf8"));
-  for (const entry of chain) {
-    const boosts = relationshipBoosts(pairs, entry.w);
-    for (const [a, b] of pairs) {
-      const related = a === entry.w ? b : b === entry.w ? a : null;
-      if (related) assert.ok(boosts.get(related) >= 78, `${related} should be hot for ${entry.w}`);
-    }
-  }
+test("manual pair coverage includes football club", () => {
+  assert.ok(pairs.some(([a, b]) => a === "football" && b === "club"));
 });
 
 test("human corrections cover intuitive polysemous relationships", () => {
-  const pairs = JSON.parse(fs.readFileSync(path.join(root, "data/pairs.json"), "utf8"));
   const corrections = JSON.parse(fs.readFileSync(path.join(root, "data/heat-overrides.json"), "utf8"));
   const dict = new Set(words);
   for (const [answer, guesses] of Object.entries(corrections)) {
     assert.ok(chain.some((entry) => entry.w === answer), `${answer} is not in the daily chain`);
-    const boosts = relationshipBoosts(pairs, answer, corrections);
+    const boosts = calibrationBoosts(answer, corrections);
     for (const [guess, expected] of Object.entries(guesses)) {
       assert.ok(dict.has(guess), `${answer}/${guess} is not in the dictionary`);
       assert.ok(boosts.get(guess) >= expected, `${answer}/${guess}`);
     }
   }
-  const club = relationshipBoosts(pairs, "club", corrections);
+  const club = calibrationBoosts("club", corrections);
   assert.ok(club.get("golf") > club.get("team"));
   assert.ok(club.get("team") > club.get("dance"));
 });
 
+test("wrong-sense caps keep misleading polysemy out of close bands", () => {
+  const caps = JSON.parse(fs.readFileSync(path.join(root, "data/heat-caps.json"), "utf8"));
+  assert.ok(calibrationCaps("duck", caps).get("dodge") <= 20);
+  assert.ok(calibrationCaps("cup", caps).get("chalice") <= 20);
+  assert.ok(calibrationCaps("gas", caps).get("gasoline") <= 20);
+});
+
 /* ---------- real heat data (structural spot checks) ---------- */
 
-test("all heat files exist, one byte per word, secret 100, yesterday hot", () => {
+test("all score files exist, one byte per word, secret 100, yesterday connected", () => {
   const index = new Map(words.map((w, i) => [w, i]));
   for (const d of [0, 1, Math.floor(N / 2), N - 1]) {
     const row = heatRow(d);
@@ -252,7 +259,7 @@ test("all heat files exist, one byte per word, secret 100, yesterday hot", () =>
     const yest = chain[(d - 1 + N) % N].w;
     assert.ok(row[index.get(yest)] >= 76, `day ${d} yesterday ${yest}`);
     const above = row.reduce((n, h) => n + (h >= 15 ? 1 : 0), 0);
-    assert.ok(above >= 150, `day ${d}: only ${above} words above ice`);
+    assert.ok(above >= 150, `day ${d}: only ${above} words above the far band`);
   }
   for (let d = 0; d < N; d++) {
     assert.ok(fs.existsSync(path.join(root, "data/heat", String(d).padStart(3, "0") + ".bin")), `day ${d} file`);
@@ -300,7 +307,7 @@ test("hints are optional, staged, and unavailable after the game ends", () => {
   assert.equal(s.hintsUsed, 0, "a hint never appears automatically");
   s = useHint(s).state;
   assert.equal(s.hintsUsed, 1);
-  assert.equal(hintText(s), "8 letters.");
+  assert.equal(hintText(s), "8 letters. Starts with N.");
   assert.ok(!hintAvailable(s), "second hint waits for another guess");
   s = applyGuess(s, "bake", synToday).state;
   assert.ok(hintAvailable(s));
@@ -311,11 +318,36 @@ test("hints are optional, staged, and unavailable after the game ends", () => {
   assert.ok(!hintAvailable(won));
 });
 
+test("opening the first hint late still requires another guess for hint two", () => {
+  let s = createState(SYN_CHAIN, 1);
+  for (const w of ["wall", "friend", "gossip", "bake"]) s = applyGuess(s, w, synToday).state;
+  assert.ok(hintAvailable(s));
+  s = useHint(s).state;
+  assert.equal(s.firstHintGuessCount, 4);
+  assert.ok(!hintAvailable(s), "hint two cannot open on the same guess count");
+  s = applyGuess(s, "fence", synToday).state;
+  assert.ok(hintAvailable(s));
+});
+
 test("bestHeat tracks the maximum", () => {
   let s = createState(SYN_CHAIN, 1);
   s = applyGuess(s, "friend", synToday).state;
   s = applyGuess(s, "gossip", synToday).state;
   assert.equal(bestHeat(s), 68);
+});
+
+test("alternative pairings do not drive the semantic progress sky", () => {
+  const s = createState(SYN_CHAIN, 1);
+  const alternative = applyGuess(s, "friend", synToday, new Set(["friend"])).state;
+  assert.equal(bestHeat(alternative), 0);
+});
+
+test("distance trends skip over alternative-pair guesses", () => {
+  let s = createState(SYN_CHAIN, 1);
+  s = applyGuess(s, "friend", synToday).state;
+  s = applyGuess(s, "wall", synToday, new Set(["wall"])).state;
+  const next = applyGuess(s, "gossip", synToday).state.guesses[2];
+  assert.equal(next.trend, "farther", "compares with friend, not the hidden wall distance");
 });
 
 test("blankPivot hides the secret in compounds, idioms, and inflections", () => {
@@ -342,11 +374,18 @@ test("share text never contains the secret and maps bands to emoji", () => {
   assert.ok(text.includes("⬜⬜⬜"));
 });
 
+test("share text gives alternative pairings their own glyph", () => {
+  const s = createState(SYN_CHAIN, 1);
+  const guessed = applyGuess(s, "friend", synToday, new Set(["friend"])).state;
+  const text = shareText({ puzzleNumber: 240, guesses: guessed.guesses, won: false });
+  assert.ok(text.includes("🔗"));
+});
+
 /* ---------- voice ---------- */
 
 test("voice lines: deterministic, non-empty, function-critical kinds distinct", async () => {
   const { voiceLine, winLine } = await import("../js/voice.js");
-  for (const kind of ["ice", "cold", "cool", "warm", "hot", "scorching", "invalid", "duplicate", "loss", "done"]) {
+  for (const kind of ["far", "distant", "in-sight", "close", "very-close", "almost", "invalid", "duplicate", "loss", "done"]) {
     for (const seed of [0, 1, 2, 100]) {
       const line = voiceLine(kind, seed);
       assert.ok(line.length > 0, `${kind} seed ${seed}`);

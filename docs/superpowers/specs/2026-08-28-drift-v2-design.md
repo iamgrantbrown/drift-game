@@ -1,7 +1,10 @@
-# Drift v2 — design
+# Drift v2 design
 
 Date: 2026-08-28
-Status: approved in conversation; supersedes the v1 hotter/colder design.
+Status: historical design record. The production rules and data contract are
+documented in `README.md`; later trust work replaced temperature language with
+kite distance, separated pair validity from semantic scoring, and retained the
+reviewed 340-puzzle calendar rather than the draft 366-word sequence below.
 
 Drift stays what it is — a tiny static daily word game, no accounts, no
 backend, no build step at play time — and fixes the one thing that breaks it

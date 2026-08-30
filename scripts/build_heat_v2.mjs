@@ -3,12 +3,13 @@
  *
  * Fetches (with a resumable disk cache at scripts/datamuse_v2/):
  *   per secret: ml (1000), rel_trg (200), rel_syn/spc/gen (100)
+ *   per puzzle: ml for the answer with yesterday as a topic (sense context)
  *   2-hop:      ml (150) for each secret's top-20 ml neighbors (globally cached)
  * Then bakes:
  *   data/words.json         guess dictionary (union of v1 words, chain, fetched)
  *   data/heat/NNN.bin       one Uint8 row per day (nWords bytes), NNN = day index
- * Heat is relatedness rank, never edit distance. Bands (heat.js): ice<15,
- * cold<30, cool<45, warm<75 (lukewarm merged), hot<90, scorching<100.
+ * The stored score is relatedness rank, never edit distance. The interface
+ * translates it into six plain distance bands from far away to almost there.
  *
  * Run: node scripts/build_heat_v2.mjs [--fetch-only|--bake-only]
  */
@@ -20,14 +21,22 @@ const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const CACHE = join(ROOT, "scripts", "datamuse_v2");
 const WORD_RE = /^[a-z]{3,14}$/;
 const HOP_NEIGHBORS = 20;
+const CONTEXT_RESULTS = 50;
+const UNSUPPORTED_CLOSE_CAP = 49;
 const YESTERDAY_MIN = 76;
 const ICE = 5;
 const CONCURRENCY = 6;
 
 const chainPack = JSON.parse(readFileSync(join(ROOT, "data", "chain.json"), "utf8"));
-const secrets = chainPack.words.map((e) => e.w);
+const entries = chainPack.words;
+const secrets = entries.map((e) => e.w);
 // Pinned v1 guess list — never read data/words.json (this script's own output).
 const oldWords = JSON.parse(readFileSync(join(ROOT, "scripts", "words_v1.json"), "utf8"));
+const pairWords = new Set([
+  ...JSON.parse(readFileSync(join(ROOT, "data", "pairs.json"), "utf8")).flat(),
+  ...JSON.parse(readFileSync(join(ROOT, "data", "pair-overrides.json"), "utf8")).flat(),
+]);
+const trustedPhraseWords = new Set([...oldWords, ...secrets, ...pairWords]);
 const seeds = loadSeeds();
 
 mkdirSync(CACHE, { recursive: true });
@@ -100,12 +109,17 @@ function clean(w) {
 async function fetchAll() {
   console.log(`fetching direct lists for ${secrets.length} secrets…`);
   await pooled(
-    secrets.flatMap((s) => [
+    secrets.flatMap((s, day) => [
       () => dmFetch("ml", s, `ml=${s}&max=1000`),
       () => dmFetch("trg", s, `rel_trg=${s}&max=200`),
       () => dmFetch("syn", s, `rel_syn=${s}&max=100`),
       () => dmFetch("spc", s, `rel_spc=${s}&max=100`),
       () => dmFetch("gen", s, `rel_gen=${s}&max=100`),
+      () => dmFetch(
+        `context${CONTEXT_RESULTS}-${String(day).padStart(3, "0")}`,
+        s,
+        `ml=${s}&topics=${encodeURIComponent(secrets[(day - 1 + secrets.length) % secrets.length])}&max=${CONTEXT_RESULTS}`,
+      ),
     ]),
   );
   const hopTargets = new Set();
@@ -137,7 +151,7 @@ function bake() {
   console.log("building dictionary…");
   // Commonness proxy: how many distinct fetched lists a word appears in.
   // Keeps the guess list to common, central words so per-day heat rows
-  // (nWords bytes each) stay small enough to ship 366 of them.
+  // (nWords bytes each) stay small enough to ship one per reviewed puzzle.
   const DICT_TARGET = 20000;
   const counts = new Map();
   const countList = (path) => {
@@ -150,6 +164,7 @@ function bake() {
   const hopWords = new Set();
   for (const s of secrets) {
     for (const kind of ["ml", "trg", "syn", "spc", "gen"]) countList(cachePath(kind, s));
+    const day = entries.findIndex((entry) => entry.w === s);
     const ml = JSON.parse(readFileSync(cachePath("ml", s), "utf8"));
     for (const e of ml.slice(0, HOP_NEIGHBORS)) {
       const w = clean(e.word);
@@ -176,6 +191,7 @@ function bake() {
     const secret = secrets[day];
     const yesterday = secrets[(day - 1 + secrets.length) % secrets.length];
     const heat = new Map(); // word -> heat, max-merged
+    const senseHeat = new Map(); // context-conditioned evidence for the intended sense
 
     const bump = (w, h) => {
       w = clean(w);
@@ -209,6 +225,32 @@ function bake() {
     for (const [w, score] of hopScore) {
       if (!heat.has(w)) bump(w, 15 + Math.min(19, Math.round(score * 6)));
     }
+
+    // A word in isolation can select the wrong sense (duck as a verb, cup as
+    // a vessel). Ask for words meaning today's answer while using yesterday
+    // as a topic. This keeps the component word central, unlike querying the
+    // whole joined phrase, which can drift toward the phrase's overall idea.
+    const context = JSON.parse(
+      readFileSync(cachePath(`context${CONTEXT_RESULTS}-${String(day).padStart(3, "0")}`, secret), "utf8"),
+    );
+    let contextRank = 0;
+    for (const e of context) {
+      const w = clean(e.word);
+      if (
+        !w ||
+        !index.has(w) ||
+        !trustedPhraseWords.has(w) ||
+        w === secret ||
+        senseHeat.has(w)
+      ) continue;
+      senseHeat.set(w, directHeat(contextRank++));
+    }
+    for (const [w, h] of heat) {
+      const contextual = senseHeat.get(w);
+      heat.set(w, contextual === undefined ? Math.min(h, UNSUPPORTED_CLOSE_CAP) : Math.max(h, contextual));
+    }
+    for (const [w, h] of senseHeat) bump(w, h);
+
     // curated seeds override upward
     const tiers = seeds[secret];
     if (tiers) {
@@ -233,7 +275,7 @@ function bake() {
   const min = Math.min(...stats), max = Math.max(...stats);
   const avg = Math.round(stats.reduce((a, b) => a + b, 0) / stats.length);
   console.log(`baked ${secrets.length} day files; words with signal per day: min ${min}, avg ${avg}, max ${max}`);
-  if (min < 400) console.warn(`WARNING: day ${stats.indexOf(min)} has only ${min} words above ice`);
+  if (min < 150) console.warn(`WARNING: day ${stats.indexOf(min)} has only ${min} words above the far band`);
 }
 
 const mode = process.argv[2] || "";

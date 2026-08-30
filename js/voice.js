@@ -8,35 +8,35 @@
  */
 
 const LINES = {
-  ice: [
-    "nothing stirring out there.",
-    "still air.",
-    "no wind at all that way.",
+  far: [
+    "the kite is far away.",
+    "far from today’s word.",
+    "still drifting far out.",
   ],
-  cold: [
-    "barely a tug. keep looking.",
-    "the trail barely moves.",
-    "cold out there. drift on.",
+  distant: [
+    "still at a distance.",
+    "a faint tug, but far off.",
+    "the line barely moves.",
   ],
-  cool: [
-    "a faint ripple.",
-    "something, far off.",
-    "cooler, but it's moving.",
+  "in-sight": [
+    "the kite is in sight.",
+    "you can feel the line now.",
+    "a connection is coming into view.",
   ],
-  warm: [
-    "the trail tightens.",
-    "warmer. keep going.",
-    "you're in the right wind.",
+  close: [
+    "the line is tightening.",
+    "close. keep reeling it in.",
+    "you’re closing the distance.",
   ],
-  hot: [
-    "it pulls now.",
-    "close. stay with it.",
-    "hot wind. stay with it.",
+  "very-close": [
+    "very close. keep the line steady.",
+    "you’re reeling it in.",
+    "nearly within reach.",
   ],
-  scorching: [
-    "nearly overhead. look up.",
-    "so close it hums.",
-    "right there.",
+  almost: [
+    "almost there.",
+    "within reach now.",
+    "one small pull away.",
   ],
   invalid: [
     "not a word this game knows.",

@@ -1,0 +1,91 @@
+{
+  "duck": {
+    "doll": 55,
+    "dart": 20,
+    "daisy": 15,
+    "avoid": 20,
+    "dodge": 20,
+    "evade": 20,
+    "sidestep": 20,
+    "parry": 20,
+    "douse": 20
+  },
+  "relief": {
+    "comfort": 49,
+    "cheer": 49,
+    "sunshine": 35,
+    "lift": 35,
+    "charm": 35,
+    "picnic": 20,
+    "community": 20,
+    "cream": 20,
+    "treat": 35,
+    "courtesy": 20,
+    "alleviation": 35,
+    "easing": 35,
+    "respite": 35
+  },
+  "cup": {
+    "cupful": 20,
+    "chalice": 20,
+    "goblet": 20,
+    "bottle": 20,
+    "jar": 20,
+    "vessel": 20
+  },
+  "gas": {
+    "spray": 60,
+    "mercury": 35,
+    "gasoline": 20,
+    "petrol": 20,
+    "throttle": 20,
+    "accelerator": 20
+  },
+  "stick": {
+    "billy": 20,
+    "deposit": 20,
+    "slip": 30,
+    "tail": 35,
+    "plastic": 49,
+    "plant": 49
+  },
+  "moon": {
+    "glass": 35,
+    "window": 35,
+    "text": 20,
+    "mouth": 20
+  },
+  "hook": {
+    "paw": 35,
+    "mitt": 20,
+    "hand": 35,
+    "wall": 20,
+    "cop": 20,
+    "strap": 35
+  },
+  "tip": {
+    "bite": 35,
+    "crown": 35,
+    "tub": 20,
+    "fold": 20,
+    "hose": 20,
+    "stuff": 20
+  },
+  "can": {
+    "seat": 20,
+    "tail": 20,
+    "may": 20,
+    "might": 20,
+    "facility": 20,
+    "get": 20,
+    "stool": 20,
+    "bathroom": 20
+  },
+  "cramp": {
+    "band": 35,
+    "crank": 35,
+    "trouble": 35,
+    "start": 20,
+    "pull": 35
+  }
+}

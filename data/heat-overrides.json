@@ -32,5 +32,90 @@
     "sun": 86,
     "glow": 84,
     "dark": 72
+  },
+  "duck": {
+    "bird": 94,
+    "pond": 92,
+    "bath": 90,
+    "toy": 88,
+    "beak": 86,
+    "feather": 84,
+    "water": 82,
+    "float": 78,
+    "yellow": 74
+  },
+  "relief": {
+    "comedy": 96,
+    "laughter": 94,
+    "joke": 92,
+    "funny": 90,
+    "humor": 88,
+    "amusement": 86,
+    "levity": 84
+  },
+  "cup": {
+    "soccer": 95,
+    "football": 94,
+    "tournament": 92,
+    "championship": 90,
+    "sport": 88,
+    "match": 86,
+    "team": 84,
+    "trophy": 82
+  },
+  "gas": {
+    "oxygen": 96,
+    "poison": 93,
+    "filter": 90,
+    "air": 88,
+    "chemical": 86,
+    "breathing": 82,
+    "smoke": 80
+  },
+  "stick": {
+    "rod": 96,
+    "cane": 92,
+    "twig": 90,
+    "line": 88,
+    "branch": 84
+  },
+  "moon": {
+    "lunar": 96,
+    "night": 92,
+    "satellite": 90,
+    "crater": 88,
+    "eclipse": 86,
+    "orbit": 84,
+    "space": 82
+  },
+  "hook": {
+    "bait": 96,
+    "fishing": 94,
+    "catch": 92,
+    "barb": 90,
+    "lure": 88,
+    "fish": 84
+  },
+  "tip": {
+    "point": 96,
+    "end": 92,
+    "top": 90,
+    "edge": 86,
+    "peak": 84
+  },
+  "can": {
+    "tin": 96,
+    "container": 94,
+    "aluminum": 90,
+    "metal": 86,
+    "soda": 84
+  },
+  "cramp": {
+    "spasm": 96,
+    "pain": 92,
+    "ache": 90,
+    "muscle": 88,
+    "hand": 86,
+    "strain": 82
   }
 }
