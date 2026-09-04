@@ -105,7 +105,7 @@ export function placeStop(geo, lie, progress, sideIndex = 0) {
     // no river on a par 3: the water is a pond off the green
     if (geo.riverT === null) {
       const g = geo.at(0.9);
-      return { x: g.x - g.nx * 78, y: g.y - g.ny * 78 };
+      return { x: g.x + g.nx * 78, y: g.y + g.ny * 78 };
     }
     const r = geo.at(geo.riverT);
     return { x: r.x + r.nx * 18, y: r.y + r.ny * 18 };
@@ -147,9 +147,19 @@ export function renderMap(geo, stops, { holed = false, tee, hole } = {}) {
     const rx = (k) => river.x + river.nx * k;
     const ry = (k) => river.y + river.ny * k;
     const riverPath = `M ${rx(-300)} ${ry(-300)} C ${rx(-140) + river.tx * 40} ${ry(-140) + river.ty * 40}, ${rx(-60) - river.tx * 30} ${ry(-60) - river.ty * 30}, ${rx(0)} ${ry(0)} S ${rx(120) + river.tx * 40} ${ry(120) + river.ty * 40}, ${rx(300)} ${ry(300)}`;
+    // ripples instead of a centre line: small arcs scattered along the water
+    const ripples = [-230, -175, -120, -60, 40, 95, 150, 205, 255]
+      .map((k, i) => {
+        const wob = ((i * 37) % 11) - 5;
+        const x = rx(k) + river.tx * wob * 1.2;
+        const y = ry(k) + river.ty * wob * 1.2;
+        return `<path d="M ${x - 6} ${y} q 6 -4 12 0" class="ripple"/>`;
+      })
+      .join("");
     water = `<path d="${riverPath}" class="river-bank" />
   <path d="${riverPath}" class="river" />
-  <path d="${riverPath}" class="river-light" />
+  <path d="${riverPath}" class="river-deep" />
+  ${ripples}
   <g transform="translate(${river.x} ${river.y}) rotate(${(Math.atan2(river.ty, river.tx) * 180) / Math.PI})">
     <rect x="-26" y="-16" width="52" height="32" rx="3" class="bridge"/>
     ${[-18, -9, 0, 9, 18].map((x) => `<rect x="${x - 1.5}" y="-16" width="3" height="32" class="bridge-plank"/>`).join("")}
@@ -157,11 +167,13 @@ export function renderMap(geo, stops, { holed = false, tee, hole } = {}) {
   } else {
     // a par 3 has a pond beside the green instead
     const g = at(0.9);
-    const px = g.x - g.nx * 78;
-    const py = g.y - g.ny * 78;
-    water = `<ellipse cx="${px}" cy="${py}" rx="40" ry="28" class="river-bank" style="stroke-width:6"/>
+    const px = g.x + g.nx * 78;
+    const py = g.y + g.ny * 78;
+    water = `<ellipse cx="${px}" cy="${py}" rx="42" ry="30" class="river-bank" style="stroke-width:8"/>
   <ellipse cx="${px}" cy="${py}" rx="38" ry="26" class="pond"/>
-  <ellipse cx="${px - 8}" cy="${py - 6}" rx="14" ry="6" class="pond-light"/>`;
+  <path d="M ${px - 20} ${py - 6} q 6 -4 12 0" class="ripple"/>
+  <path d="M ${px + 4} ${py + 8} q 6 -4 12 0" class="ripple"/>
+  <path d="M ${px - 6} ${py + 1} q 6 -4 12 0" class="ripple"/>`;
   }
   const green = at(0.96);
   const flag = at(1);

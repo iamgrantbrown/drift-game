@@ -106,11 +106,12 @@ h1 {
 .green { fill: #a3dc84; stroke: #8fcf74; stroke-width: 3; }
 .green-mow { fill: url(#mow); }
 .bunker { fill: #efd9a0; stroke: #d9bd7a; stroke-width: 2; }
-.river-bank { fill: none; stroke: #8d6e46; stroke-width: 36; stroke-linecap: round; }
-.river { fill: none; stroke: #3d8fd8; stroke-width: 28; stroke-linecap: round; }
-.river-light { fill: none; stroke: rgba(255, 255, 255, 0.35); stroke-width: 4; stroke-dasharray: 18 26; stroke-linecap: round; }
-.pond { fill: #3d8fd8; }
-.pond-light { fill: rgba(255, 255, 255, 0.3); }
+/* water: a soft mown bank, a blue body with a deeper middle, ripples on top */
+.river-bank { fill: none; stroke: #a8d79a; stroke-width: 36; stroke-linecap: round; }
+.river { fill: none; stroke: #4c9de0; stroke-width: 28; stroke-linecap: round; }
+.river-deep { fill: none; stroke: #3684c9; stroke-width: 14; stroke-linecap: round; opacity: 0.85; }
+.ripple { fill: none; stroke: rgba(255, 255, 255, 0.6); stroke-width: 1.6; stroke-linecap: round; }
+.pond { fill: #4c9de0; }
 .bridge { fill: #a5773f; stroke: #7a5427; stroke-width: 2; }
 .bridge-plank { fill: #8d6431; }
 .rock { fill: #a9aaa2; stroke: #7f817a; stroke-width: 1.5; }
