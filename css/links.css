@@ -131,6 +131,7 @@ h1 {
   text-anchor: middle;
 }
 .stop-label.now { font-size: 15px; }
+.stop-label.end-label { font-size: 15px; letter-spacing: 0.02em; text-transform: uppercase; }
 .tee-peg { fill: var(--tee); stroke: #2b5aa3; stroke-width: 1.5; }
 .pole { stroke: #ffffff; stroke-width: 2.5; stroke-linecap: round; }
 .cloth { fill: var(--flag); transform-origin: 0 0; }
