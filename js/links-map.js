@@ -68,6 +68,10 @@ export function layoutHole(tee, hole, par = 4) {
     const side = i % 2 === 0 ? 1 : -1;
     return { x: p.x + p.nx * side * (60 + rand() * 10), y: p.y + p.ny * side * (60 + rand() * 10), r: 20 + rand() * 6, t };
   });
+  // nothing grows in the river: the water wanders up to 40px either side of
+  // the crossing, so keep trees and rocks clear of that band
+  const river = riverT === null ? null : at(riverT);
+  const inRiver = (x, y, r) => river !== null && Math.abs((x - river.x) * river.tx + (y - river.y) * river.ty) < 44 + r;
   const trees = [];
   const treeCount = par <= 3 ? 18 : par >= 5 ? 34 : 26;
   for (let i = 0; i < treeCount; i++) {
@@ -77,15 +81,16 @@ export function layoutHole(tee, hole, par = 4) {
     const off = 88 + rand() * 60;
     const x = p.x + p.nx * side * off + (rand() - 0.5) * 30;
     const y = p.y + p.ny * side * off + (rand() - 0.5) * 30;
-    if (x < 8 || x > W - 8 || y < 8 || y > H - 8) continue;
-    trees.push({ x, y, r: 11 + rand() * 9 });
+    const r = 11 + rand() * 9;
+    if (x < 8 || x > W - 8 || y < 8 || y > H - 8 || inRiver(x, y, r)) continue;
+    trees.push({ x, y, r });
   }
   const rocks = Array.from({ length: 5 }, () => {
     const t = rand();
     const p = at(t);
     const side = rand() < 0.5 ? -1 : 1;
     return { x: p.x + p.nx * side * (75 + rand() * 40), y: p.y + p.ny * side * (75 + rand() * 40), r: 4 + rand() * 4 };
-  });
+  }).filter((k) => !inRiver(k.x, k.y, k.r));
   return { H, par, p0, p1, p2, p3, at, riverT, bunkers, trees, rocks, bend };
 }
 
@@ -146,13 +151,26 @@ export function renderMap(geo, stops, { holed = false, tee, hole } = {}) {
     const river = at(riverT);
     const rx = (k) => river.x + river.nx * k;
     const ry = (k) => river.y + river.ny * k;
-    const riverPath = `M ${rx(-300)} ${ry(-300)} C ${rx(-140) + river.tx * 40} ${ry(-140) + river.ty * 40}, ${rx(-60) - river.tx * 30} ${ry(-60) - river.ty * 30}, ${rx(0)} ${ry(0)} S ${rx(120) + river.tx * 40} ${ry(120) + river.ty * 40}, ${rx(300)} ${ry(300)}`;
+    // two cubic curves, so the water wanders instead of ruling a line
+    const P = (k, wx = 0) => ({ x: rx(k) + river.tx * wx, y: ry(k) + river.ty * wx });
+    const seg1 = [P(-300), P(-140, 40), P(-60, -30), P(0)];
+    const seg2 = [P(0), P(60, 30), P(120, 40), P(300)];
+    const riverPath = `M ${seg1[0].x} ${seg1[0].y} C ${seg1[1].x} ${seg1[1].y}, ${seg1[2].x} ${seg1[2].y}, ${seg1[3].x} ${seg1[3].y} C ${seg2[1].x} ${seg2[1].y}, ${seg2[2].x} ${seg2[2].y}, ${seg2[3].x} ${seg2[3].y}`;
+    // a point on the drawn river, so the ripples sit on the water wherever it bends
+    const onRiver = (k) => {
+      const [a, b, c, d] = k < 0 ? seg1 : seg2;
+      const u = k < 0 ? (k + 300) / 300 : k / 300;
+      const v = 1 - u;
+      const w = [v * v * v, 3 * v * v * u, 3 * v * u * u, u * u * u];
+      return { x: w[0] * a.x + w[1] * b.x + w[2] * c.x + w[3] * d.x, y: w[0] * a.y + w[1] * b.y + w[2] * c.y + w[3] * d.y };
+    };
     // ripples instead of a centre line: small arcs scattered along the water
     const ripples = [-230, -175, -120, -60, 40, 95, 150, 205, 255]
       .map((k, i) => {
         const wob = ((i * 37) % 11) - 5;
-        const x = rx(k) + river.tx * wob * 1.2;
-        const y = ry(k) + river.ty * wob * 1.2;
+        const q = onRiver(k);
+        const x = q.x + river.tx * wob;
+        const y = q.y + river.ty * wob;
         return `<path d="M ${x - 6} ${y} q 6 -4 12 0" class="ripple"/>`;
       })
       .join("");

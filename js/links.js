@@ -15,14 +15,14 @@ import {
   scoreName,
   shareCard,
   yardage,
-} from "./links-game.js?v=20260904b";
-import { layoutHole, placeStop, renderMap } from "./links-map.js?v=20260904b";
+} from "./links-game.js?v=20260904c";
+import { layoutHole, placeStop, renderMap } from "./links-map.js?v=20260904c";
 import {
   daysBetween,
   millisecondsUntilNextPacificMidnight,
   pacificDateString,
   puzzleNumber,
-} from "./calendar.js?v=20260904b";
+} from "./calendar.js?v=20260904c";
 
 const STORAGE_KEY = "links-v1";
 const HOWTO_KEY = "links-howto-v1";
