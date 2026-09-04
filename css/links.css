@@ -210,11 +210,12 @@ h1 {
   padding: 3px 9px;
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.14);
-  color: var(--white);
+  color: var(--white-soft);
   font-family: var(--display);
-  font-weight: 600;
+  font-weight: 500;
   font-size: 13.5px;
 }
+.finisher b { color: var(--white); font-weight: 700; }
 
 /* ---------- the shot row ---------- */
 

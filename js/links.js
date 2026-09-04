@@ -141,9 +141,15 @@ function renderGreen(state, course) {
     el.innerHTML = "";
     return;
   }
-  el.innerHTML = `<span class="green-label">into the hole</span>${finishers
-    .map((f) => `<span class="finisher" title="${escapeHtml(f.phrase)}">${escapeHtml(f.word)}</span>`)
-    .join("")}`;
+  // each chip is the finishing phrase with the word you'd play in bold: play
+  // "moon" from anywhere it fits and moonwalk sinks it
+  const chip = (f) => {
+    const i = f.phrase.indexOf(f.word);
+    const head = f.phrase.slice(0, i);
+    const tail = f.phrase.slice(i + f.word.length);
+    return `<span class="finisher">${escapeHtml(head)}<b>${escapeHtml(f.word)}</b>${escapeHtml(tail)}</span>`;
+  };
+  el.innerHTML = `<span class="green-label">any of these sinks it</span>${finishers.map(chip).join("")}`;
 }
 
 function renderShot(state, dist, course, justPlayed = false) {
