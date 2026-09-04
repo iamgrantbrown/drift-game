@@ -617,6 +617,20 @@ body::before {
   animation: land 0.35s ease;
 }
 .caddie[hidden] { display: none; }
+.caddie-btn {
+  height: 40px;
+  padding: 0 16px;
+  border: 2px solid var(--cream);
+  border-radius: 20px;
+  background: var(--cream);
+  color: var(--rough);
+  font: 700 12px var(--body);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--cream-edge);
+}
+.caddie-btn:hover { background: #ffffff; }
 .actions {
   display: flex;
   flex-wrap: wrap;

@@ -87,9 +87,21 @@ function survey(tee, maxDepth) {
 // a course has a rhythm: mostly par 4, a par 3 and a par 5 every few holes
 const PARS = [4, 4, 3, 4, 5, 4, 4, 3, 4, 4, 5, 4, 3, 4, 4, 5, 4, 4];
 const REST = 60; // days before a word can be a tee or a hole again
+// Keep the existing layout wherever it still holds, so a course rebuild
+// doesn't move the calendar under people's feet. A hole is kept when its
+// tee and hole are still allowed and its par is still one over the shortest
+// known route.
+const previous = existsSync("data/holes.json") ? JSON.parse(readFileSync("data/holes.json", "utf8")).holes : [];
+const stillGood = (h) => {
+  if (!h || !tees.includes(h.tee) || !holeOk(h.hole)) return false;
+  const { dist } = survey(h.tee, h.par);
+  return dist.get(h.hole) === h.par;
+};
+
 const lastUsed = new Map();
 const holes = [];
 let tries = 0;
+let kept = 0;
 while (holes.length < COUNT && tries < COUNT * 400) {
   tries++;
   const day = holes.length;
@@ -99,6 +111,14 @@ while (holes.length < COUNT && tries < COUNT * 400) {
   const par = PARS[day % PARS.length];
   const d = par;
   const fresh = (w) => !lastUsed.has(w) || day - lastUsed.get(w) >= REST;
+  const old = previous[day];
+  if (old && old.par === par && stillGood(old) && fresh(old.tee) && fresh(old.hole)) {
+    holes.push({ ...old, shortest: par - 1 });
+    lastUsed.set(old.tee, day);
+    lastUsed.set(old.hole, day);
+    kept++;
+    continue;
+  }
   const tee = pick(tees);
   if (!fresh(tee)) continue;
   const { dist, ways } = survey(tee, d);
@@ -114,5 +134,5 @@ while (holes.length < COUNT && tries < COUNT * 400) {
 
 writeFileSync("data/holes.json", JSON.stringify({ epoch: "2026-01-01", timezone: "America/Los_Angeles", holes }, null, 0) + "\n");
 const byPar = holes.reduce((m, h) => ((m[h.par] = (m[h.par] || 0) + 1), m), {});
-console.log(`holes.json: ${holes.length} holes (${tries} tries); by par ${JSON.stringify(byPar)}`);
+console.log(`holes.json: ${holes.length} holes (${tries} tries, ${kept} kept from the previous layout); by par ${JSON.stringify(byPar)}`);
 console.log(holes.slice(0, 10).map((h) => `${h.tee} -> ${h.hole} (par ${h.par}, ${h.routes} shortest routes)`).join("\n"));

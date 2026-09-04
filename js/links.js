@@ -104,6 +104,17 @@ function stopsFor(state, dist, geo, justPlayed) {
     const progress = after === undefined ? 0 : (D0 - after) / D0;
     if (lie === "rough" || lie === "bunker") sideIndex++;
     const p = placeStop(geo, lie, progress, sideIndex);
+    // two stops with the same yardage would land on the same spot; nudge the
+    // newer one sideways so every ball position stays visible
+    let nudge = 0;
+    while (stops.some((s) => Math.hypot(s.x - p.x, s.y - p.y) < 22) && nudge < 6) {
+      nudge++;
+      const side = nudge % 2 ? 1 : -1;
+      const k = Math.ceil(nudge / 2) * 26;
+      const q = geo.at(Math.max(0.03, Math.min(0.93, progress)));
+      p.x = Math.max(24, Math.min(390 - 24, p.x + q.nx * side * k));
+      p.y = Math.max(24, Math.min(geo.H - 24, p.y + q.ny * side * k));
+    }
     stops.push({ word, lie, ...p, current: isLast && !state.holed, justMoved: isLast && justPlayed });
   });
   return stops;
@@ -170,7 +181,7 @@ function renderActions(state, attemptsHere) {
   const stage = state.caddie && state.caddie.at === here ? state.caddie.stage : 0;
   const parts = [];
   if ((attemptsHere >= 2 || stage > 0) && stage < CADDIE_STAGES) {
-    parts.push(`<button type="button" class="link-btn" id="caddie-btn">${stage === 0 ? "ask the caddie" : "ask again"}</button>`);
+    parts.push(`<button type="button" class="caddie-btn" id="caddie-btn">${stage === 0 ? "Ask the caddie" : "Ask again"}</button>`);
   }
   if (state.path.length >= 2) {
     parts.push(`<button type="button" class="link-btn" id="drop-btn">take a drop, back to ${escapeHtml(up(state.path[state.path.length - 2]))} for one stroke</button>`);

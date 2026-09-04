@@ -179,7 +179,8 @@ export function renderMap(geo, stops, { holed = false, tee, hole } = {}) {
       stopMarks += `<circle cx="${s.x}" cy="${s.y}" r="3.5" class="stop-dot"/>`;
     }
     if (s.word && s.lie !== "tee") {
-      const above = s.y > 40;
+      // labels alternate above and below their ball so a crowded corner stays readable
+      const above = s.current ? s.y > 40 : i % 2 === 0 && s.y > 40;
       stopMarks += `<text x="${s.x}" y="${above ? s.y - 13 : s.y + 22}" class="stop-label${s.current ? " now" : ""}">${esc(s.word)}</text>`;
     }
   });
