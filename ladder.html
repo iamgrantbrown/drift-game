@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#dfeefa" />
+  <title>Rungs, a daily word ladder</title>
+  <meta name="description" content="Six words in a column. Each joins the next into a word or phrase. The top and bottom are given. Fill the four between." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Rungs, a daily word ladder" />
+  <meta property="og:description" content="Six words in a column, each joining the next: coffee cup, cupcake, cakewalk. Fill the four rungs between the ends." />
+  <meta property="og:url" content="https://iamgrantbrown.github.io/drift-game/ladder.html" />
+  <meta property="og:image" content="https://iamgrantbrown.github.io/drift-game/assets/drift-social.png" />
+  <link rel="icon" href="assets/kite.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;1,9..144,500&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/ladder.css" />
+</head>
+<body>
+  <div class="sky" aria-hidden="true">
+    <div class="sky-near"></div>
+    <span class="cloud c1"></span>
+    <span class="cloud c2"></span>
+    <span class="cloud c3"></span>
+  </div>
+
+  <main class="wrap">
+    <header>
+      <div class="topbar">
+        <span class="meta" id="puzzle-num">#</span>
+        <h1>Rungs</h1>
+        <span class="topbar-btns">
+          <button type="button" class="icon-btn" id="howto-btn" aria-label="How to play">?</button>
+        </span>
+      </div>
+      <p class="rule">Climb from the bottom word to the top. Each rung joins the one below and the one above into a word or phrase.</p>
+    </header>
+
+    <section class="ladder-wrap" aria-label="Today’s ladder">
+      <div class="ladder" id="ladder"></div>
+      <div class="ground" aria-hidden="true"></div>
+    </section>
+
+    <p class="status" id="status" role="status"></p>
+
+    <section class="end paper-sheet" id="end" hidden>
+      <h2 id="end-title"></h2>
+      <p id="end-body"></p>
+      <p class="end-ladder" id="end-ladder"></p>
+      <p class="countdown" id="countdown"></p>
+      <pre class="share-card" id="share-text"></pre>
+      <button type="button" class="ghosty" id="share-btn">Share</button>
+    </section>
+
+    <footer>
+      one a day · a new ladder at midnight pacific<br />
+      <span class="working">prototype, working title</span> · <a href="./">the original Drift</a> · <a href="https://github.com/iamgrantbrown/drift-game">source</a>
+    </footer>
+  </main>
+
+  <dialog class="paper-dialog howto" id="howto" aria-labelledby="howto-title">
+    <button type="button" class="dialog-close" id="howto-close" aria-label="Close">×</button>
+    <h2 id="howto-title">How to play</h2>
+    <div class="howto-steps">
+      <section class="howto-step">
+        <span class="step-number">1</span>
+        <div><b>Six words, bottom to top</b><p>Each one joins the next into a word or phrase: <em>coffee cup</em>, <em>cupcake</em>, <em>cakewalk</em>.</p></div>
+      </section>
+      <section class="howto-step">
+        <span class="step-number">2</span>
+        <div><b>You get the ends</b><p>The bottom word and the top word are written in. The four rungs between them are missing.</p></div>
+      </section>
+      <section class="howto-step">
+        <span class="step-number">3</span>
+        <div><b>A rung locks when it joins both neighbours</b><p>Start at the bottom, or anywhere. A miss tells you which side it did join, so every try teaches you something.</p></div>
+      </section>
+    </div>
+    <p class="howto-note">No limit on tries. Fewer is better. Hints open on a rung after a couple of misses, only if you ask.</p>
+    <button type="button" class="primary" id="howto-play">Climb today’s ladder</button>
+  </dialog>
+
+  <script type="module" src="js/ladder.js"></script>
+</body>
+</html>

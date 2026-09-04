@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "node tests/run.mjs",
+    "test": "node tests/run.mjs && node tests/ladder.mjs && node tests/links.mjs",
     "audit:heat": "node scripts/audit_heat.mjs",
     "build:chain": "node scripts/chain_v2.mjs",
     "build:heat": "node scripts/build_heat_v2.mjs",

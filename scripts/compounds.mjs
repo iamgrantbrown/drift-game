@@ -807,10 +807,82 @@ function findCycle(edges, timeMs = 120000, seedStart = 7) {
 }
 
 // ---- main ----
-const edges = decodePairs();
+// --strict: only units where the two words sit directly side by side
+// ("golf club", "cupcake"), no connectives, possessives, or inflections.
+// Writes data/lines.json for the domino game and leaves chain.json alone.
+// --forward (implies --strict): the unit must read FIRST tile then SECOND
+// ("coffee cup" links coffee -> cup, never cup -> coffee), so a column of
+// tiles reads top to bottom as words. The cycle is then directed.
+const FORWARD = process.argv.includes("--forward");
+const STRICT = FORWARD || process.argv.includes("--strict");
+const isAdjacentUnit = ({ a, b, unit }) => {
+  const u = unit.toLowerCase();
+  return u === `${a} ${b}` || u === `${b} ${a}` || u === a + b || u === b + a;
+};
+/** Orient a side-by-side edge so `a` is the word that comes first. */
+const orient = ({ a, b, unit }) => {
+  const u = unit.toLowerCase();
+  return u === `${a} ${b}` || u === a + b ? { a, b, unit } : { a: b, b: a, unit };
+};
+const allEdges = decodePairs();
+const edges = STRICT ? allEdges.filter(isAdjacentUnit).map((e) => (FORWARD ? orient(e) : e)) : allEdges;
+if (STRICT) console.log(`strict: ${edges.length} of ${allEdges.length} pairs are side by side`);
+
+/** Longest directed path we can find in the time: randomised walks that
+ *  prefer the successor with the fewest onward options (so the walk stays
+ *  alive), many restarts, deterministic seed. A path, not a cycle: the
+ *  domino lines are read in windows that never wrap. */
+function findDirectedPath(directedEdges, timeMs = 60000, seedStart = 11) {
+  const fwd = new Map();
+  for (const e of directedEdges) {
+    if (!fwd.has(e.a)) fwd.set(e.a, new Set());
+    fwd.get(e.a).add(e.b);
+  }
+  const words = [...fwd.keys()];
+  let seed = seedStart;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 4294967296;
+  };
+  const onward = (w, seen) => {
+    let n = 0;
+    for (const x of fwd.get(w) || []) if (!seen.has(x)) n++;
+    return n;
+  };
+  let best = [];
+  const deadline = Date.now() + timeMs;
+  let starts = 0;
+  // depth-first with backtracking, richest successor first, a node budget
+  // per start so no single start eats the whole time
+  const dfs = (path, seen, budget) => {
+    if (path.length > best.length) best = [...path];
+    if (budget.n-- <= 0 || Date.now() > deadline) return;
+    const here = path[path.length - 1];
+    const options = [...(fwd.get(here) || [])]
+      .filter((n) => !seen.has(n))
+      .map((n) => ({ n, score: onward(n, seen) + rand() * 0.8 }))
+      .sort((x, y) => y.score - x.score);
+    for (const { n } of options) {
+      seen.add(n);
+      path.push(n);
+      dfs(path, seen, budget);
+      path.pop();
+      seen.delete(n);
+      if (budget.n <= 0 || Date.now() > deadline) return;
+    }
+  };
+  while (Date.now() < deadline) {
+    starts++;
+    const start = words[Math.floor(rand() * words.length)];
+    dfs([start], new Set([start]), { n: 40000 });
+  }
+  console.log(`forward: ${starts} starts, longest path ${best.length} words`);
+  return best;
+}
 console.log(`decoded ${edges.length} valid pairs over ${new Set(edges.flatMap((e) => [e.a, e.b])).size} words`);
 const writePairs = () => {
-  const pairList = edges.map((e) => [e.a, e.b]).sort((x, y) => (x[0] + x[1] < y[0] + y[1] ? -1 : 1));
+  // [a, b, unit]: the unit is the phrase the pair makes ("sidewalk", "coffee bean")
+  const pairList = edges.map((e) => [e.a, e.b, e.unit]).sort((x, y) => (x[0] + x[1] < y[0] + y[1] ? -1 : 1));
   writeFileSync(new URL("../data/pairs.json", import.meta.url), JSON.stringify(pairList) + "\n");
   console.log(`wrote data/pairs.json: ${pairList.length} joinable pairs`);
 };
@@ -825,8 +897,8 @@ for (const e of edges) {
   unitOf.set(e.a + "|" + e.b, e.unit);
   unitOf.set(e.b + "|" + e.a, e.unit);
 }
-let cycle = findCycle(edges);
-if (!cycle) {
+let cycle = FORWARD ? findDirectedPath(edges) : findCycle(edges);
+if (!cycle || cycle.length < 6) {
   console.error("no cycle found");
   process.exit(1);
 }
@@ -863,9 +935,10 @@ if (cycle.length > 366) {
   }
 }
 
-// rotate so "coffee" is day 0 if present
+// rotate so "coffee" is day 0 if present (a closed cycle only; a forward
+// path has a real start and must not be rotated)
 const ci = cycle.indexOf("coffee");
-if (ci > 0) cycle = [...cycle.slice(ci), ...cycle.slice(0, ci)];
+if (!FORWARD && ci > 0) cycle = [...cycle.slice(ci), ...cycle.slice(0, ci)];
 
 const out = {
   epoch: "2026-01-01",
@@ -873,13 +946,20 @@ const out = {
   words: cycle.map((w, i) => {
     const prev = cycle[(i - 1 + cycle.length) % cycle.length];
     const unit = unitOf.get(prev + "|" + w);
+    // an open forward path has no link into its first word
+    if (!unit && FORWARD && i === 0) return { w, pivot: w };
     if (!unit) throw new Error(`no unit for ${prev} -> ${w}`);
     return { w, pivot: unit };
   }),
 };
-writeFileSync(new URL("../data/chain.json", import.meta.url), JSON.stringify(out, null, 1) + "\n");
-// the full pair list ships too: the game flags any guess that joins
-// yesterday's word ("tin" on a "can" day) as near-yesterday, exactly.
-writePairs();
-console.log(`wrote data/chain.json: ${out.words.length} words, every link a lexical unit`);
+if (STRICT) {
+  writeFileSync(new URL("../data/lines.json", import.meta.url), JSON.stringify(out, null, 1) + "\n");
+  console.log(`wrote data/lines.json: ${out.words.length} words, every link side by side${FORWARD ? ", reading downward" : ""}`);
+} else {
+  writeFileSync(new URL("../data/chain.json", import.meta.url), JSON.stringify(out, null, 1) + "\n");
+  // the full pair list ships too: the game flags any guess that joins
+  // yesterday's word ("tin" on a "can" day) as near-yesterday, exactly.
+  writePairs();
+  console.log(`wrote data/chain.json: ${out.words.length} words, every link a lexical unit`);
+}
 console.log("first 15:", out.words.slice(0, 15).map((e) => `${e.w} (${e.pivot})`).join(" → "));

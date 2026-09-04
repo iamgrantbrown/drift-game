@@ -1,0 +1,278 @@
+/* Rungs: a timber ladder standing on the ground, leaning into the sky.
+ * Shares the ink, accent, and sky tokens from style.css. */
+
+:root {
+  --climb: 0;
+  --timber-light: #ead8b6;
+  --timber: #cfae80;
+  --timber-deep: #a6835a;
+  --timber-shadow: #7d5f3d;
+  --rail-w: 14px;
+  --rung-h: 52px;
+  --gap-h: 44px;
+}
+
+/* the sky rises as you climb */
+.cloud {
+  margin-top: calc(var(--climb) * 220px);
+  transition: margin-top 1.4s cubic-bezier(0.2, 0.7, 0.3, 1);
+}
+
+.ladder-wrap {
+  position: relative;
+  margin: 26px auto 8px;
+  max-width: 400px;
+  padding-bottom: 22px;
+}
+
+.ladder {
+  position: relative;
+  padding: 0;
+}
+
+/* the rails, standing on the ground */
+.ladder::before,
+.ladder::after {
+  content: "";
+  position: absolute;
+  top: -12px;
+  bottom: -18px;
+  width: var(--rail-w);
+  border-radius: 5px 5px 2px 2px;
+  background: linear-gradient(90deg, var(--timber-shadow), var(--timber) 45%, var(--timber-light) 70%, var(--timber-deep));
+  box-shadow: 0 1px 0 rgba(90, 70, 40, 0.25);
+  z-index: 3;
+}
+.ladder::before { left: 0; }
+.ladder::after { right: 0; }
+
+.ground {
+  position: absolute;
+  left: -30px;
+  right: -30px;
+  bottom: 4px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(90, 70, 40, 0.22), rgba(90, 70, 40, 0) 70%);
+}
+
+/* a crossbar runs rail to rail and tucks under both */
+.rung {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  height: var(--rung-h);
+  margin: 0 5px;
+  padding: 0 calc(var(--rail-w) + 4px) 0 calc(var(--rail-w) + 10px);
+  border-radius: 3px;
+}
+
+.rung-locked,
+.rung-end {
+  background: linear-gradient(180deg, var(--timber-light), var(--timber) 80%, var(--timber-deep));
+  box-shadow: inset 0 -3px 0 var(--timber-shadow), 0 3px 0 rgba(90, 70, 40, 0.18);
+}
+
+.rung-end {
+  background: linear-gradient(180deg, var(--timber), var(--timber-deep) 85%, var(--timber-shadow));
+  box-shadow: inset 0 -3px 0 var(--timber-shadow), 0 3px 0 rgba(90, 70, 40, 0.22);
+}
+
+.rung-word {
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 23px;
+  line-height: 1.2;
+  color: var(--ink);
+  letter-spacing: 0.01em;
+  overflow-wrap: anywhere;
+}
+.rung-end .rung-word { color: #fffaf2; text-shadow: 0 1px 0 rgba(60, 40, 20, 0.35); }
+
+.rung-side {
+  font: 800 10px "Nunito", sans-serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--timber-shadow);
+  white-space: nowrap;
+}
+.rung-end .rung-side { color: rgba(255, 250, 242, 0.85); }
+
+/* the rung swings in and settles */
+.just-locked {
+  animation: rung-settle 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  transform-origin: left center;
+}
+@keyframes rung-settle {
+  0% { transform: translateX(-28px) rotate(-3deg); opacity: 0; }
+  55% { transform: translateX(4px) rotate(0.6deg); opacity: 1; }
+  100% { transform: none; }
+}
+
+/* a missing rung: the outline of where the bar should be */
+.rung-open {
+  border: 2px dashed rgba(125, 95, 61, 0.55);
+  background: rgba(255, 250, 242, 0.45);
+  padding-right: calc(var(--rail-w) - 2px);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.rung-open:focus-within {
+  border-style: solid;
+  border-color: var(--accent);
+  background: rgba(255, 250, 242, 0.7);
+}
+
+.rung-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rung-input {
+  flex: 1;
+  min-width: 0;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--ink);
+  background: none;
+  border: none;
+  outline: none;
+  padding: 0;
+  caret-color: var(--accent-deep);
+}
+.rung-input::placeholder { color: rgba(125, 95, 61, 0.5); font-style: italic; font-weight: 500; font-size: 16px; }
+.rung-input:focus-visible { outline: none; }
+.rung-input.shake { animation: shake 0.4s ease; }
+
+.rung-form button {
+  font: 800 11px "Nunito", sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #fffaf2;
+  background: var(--accent);
+  border: none;
+  border-radius: 3px;
+  padding: 7px 11px;
+  cursor: pointer;
+}
+.rung-form button:hover { background: #934827; }
+
+/* the missed word drops off the rung */
+.falling {
+  position: fixed;
+  z-index: 20;
+  pointer-events: none;
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--ink);
+  animation: miss-fall 0.7s cubic-bezier(0.4, 0, 0.8, 0.6) forwards;
+}
+@keyframes miss-fall {
+  0% { transform: none; opacity: 1; }
+  100% { transform: translate(14px, 84px) rotate(9deg); opacity: 0; }
+}
+
+/* between two rungs: the phrase, or the clue written on its side */
+.link {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: var(--gap-h);
+  padding: 0 calc(var(--rail-w) + 8px);
+  text-align: center;
+}
+.link-text {
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--ink-soft);
+  letter-spacing: 0.02em;
+}
+.link-phrase .link-text { color: var(--accent-deep); }
+.link-blank .link-text {
+  font-style: normal;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.06em;
+}
+.just-joined .link-text { animation: ink-in 0.5s ease; }
+
+/* misses and hints, tucked under their rung; one line, scrolls if long */
+.rung-notes {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin: 0 var(--rail-w);
+  padding: 5px calc(var(--rail-w) - 2px) 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.rung-notes::-webkit-scrollbar { display: none; }
+.rung-notes-locked { opacity: 0.7; }
+/* the notes borrow from the gap below them so the rung pitch stays even */
+.rung-notes + .link { height: calc(var(--gap-h) - 22px); }
+
+.miss {
+  font-family: "Fraunces", serif;
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.miss s { text-decoration-color: rgba(176, 90, 54, 0.7); }
+.miss small { font-family: "Nunito", sans-serif; font-style: normal; font-size: 10.5px; margin-left: 3px; letter-spacing: 0.04em; }
+.miss.joins s { color: var(--ink); }
+
+.rung-clue {
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  color: var(--accent-deep);
+}
+
+.rung-hint {
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--accent);
+  padding: 0 1px;
+  font: italic 500 13.5px "Fraunces", serif;
+  color: var(--accent-deep);
+  cursor: pointer;
+}
+
+.end-ladder {
+  font-family: "Fraunces", serif;
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--accent-deep);
+  margin: 6px 0 2px;
+}
+
+footer .working { opacity: 0.8; }
+
+@media (prefers-reduced-motion: reduce) {
+  .just-locked, .just-joined .link-text, .falling { animation: none; }
+  .cloud { transition: none; }
+}
+
+@media (max-width: 430px) {
+  :root { --rail-w: 11px; --rung-h: 48px; --gap-h: 40px; }
+  .rung { padding-left: calc(var(--rail-w) + 8px); }
+  .rung-word, .rung-input { font-size: 19px; }
+  .rung-form button { padding: 6px 9px; font-size: 10px; }
+  .link-text { font-size: 14px; }
+}

@@ -1,4 +1,15 @@
-# Drift
+# Links, and Drift
+
+**Links** is daily word golf and lives at the site root: a tee word, a hole
+word, and a par. Each stroke is a word that makes a phrase with the word you
+are standing on (school bus, bus stop, stopwatch). Any route the course knows
+counts; the yardage tells you how far you are from the hole; fewest strokes
+wins. Data: `data/course.json` (every shot the course knows, built by
+`scripts/build_course.mjs` from reviewed pairs plus a hand-reviewed keep list
+in `data/keep.txt`, minus `data/block.txt`) and `data/holes.json` (the course
+layout, `scripts/build_holes.mjs`). Tests: `npm test`.
+
+**Drift**, the original game, is at `drift.html`. What follows describes it.
 
 A tiny daily word game. Yesterday's answer is shown. Find today's word, which
 makes one familiar word or phrase with yesterday's.

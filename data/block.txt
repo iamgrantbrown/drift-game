@@ -1,0 +1,58 @@
+# Words and phrases kept out of the course. One per line.
+# A single word blocks every shot that uses it. A phrase blocks just that shot.
+# Lines starting with # are comments. Reviewed pairs are blocked too.
+breast
+cancer
+suicide
+murder
+rape
+slave
+nazi
+porn
+sex
+sexual
+death
+dead
+kill
+killer
+corpse
+coffin
+grave
+bloodbath
+bloodshed
+blood money
+gunpoint
+gunfire
+gunfight
+gunfighter
+gunshot
+gunsmoke
+machine gun
+handgun
+war crime
+war criminal
+war widow
+war zone
+drug war
+drug abuse
+drug addict
+drug addiction
+drug bust
+drug dealer
+drug lord
+drug trafficking
+gateway drug
+prescription drug
+suicide mission
+slave driver
+raising hell
+bomb blast
+car bomb
+pipe bomb
+letter bomb
+firebomb
+atom bomb
+smart bomb
+warhead
+warlord
+war hawk
