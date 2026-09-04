@@ -9,6 +9,7 @@ import {
   distances,
   drop,
   holeFromSpec,
+  holeShots,
   lieOf,
   play,
   scoreName,
@@ -132,7 +133,20 @@ function renderHole(state, dist, geo, puzNum, justPlayed = false) {
 
 /* ---------- the shot row and the trail ---------- */
 
-function renderShot(state, dist, justPlayed = false) {
+/** Reading the green: the words that finish the hole, visible from the tee. */
+function renderGreen(state, course) {
+  const el = $("green-read");
+  const finishers = holeShots(course, state.hole).filter((f) => !state.path.includes(f.word));
+  if (state.holed || finishers.length === 0) {
+    el.innerHTML = "";
+    return;
+  }
+  el.innerHTML = `<span class="green-label">into the hole</span>${finishers
+    .map((f) => `<span class="finisher" title="${escapeHtml(f.phrase)}">${escapeHtml(f.word)}</span>`)
+    .join("")}`;
+}
+
+function renderShot(state, dist, course, justPlayed = false) {
   const root = $("fairway");
   const draft = root.querySelector("input")?.value || "";
   if (state.holed) {
@@ -143,9 +157,10 @@ function renderShot(state, dist, justPlayed = false) {
   const d = dist.get(here);
   const lastEntry = [...state.log].reverse().find((e) => !e.drop);
   const hereLie = state.path.length === 1 ? "tee" : lastEntry && lastEntry.word === here ? lieOf(lastEntry) : "fairway";
+  const open = [...course.from(here).keys()].filter((w) => !state.path.includes(w)).length;
   root.innerHTML = `
     <form class="shot at-${hereLie}" autocomplete="off">
-      <span class="from">from <b>${escapeHtml(here)}</b></span>
+      <span class="from">from <b>${escapeHtml(here)}</b><small>${open} ${open === 1 ? "shot" : "shots"}</small></span>
       <input id="shot" type="text" enterkeyhint="go" autocapitalize="none" autocomplete="off" spellcheck="false" maxlength="14" placeholder="your next word" aria-label="Your next word, played from ${escapeHtml(here)}" value="${escapeHtml(draft)}" />
       <button type="submit" class="swing">Play</button>
     </form>
@@ -181,7 +196,8 @@ function renderActions(state, attemptsHere) {
   const stage = state.caddie && state.caddie.at === here ? state.caddie.stage : 0;
   const parts = [];
   if ((attemptsHere >= 2 || stage > 0) && stage < CADDIE_STAGES) {
-    parts.push(`<button type="button" class="caddie-btn" id="caddie-btn">${stage === 0 ? "Ask the caddie" : "Ask again"}</button>`);
+    const label = stage === 0 ? "Ask the caddie" : stage === 1 ? "Ask for the first letter" : "Ask for the shot";
+    parts.push(`<button type="button" class="caddie-btn" id="caddie-btn">${label}</button>`);
   }
   if (state.path.length >= 2) {
     parts.push(`<button type="button" class="link-btn" id="drop-btn">take a drop, back to ${escapeHtml(up(state.path[state.path.length - 2]))} for one stroke</button>`);
@@ -341,7 +357,8 @@ async function main() {
   $("rule").innerHTML = `Get from <b>${escapeHtml(up(state.tee))}</b> to <b>${escapeHtml(up(state.hole))}</b>. Every word you play must make a phrase with the one before it. Par ${state.par}.`;
   const render = (justPlayed = false) => {
     renderHole(state, dist, geo, puzNum, justPlayed);
-    renderShot(state, dist, justPlayed);
+    renderGreen(state, course);
+    renderShot(state, dist, course, justPlayed);
     renderCaddie(state, course, dist, attemptsHere);
     renderActions(state, attemptsHere);
   };
@@ -360,6 +377,17 @@ async function main() {
       else if (r.reason === "invalid") setStatus("Letters only.", "no");
       if (r.reason !== "invalid") {
         attemptsHere++;
+        // two tries in, the caddie offers the letter count unasked; it's free
+        const here = state.path[state.path.length - 1];
+        const stage = state.caddie && state.caddie.at === here ? state.caddie.stage : 0;
+        if (attemptsHere === 2 && stage === 0) {
+          const h = askCaddie(state);
+          if (h.ok) {
+            state = h.state;
+            persist();
+            renderCaddie(state, course, dist, attemptsHere);
+          }
+        }
         renderActions(state, attemptsHere);
       }
       input.classList.remove("refuse");

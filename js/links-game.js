@@ -154,6 +154,16 @@ export function bestShot(state, course, dist) {
 
 export const CADDIE_STAGES = 3;
 
+/** Reading the green: every word the course knows that finishes the hole,
+ *  with the phrase it makes. You can see the flag from the tee. */
+export function holeShots(course, hole) {
+  const out = [];
+  for (const [a, tos] of course.next) {
+    if (a !== hole && tos.has(hole)) out.push({ word: a, phrase: tos.get(hole) });
+  }
+  return out.sort((x, y) => x.word.localeCompare(y.word));
+}
+
 /** What the caddie says at each stage: length, first letter, the blanked phrase. */
 export function caddieLine(stage, shot, here) {
   if (!shot) return "Nothing from here gets you closer. Take a drop.";
@@ -164,12 +174,14 @@ export function caddieLine(stage, shot, here) {
   return `${blanked.charAt(0).toUpperCase()}${blanked.slice(1)}.`;
 }
 
-/** Take a hint from where you stand. Stages reset when the ball moves. */
+/** Take a hint from where you stand. Stages reset when the ball moves.
+ *  The first stage, the letter count, is free; the rest go on the card. */
 export function askCaddie(state) {
   const here = state.path[state.path.length - 1];
   const stage = state.caddie && state.caddie.at === here ? state.caddie.stage : 0;
   if (state.holed || stage >= CADDIE_STAGES) return { ok: false, state };
-  return { ok: true, state: { ...state, hints: (state.hints || 0) + 1, caddie: { at: here, stage: stage + 1 } } };
+  const hints = (state.hints || 0) + (stage === 0 ? 0 : 1);
+  return { ok: true, state: { ...state, hints, caddie: { at: here, stage: stage + 1 } } };
 }
 
 export function scoreName(strokes, par) {

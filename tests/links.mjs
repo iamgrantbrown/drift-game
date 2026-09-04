@@ -12,6 +12,7 @@ import {
   distances,
   drop,
   holeFromSpec,
+  holeShots,
   lieOf,
   play,
   scoreName,
@@ -184,15 +185,20 @@ test("the caddie picks the closest shot and gives it away in three stages", () =
   assert.equal(caddieLine(3, pick), "School b _ _.");
   let r = askCaddie(s);
   assert.equal(r.ok, true);
-  assert.equal(r.state.hints, 1);
+  assert.equal(r.state.hints, 0); // the letter count is free
   assert.equal(r.state.caddie.stage, 1);
   s = askCaddie(askCaddie(r.state).state).state;
   assert.equal(s.caddie.stage, 3);
+  assert.equal(s.hints, 2); // the first letter and the blanked phrase are not
   assert.equal(askCaddie(s).ok, false); // three is all the caddie has
   s = play(s, "bus", c, d).state;
   assert.equal(askCaddie(s).state.caddie.stage, 1); // a new lie, a fresh caddie
   const text = shareCard({ puzzleNumber: 1, state: s, url: "u" });
-  assert.match(text, /💡💡💡/);
+  assert.match(text, /💡💡/);
+  assert.doesNotMatch(text, /💡💡💡/);
+  // reading the green: the words that finish the hole
+  assert.deepEqual(holeShots(c, "ear").map((x) => x.word), ["dog"]);
+  assert.equal(holeShots(c, "ear")[0].phrase, "dog ear");
   // from a dead end the caddie says so
   const stuck = play(hole(), "yard", c, d).state;
   assert.equal(bestShot(stuck, c, d), null);
