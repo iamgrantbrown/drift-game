@@ -4,7 +4,7 @@
  *  when your word joins the hole word. Par is the authored route. Any
  *  route the course knows is a fair route. Pure functions, no DOM. */
 
-import { createLadder } from "./ladder-game.js";
+import { createLadder } from "./ladder-game.js?v=20260904b";
 
 /** Forward shots only: a pair whose unit reads a then b gives a -> b. */
 export function buildCourse(pairList, chainEntries = []) {
