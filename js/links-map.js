@@ -218,7 +218,7 @@ export function renderMap(geo, stops, { holed = false, tee, hole } = {}) {
   <g class="route-layer">${points}</g>
   <g class="tee-marker-group"><circle cx="${teeBox.x}" cy="${teeBox.y}" r="5" class="tee-peg"/></g>
   <text x="${teeBox.x}" y="${teeBox.y + 32}" class="stop-label end-label">${esc(tee)}</text>
-  <text x="${flag.x}" y="${flag.y - 44}" class="stop-label end-label">${esc(hole)}</text>
+  <text x="${flag.x}" y="${flag.y + 24}" class="stop-label end-label">${esc(hole)}</text>
   <g class="flag-group${holed ? " sunk" : ""}">
     <ellipse cx="${flag.x}" cy="${flag.y + 2}" rx="7" ry="3.5" class="cup"/>
     <line x1="${flag.x}" y1="${flag.y}" x2="${flag.x}" y2="${flag.y - 34}" class="pole"/>
