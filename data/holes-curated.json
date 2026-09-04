@@ -1,0 +1,104 @@
+{
+  "epoch": "2026-09-08",
+  "timezone": "America/Los_Angeles",
+  "holes": [
+    {
+      "tee": "magic",
+      "hole": "mark",
+      "par": 3,
+      "shortest": 2,
+      "routes": 3
+    },
+    {
+      "tee": "tennis",
+      "hole": "word",
+      "par": 4,
+      "shortest": 3,
+      "routes": 7
+    },
+    {
+      "tee": "party",
+      "hole": "weight",
+      "par": 4,
+      "shortest": 3,
+      "routes": 3
+    },
+    {
+      "tee": "day",
+      "hole": "fly",
+      "par": 3,
+      "shortest": 2,
+      "routes": 3
+    },
+    {
+      "tee": "dinner",
+      "hole": "powder",
+      "par": 5,
+      "shortest": 4,
+      "routes": 3
+    },
+    {
+      "tee": "main",
+      "hole": "table",
+      "par": 4,
+      "shortest": 3,
+      "routes": 3
+    },
+    {
+      "tee": "sports",
+      "hole": "bell",
+      "par": 3,
+      "shortest": 2,
+      "routes": 3
+    },
+    {
+      "tee": "field",
+      "hole": "proof",
+      "par": 4,
+      "shortest": 3,
+      "routes": 3
+    },
+    {
+      "tee": "open",
+      "hole": "neck",
+      "par": 3,
+      "shortest": 2,
+      "routes": 3
+    },
+    {
+      "tee": "rock",
+      "hole": "support",
+      "par": 5,
+      "shortest": 4,
+      "routes": 5
+    },
+    {
+      "tee": "pop",
+      "hole": "house",
+      "par": 3,
+      "shortest": 2,
+      "routes": 4
+    },
+    {
+      "tee": "birthday",
+      "hole": "point",
+      "par": 4,
+      "shortest": 3,
+      "routes": 6
+    },
+    {
+      "tee": "under",
+      "hole": "service",
+      "par": 4,
+      "shortest": 3,
+      "routes": 7
+    },
+    {
+      "tee": "tool",
+      "hole": "screen",
+      "par": 4,
+      "shortest": 3,
+      "routes": 3
+    }
+  ]
+}

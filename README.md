@@ -9,6 +9,22 @@ wins. Data: `data/course.json` (every shot the course knows, built by
 in `data/keep.txt`, minus `data/block.txt`) and `data/holes.json` (the course
 layout, `scripts/build_holes.mjs`). Tests: `npm test`.
 
+Links keeps the shot input above the course and puts the full finishing-phrase
+list in **Read the green**. Yardage and caddie suggestions exclude words already
+on the current route. Reviewed British/American spelling equivalents resolve
+to existing shots without changing the course graph. Caddie clues are opt-in;
+the first is free and further clues are marked on the scorecard.
+
+Every finish plays a short putt-and-cup celebration, followed by the scorecard.
+Under par, a bird takes flight. **Watch that again** replays the effect without
+changing the saved round. Reduced-motion preferences show the result immediately.
+
+For browser regressions, serve the project and open
+`http://localhost:8080/tests/links-browser.html`, then choose **Run browser checks**.
+The checks use the real game with isolated temporary storage and a fixed date;
+they cover celebration/replay, reduced motion, restoration, route-aware recovery,
+spelling equivalents, optional hints, and the phone layout.
+
 **Drift**, the original game, is at `drift.html`. What follows describes it.
 
 A tiny daily word game. Yesterday's answer is shown. Find today's word, which
@@ -117,3 +133,19 @@ spelling-bridge resolution (inflections of the secret win); the
 corrections; dense-signal spot checks on the baked heat files; game flow (win,
 lose, duplicate, staged optional hint timing); the share card; and the
 deterministic voice lines.
+
+### Links playtest improvements
+
+The reviewed 14-hole rotation starts on **2026-09-08** and repeats every 14 days. Historical dates use the original calendar; saved rounds keep their original hole even on future dates. `data/holes-curated.json` contains the reviewed selection. Each hole has at least three verified birdie routes and at least 80% viable opening shots. `npm run audit:links` enumerates routes and checks those thresholds. These are graph checks, not a claim about measured player difficulty. The full phrase dictionary remains available, so later detours can still lead to dead ends.
+
+A dead-end shot now needs an explicit **Play anyway** after a warning, with no stroke charged by the warning. **Undo last shot · free** removes one shot per round; it cannot undo a completed hole or a penalty drop, and reload does not replenish it. Later drops still cost one extra stroke. Hints remain on the record after undo. Three reachable finishing examples appear under the map, and the full list remains expandable.
+
+The new finish uses an illustrated SVG bird with independently animated body and wing, a stable modal stage, a putt and bow, and a bird on under-par scorecards. It can be skipped with Escape or the close button; reduced-motion users receive their scorecard immediately. Optional synthesized sound is off initially and controlled by **Sound on/off**. **Your scorebook** collects finished rounds stored in this browser, including older records whose par can be recovered from the original calendar. It is local storage, with no account or cross-device sync.
+
+Run `npm test` for rules, compatibility and the curated course audit, and open `tests/links-browser.html` for isolated phone-width browser checks. To preview the new rotation, open `/?date=2026-09-08`; to replay a saved birdie, open its date and choose **Watch that again**.
+
+### Sharing a Links scorecard
+
+Finished rounds render a golf scorecard as an 840 × 900 PNG: hole, par, strokes, score relative to par, hints and any free undo. Under-par scores are circled, over-par scores boxed. The player's word route stays in a separate expandable section and never appears in the exported card or copied text. **Share scorecard** attaches the PNG and text when file sharing is available; otherwise it downloads the PNG. **Save image** and **Copy text** remain separate options. Both the text link and the printed image URL identify the exact puzzle date.
+
+`js/links-scorecard.js` draws the same canvas that is displayed and exported. `assets/links-social.png` is a generic 1200 × 630 social preview, referenced in the page metadata. The public preview image and updated gameplay require deployment before recipients see them on the hosted site; individual score images can be downloaded from the local preview. Social platforms may cache link previews and may handle image-plus-text shares differently.

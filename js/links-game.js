@@ -4,7 +4,7 @@
  *  when your word joins the hole word. Par is the authored route. Any
  *  route the course knows is a fair route. Pure functions, no DOM. */
 
-import { createLadder } from "./ladder-game.js?v=20260904c";
+import { createLadder } from "./ladder-game.js?v=20260904h";
 
 /** Forward shots only: a pair whose unit reads a then b gives a -> b. */
 export function buildCourse(pairList, chainEntries = []) {
@@ -39,10 +39,13 @@ export function buildCourse(pairList, chainEntries = []) {
 
 /** Fewest strokes from each word to a word that joins the hole.
  *  0 means your word already joins the hole. Absent means no known route. */
-export function distances(course, hole) {
+export function distances(course, hole, unavailable = []) {
+  const blocked = new Set(unavailable);
   const prev = new Map(); // to -> Set(from)
   for (const [a, tos] of course.next) {
+    if (blocked.has(a)) continue;
     for (const b of tos.keys()) {
+      if (blocked.has(b)) continue;
       if (!prev.has(b)) prev.set(b, new Set());
       prev.get(b).add(a);
     }
@@ -54,8 +57,8 @@ export function distances(course, hole) {
     dist.set(a, 0);
     queue.push(a);
   }
-  while (queue.length) {
-    const w = queue.shift();
+  for (let i = 0; i < queue.length; i++) {
+    const w = queue[i];
     const d = dist.get(w);
     for (const a of prev.get(w) ?? []) {
       if (a === hole || dist.has(a)) continue;
@@ -64,6 +67,11 @@ export function distances(course, hole) {
     }
   }
   return dist;
+}
+
+/** The current word is available; every earlier word on this route is not. */
+export function routeDistances(state, course) {
+  return distances(course, state.hole, state.path.slice(0, -1));
 }
 
 export function yardage(d) {
@@ -100,21 +108,40 @@ export function normalizeWord(raw) {
   return String(raw || "").trim().toLowerCase();
 }
 
-/** Play a word from where the ball lies. */
-export function play(state, raw, course, dist) {
-  if (state.holed) return { ok: false, reason: "holed", state };
+// Explicit equivalents only. Resolve to an existing shot so spelling support
+// never adds edges or changes the published course's shortest routes.
+const SPELLINGS = [
+  ["color", "colour"], ["honor", "honour"], ["favor", "favour"],
+  ["neighbor", "neighbour"], ["labor", "labour"], ["humor", "humour"],
+  ["center", "centre"], ["theater", "theatre"], ["meter", "metre"],
+  ["liter", "litre"], ["fiber", "fibre"], ["gray", "grey"],
+  ["tire", "tyre"], ["airplane", "aeroplane"], ["airplanes", "aeroplanes"],
+  ["colors", "colours"], ["tires", "tyres"], ["neighbors", "neighbours"],
+];
+
+export function resolveShotWord(here, raw, course) {
   const word = normalizeWord(raw);
-  if (!/^[a-z]+$/.test(word)) return { ok: false, reason: "invalid", state };
+  if (course.shot(here, word)) return word;
+  const forms = SPELLINGS.find((group) => group.includes(word));
+  return forms?.find((form) => course.shot(here, form)) ?? word;
+}
+
+/** Play a word from where the ball lies. */
+export function play(state, raw, course) {
+  if (state.holed) return { ok: false, reason: "holed", state };
+  const typed = normalizeWord(raw);
+  if (!/^[a-z]+$/.test(typed)) return { ok: false, reason: "invalid", state };
   const here = state.path[state.path.length - 1];
+  const word = resolveShotWord(here, typed, course);
   if (state.path.includes(word)) return { ok: false, reason: "revisit", state };
   const phrase = course.shot(here, word);
   if (!phrase) return { ok: false, reason: "unknown", state };
-  const before = dist.get(here);
+  const before = routeDistances(state, course).get(here);
   // the hole word itself sinks it; so does any word that joins the hole
   const sinks = word === state.hole;
   const joinsHole = !sinks && course.shot(word, state.hole);
   const holed = sinks || !!joinsHole;
-  const after = sinks ? 0 : dist.get(word);
+  const after = holed ? 0 : distances(course, state.hole, state.path).get(word);
   const finalPhrase = sinks ? phrase : joinsHole || null;
   const entry = { word, phrase, before, after, drop: false };
   const next = {
@@ -136,10 +163,30 @@ export function drop(state) {
   return { ok: true, state: { ...state, path, strokes: state.strokes + 1, log: [...state.log, entry] } };
 }
 
+/** One mulligan per round. Keep hint history and do not allow undoing a finish. */
+export function undo(state) {
+  if (state.holed || state.undoUsed || state.path.length < 2 || state.log.at(-1)?.drop) return { ok: false, state };
+  return { ok: true, state: { ...state, path: state.path.slice(0, -1),
+    strokes: Math.max(0, state.strokes - 1), log: state.log.slice(0, -1),
+    undoUsed: true, caddie: null } };
+}
+
+/** Saved rounds keep their original course, even after the daily rotation changes. */
+export function selectHole(layout, curated, date, saved = {}) {
+  const savedSpec = [...layout.holes, ...curated.holes].find(h => `${h.tee}|${h.hole}` === saved.hole);
+  if (savedSpec && Array.isArray(saved.path) && saved.path[0] === savedSpec.tee) return savedSpec;
+  const schedule = date >= curated.epoch ? curated : layout;
+  const day = Math.floor((Date.parse(date + 'T00:00:00Z') - Date.parse(schedule.epoch + 'T00:00:00Z')) / 86400000);
+  return schedule.holes[((day % schedule.holes.length) + schedule.holes.length) % schedule.holes.length];
+}
+
 /** The caddie's pick from where you stand: the shot that leaves you closest,
  *  and among those, the one with the most ways onward. Null if none. */
-export function bestShot(state, course, dist) {
+export function bestShot(state, course) {
+  if (state.holed) return null;
   const here = state.path[state.path.length - 1];
+  // A suggestion cannot rely on returning through the current word either.
+  const dist = distances(course, state.hole, state.path);
   let best = null;
   for (const [word, phrase] of course.from(here)) {
     if (state.path.includes(word)) continue;
@@ -213,16 +260,18 @@ export function lieOf(entry, holed = false) {
   return "bunker";
 }
 
-const GLYPH = { holed: "🟩", green: "🟩", fairway: "🟩", rough: "🟨", bunker: "🟧", water: "🟦", drop: "🟥" };
-
-function strokeGlyph(entry, isLast, holed) {
-  return GLYPH[lieOf(entry, isLast && holed)];
-}
-
-/** The scorecard line. Never names the words you played. */
-export function shareCard({ puzzleNumber, state, url, title = "Links" }) {
-  const score = scoreName(state.strokes, state.par);
-  const glyphs = state.log.map((e, i) => strokeGlyph(e, i === state.log.length - 1, state.holed)).join("");
-  const bulbs = state.hints ? ` · ${"💡".repeat(state.hints)}` : "";
-  return `${title} #${puzzleNumber} · par ${state.par}\n${state.tee} ⛳ ${state.hole}\n${score} · ${state.strokes} ${state.strokes === 1 ? "stroke" : "strokes"}${bulbs}\n${glyphs}\n${url}`;
+/** Text fallback for a golf scorecard. The answers stay off the card. */
+export function shareCard({ puzzleNumber, state, url, date = state.date, title = "Links" }) {
+  let link = url;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date || '')) {
+    const exact = new URL(url);
+    exact.searchParams.set('date', date);
+    link = exact.href;
+  }
+  const diff = state.strokes - state.par;
+  const relative = diff === 0 ? 'E' : diff > 0 ? `+${diff}` : `−${Math.abs(diff)}`;
+  const circled = diff < 0 && state.strokes >= 1 && state.strokes <= 20 ? String.fromCodePoint(0x2460 + state.strokes - 1) : String(state.strokes);
+  const hints = state.hints ? `\nHints: ${state.hints}` : '';
+  const undoNote = state.undoUsed ? '\nFree undo used' : '';
+  return `${title} #${puzzleNumber} ⛳\n${state.tee.toUpperCase()} → ${state.hole.toUpperCase()}\n\nHOLE  | PAR | STROKES\n${String(puzzleNumber).padEnd(6)}| ${String(state.par).padEnd(4)}| ${circled}\n\n${scoreName(state.strokes, state.par).toUpperCase()} (${relative})${hints}${undoNote}\n\n${link}`;
 }

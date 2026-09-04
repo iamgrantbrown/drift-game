@@ -142,7 +142,7 @@ export function placeStop(geo, lie, progress, sideIndex = 0) {
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
 /** Render the whole hole. `stops` are [{word, lie, progress, current}]. */
-export function renderMap(geo, stops, { holed = false, tee, hole } = {}) {
+export function renderMap(geo, stops, { holed = false, tee, hole, animateWin = false } = {}) {
   const { H, p0, p1, p2, p3, at, riverT, bunkers, trees, rocks } = geo;
   const center = svgPathFor(p0, p1, p2, p3);
   let water = "";
@@ -196,22 +196,37 @@ export function renderMap(geo, stops, { holed = false, tee, hole } = {}) {
   const green = at(0.96);
   const flag = at(1);
   const teeBox = at(0.03);
+  const launch = stops.at(-2) ?? teeBox;
 
   // the route: a dotted line through every stop, then the ball
   let points = "";
   let stopMarks = "";
+  const labels = [{ x:teeBox.x, y:teeBox.y+32, w:tee.length*8+12 }, { x:flag.x, y:flag.y+24, w:hole.length*8+12 }];
   stops.forEach((s, i) => {
     const prev = i > 0 ? stops[i - 1] : null;
     if (prev) points += `<line x1="${prev.x}" y1="${prev.y}" x2="${s.x}" y2="${s.y}" class="route" />`;
     if (s.current) {
       stopMarks += `<g class="ball-now${s.justMoved ? " moved" : ""}" style="--fx:${prev ? prev.x - s.x : 0}px; --fy:${prev ? prev.y - s.y : 0}px"><ellipse cx="${s.x + 2}" cy="${s.y + 4}" rx="8" ry="4" class="ball-shadow"/><circle cx="${s.x}" cy="${s.y}" r="7" class="ball-dot"/></g>`;
-    } else if (s.lie !== "tee") {
+    } else if (s.lie !== "tee" && s.lie !== "holed") {
       stopMarks += `<circle cx="${s.x}" cy="${s.y}" r="3.5" class="stop-dot"/>`;
     }
-    if (s.word && s.lie !== "tee") {
-      // labels alternate above and below their ball so a crowded corner stays readable
-      const above = s.current ? s.y > 40 : i % 2 === 0 && s.y > 40;
-      stopMarks += `<text x="${s.x}" y="${above ? s.y - 13 : s.y + 22}" class="stop-label${s.current ? " now" : ""}">${esc(s.word)}</text>`;
+    if (s.word && s.lie !== "tee" && s.lie !== "holed") {
+      const width = s.word.length * 8 + 12;
+      let position;
+      for (const dy of [-17, 25, -37, 45, -57, 65, -77, 85]) {
+        for (const dx of [0, -55, 55, -100, 100]) {
+          const x = Math.max(width / 2 + 8, Math.min(W - width / 2 - 8, s.x + dx));
+          const y = Math.max(22, Math.min(H - 12, s.y + dy));
+          if (!labels.some(l => Math.abs(l.x - x) < (l.w + width) / 2 && Math.abs(l.y - y) < 20)) { position = { x, y, w:width }; break; }
+        }
+        if (position) break;
+      }
+      // Very long rounds retain every phrase in the trail; avoid piling up labels.
+      if (position) {
+        labels.push(position);
+        stopMarks += `<path d="M${s.x} ${s.y} L${position.x} ${position.y - 5}" stroke="#fff8dc" stroke-width="1" opacity=".45"/>`;
+        stopMarks += `<text x="${position.x}" y="${position.y}" class="stop-label${s.current ? " now" : ""}">${esc(s.word)}</text>`;
+      }
     }
   });
 
@@ -241,8 +256,9 @@ export function renderMap(geo, stops, { holed = false, tee, hole } = {}) {
     <ellipse cx="${flag.x}" cy="${flag.y + 2}" rx="7" ry="3.5" class="cup"/>
     <line x1="${flag.x}" y1="${flag.y}" x2="${flag.x}" y2="${flag.y - 34}" class="pole"/>
     <path d="M ${flag.x} ${flag.y - 34} l 20 6 l -20 7 z" class="cloth"/>
-    ${holed ? `<circle cx="${flag.x}" cy="${flag.y}" r="5" class="ball-dot in-cup"/>` : ""}
+    ${holed ? `<g class="cup-rings${animateWin ? " animate" : ""}" transform="translate(${flag.x} ${flag.y})"><circle r="12"/><circle r="12"/></g>` : ""}
   </g>
   ${stopMarks}
+  ${holed ? `<g transform="translate(${flag.x} ${flag.y})"><g class="winning-ball${animateWin ? " animate" : ""}" style="--fx:${launch.x - flag.x}px; --fy:${launch.y - flag.y}px"><circle r="7" class="ball-dot"/></g></g>` : ""}
 </svg>`;
 }

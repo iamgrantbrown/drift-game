@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Links browser checks</title>
+<style>
+  body { font: 15px/1.5 system-ui; margin: 24px; color: #213b2a; background: #f7f5eb; }
+  button { padding: 12px 20px; font: inherit; }
+  iframe { width: 390px; height: 844px; border: 1px solid #aaa; margin-top: 20px; }
+  li { margin: 8px 0; }
+</style>
+<h1>Links browser checks</h1>
+<p>Runs the real game in an isolated frame with a fixed date and temporary storage. No daily scores are changed.</p>
+<button id="run">Run browser checks</button>
+<ol id="results" aria-live="polite"></ol>
+<iframe id="game" title="Game under test"></iframe>
+<script type="module">
+  const frame = document.querySelector('#game');
+  const results = document.querySelector('#results');
+  const button = document.querySelector('#run');
+  const source = await fetch('../index.html').then(r => r.text());
+  const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const assert = (condition, message) => { if (!condition) throw new Error(message); };
+  const el = id => frame.contentDocument.getElementById(id);
+  async function until(predicate, message) {
+    const end = performance.now() + 7000;
+    while (performance.now() < end) {
+      if (predicate()) return;
+      await pause(30);
+    }
+    throw new Error(message);
+  }
+  async function load({ date = '2026-09-05', motion = false, saved = {} } = {}) {
+    const setup = `
+      const NativeDate = Date;
+      window.Date = class extends NativeDate {
+        constructor(...args) { super(...(args.length ? args : [${JSON.stringify(date + 'T19:00:00Z')}])); }
+      };
+      const store = new Map(Object.entries(${JSON.stringify(saved)}));
+      window.testStore = store;
+      Object.defineProperty(window, 'localStorage', { value: {
+        get length() { return store.size; },
+        key: index => [...store.keys()][index] ?? null,
+        getItem: key => store.get(key) ?? null,
+        setItem: (key, value) => store.set(key, String(value)),
+        removeItem: key => store.delete(key)
+      } });
+      Object.defineProperty(navigator, 'clipboard', { configurable:true, value:{ writeText:async text => { window.testCopied = text; } } });
+      Object.defineProperty(navigator, 'canShare', { configurable:true, value:() => true });
+      Object.defineProperty(navigator, 'share', { configurable:true, value:async data => { window.testShared = data; } });
+      const nativeMatch = window.matchMedia.bind(window);
+      window.matchMedia = query => query.includes('prefers-reduced-motion')
+        ? { matches: ${motion}, media: query } : nativeMatch(query);
+    `;
+    const loaded = new Promise(resolve => frame.onload = resolve);
+    frame.srcdoc = source.replace('<head>', '<head><base href="/">')
+      .replace('<script type="module"', '<script>' + setup + '<\/script><script type="module"');
+    await loaded;
+    await until(() => el('map')?.querySelector('svg'), 'Game did not load');
+    if (el('howto').open) el('howto-play').click();
+  }
+  function shot(word) {
+    assert(el('shot'), `Missing input before ${word}`);
+    el('shot').value = word;
+    el('shot').form.requestSubmit();
+  }
+  function save() { return Object.fromEntries(frame.contentWindow.testStore); }
+  async function test(name, fn) {
+    const row = document.createElement('li');
+    row.textContent = 'Running: ' + name;
+    results.append(row);
+    try { await fn(); row.textContent = 'PASS: ' + name; return true; }
+    catch (err) { row.textContent = 'FAIL: ' + name + ': ' + err.message; row.style.color = '#a22'; return false; }
+  }
+  button.onclick = async () => {
+    button.disabled = true;
+    results.replaceChildren();
+    const outcomes = [];
+    outcomes.push(await test('Birdie animation, scorecard, replay, and completed-round restoration', async () => {
+      await load();
+      for (const word of ['brand', 'new', 'moon']) shot(word);
+      assert(el('end').hidden, 'Card should wait for the winning putt');
+      assert(el('finish-stage').open, 'Finish stage did not open');
+      assert(el('finish-stage').classList.contains('under-par'), 'Missing birdie treatment');
+      const stored = JSON.stringify(save());
+      await pause(2200);
+      assert(frame.contentWindow.getComputedStyle(frame.contentDocument.querySelector('.finish-copy')).opacity > 0, 'Win banner is invisible');
+      assert(frame.contentWindow.getComputedStyle(el('finish-bird')).opacity > 0, 'Bird did not take flight');
+      await until(() => !el('end').hidden, 'Scorecard never arrived');
+      assert(el('end-title').textContent === 'birdie', 'Wrong score');
+      assert(el('card-par').textContent.includes('3 strokes'), 'Wrong stroke count');
+      assert(frame.contentDocument.activeElement === el('end-title'), 'Result did not receive focus');
+      el('replay-btn').click();
+      assert(el('replay-btn').disabled, 'Replay should not overlap itself');
+      await until(() => !el('replay-btn').disabled, 'Replay did not finish');
+      assert(JSON.stringify(save()) === stored, 'Replay changed saved score');
+      assert(!frame.contentDocument.querySelector('.victory-confetti'), 'Particles were not cleaned up');
+      await load({ saved: save() });
+      assert(!el('end').hidden, 'Saved win was not restored');
+      assert(!el('finish-stage').open, 'Reload replayed the celebration');
+      assert(el('card-bird').querySelector('svg'), 'Bird did not stay on the card');
+      el('scorebook-btn').click();
+      assert(el('scorebook-content').textContent.includes('birdie'), 'Win missing from scorebook');
+    }));
+    outcomes.push(await test('Reduced-motion win reveals the card immediately', async () => {
+      await load({ motion: true });
+      for (const word of ['brand', 'new', 'moon']) shot(word);
+      assert(!el('end').hidden, 'Reduced motion still waits');
+      assert(!frame.contentDocument.querySelector('.winning-ball.animate'), 'Reduced motion animates the putt');
+      assert(!frame.contentDocument.querySelector('.victory-confetti'), 'Reduced motion creates particles');
+      el('replay-btn').click();
+      assert(!el('end').hidden && !el('replay-btn').disabled, 'Reduced-motion replay blocks controls');
+    }));
+    outcomes.push(await test('Legal-route dead end, reload, and drop recovery', async () => {
+      await load({ date: '2026-01-01' });
+      for (const word of ['field', 'work', 'sheet']) shot(word);
+      const before = JSON.stringify(save());
+      shot('metal');
+      assert(!el('shot-warning').hidden, 'Missing warning before dead end');
+      assert(JSON.stringify(save()) === before, 'Warning charged a stroke');
+      el('cancel-shot').click();
+      assert(el('shot-warning').hidden, 'Warning did not cancel');
+      shot('metal'); el('confirm-shot').click();
+      assert(el('chip-score').textContent.includes('water'), 'Wrong yardage at dead end');
+      assert(!el('shot'), 'Dead end still offers an input');
+      assert(el('drop-btn'), 'Missing recovery button');
+      await load({ date: '2026-01-01', saved: save() });
+      assert(el('chip-score').textContent.includes('water'), 'Reload lost dead-end state');
+      el('drop-btn').click();
+      assert(el('shot'), 'Drop did not restore input');
+      assert(el('status').textContent.includes('SHEET'), 'Dropped to wrong word');
+    }));
+    outcomes.push(await test('Spelling variants and opt-in caddie', async () => {
+      await load({ date: '2026-09-04' });
+      shot('nonsense'); shot('nonsense');
+      assert(el('caddie').hidden, 'Hint appeared without being requested');
+      el('caddie-btn').click();
+      assert(!el('caddie').hidden, 'Requested hint stayed hidden');
+      shot('tyre');
+      assert(!el('shot-warning').hidden && el('warning-text').textContent.includes('Rubber tire'), 'Alias did not reach warning');
+      el('confirm-shot').click();
+      assert(el('status').textContent.startsWith('Rubber tire.'), 'Spelling alias rejected');
+    }));
+    outcomes.push(await test('Phone layout keeps the shot ahead of all 59 finishing phrases', async () => {
+      await load({ date: '2026-12-08', saved: { 'links-v1:2026-12-08': JSON.stringify({hole:'string|line',path:['string'],strokes:0,log:[]}) } });
+      assert(el('shot').getBoundingClientRect().bottom < 360, 'Input is too far down');
+      assert(!el('green-guide').open, 'Finishing list starts expanded');
+      assert(el('finisher-count').textContent.includes('59'), 'Wrong fixture');
+      el('green-guide').open = true;
+      assert(el('green-read').querySelectorAll('.finisher').length === 59, 'Finishing phrases were lost');
+      assert(frame.contentDocument.documentElement.scrollWidth <= 390, 'Phone layout overflows');
+    }));
+    outcomes.push(await test('Free undo survives reload and cannot be repeated', async () => {
+      await load({ date:'2026-09-06' });
+      shot('stamp'); el('undo-btn').click();
+      assert(el('chip-score').textContent.includes('Strokes0'), 'Undo charged a stroke');
+      shot('stamp');
+      assert(!el('undo-btn'), 'Second undo offered');
+      await load({ date:'2026-09-06', saved:save() });
+      assert(!el('undo-btn'), 'Reload replenished undo');
+    }));
+    outcomes.push(await test('New curated hole and three reachable finishing examples', async () => {
+      await load({ date:'2026-09-08', motion:true });
+      assert(el('rule').textContent.includes('MAGIC'), 'New rotation not selected');
+      assert(el('green-preview').querySelectorAll('.finisher').length === 3, 'Expected three finishers');
+      shot('spell'); shot('book');
+      assert(el('end-title').textContent === 'birdie', 'Curated route did not make birdie');
+    }));
+    outcomes.push(await test('Escape skips a replay and old scores migrate into the book', async () => {
+      await load({ saved:{ 'links-v1:2026-09-05': JSON.stringify({hole:'name|walk',path:['name','brand','new','moon'],strokes:3,holed:true,log:[],finalPhrase:'moonwalk'}) } });
+      assert(el('scorebook-content').textContent.includes('birdie'), 'Old score was not migrated');
+      el('replay-btn').click();
+      el('finish-stage').dispatchEvent(new Event('cancel', {cancelable:true}));
+      assert(!el('finish-stage').open && !el('replay-btn').disabled, 'Skip did not release replay');
+    }));
+    outcomes.push(await test('Golf scorecard exports a PNG and shares the exact hole without answers', async () => {
+      await load({ date:'2026-09-07', motion:true });
+      for (const word of ['job','fair','ground','water']) shot(word);
+      await until(() => !el('share-btn').disabled, 'Image was not prepared');
+      assert(el('share-image').width === 840 && el('share-image').height === 900, 'Wrong image dimensions');
+      el('copy-card').click();
+      await until(() => frame.contentWindow.testCopied, 'Text was not copied');
+      const copied = frame.contentWindow.testCopied;
+      assert(copied.includes('?date=2026-09-07'), 'Link opens the wrong date');
+      assert(copied.includes('④') && copied.includes('BIRDIE'), 'Missing golf result');
+      for (const word of ['job','fair','ground','water']) assert(!copied.toLowerCase().includes(word), 'Leaked a played word');
+      el('share-btn').click();
+      await until(() => frame.contentWindow.testShared, 'Native share was not invoked');
+      const data = frame.contentWindow.testShared;
+      assert(data.files[0].type === 'image/png' && data.files[0].size > 1000, 'Missing PNG attachment');
+      assert(data.files[0].name === 'links-250-2026-09-07.png', 'Wrong file name');
+      assert(data.text === copied, 'Share lost the exact-hole link');
+      assert(frame.contentDocument.documentElement.scrollWidth <= 390, 'Scorecard overflows phone');
+    }));
+    button.disabled = false;
+    button.textContent = `${outcomes.filter(Boolean).length}/${outcomes.length} passed. Run again`;
+  };
+</script>
+</html>

@@ -824,3 +824,144 @@ footer .working { opacity: 0.85; }
   .plate { min-width: 58px; height: 48px; }
   .plate b { font-size: 20px; }
 }
+
+/* The next word always comes before the map and the optional green guide. */
+[hidden] { display: none !important; }
+.play-area { margin: 0 0 20px; }
+.shot { margin-top: 0; background: #245b32; }
+.shot input::placeholder { color: #c9d8c9; }
+.swing { color: #422007; }
+.actions { align-items: center; }
+.caddie-btn { min-height: 44px; height: auto; padding: 10px 14px; font-size: 11px; letter-spacing: 0.04em; }
+.link-btn { min-height: 44px; border: none; text-decoration: underline; text-underline-offset: 4px; }
+.recovery { display: grid; gap: 5px; padding: 16px; border: 1px solid #a9d2f3; border-radius: 12px; background: #235175; }
+.recovery strong { font-family: var(--display); font-size: 20px; }
+.recovery span { font-size: 14px; }
+.green-guide { margin: 20px 0 0; border: 1px solid #ffffff45; border-radius: 12px; padding: 0 14px; background: #19472b55; }
+.green-guide summary { min-height: 48px; padding: 14px 0; cursor: pointer; font: 600 14px var(--body); }
+.green-guide summary span { float: right; font-weight: 400; font-size: 12px; color: #d9e8d5; }
+.green-help { margin: 0; font-size: 13px; line-height: 1.5; color: #e3eddf; }
+.green-guide .green-read { margin: 12px 0 16px; }
+.finisher { color: #e0ecda; }
+.share-card { overflow-wrap: anywhere; }
+.card-head { flex-wrap: wrap; gap: 6px 12px; letter-spacing: 0.04em; }
+.route li { flex-wrap: wrap; gap: 0 12px; }
+.replay-btn { min-height: 44px; margin: 8px 0 0; padding: 8px 12px; font: 600 13px var(--body); border: 0; background: transparent; color: var(--rough); cursor: pointer; text-decoration: underline; text-underline-offset: 4px; }
+.replay-btn:disabled { opacity: 0.5; cursor: default; }
+.scorecard .return-note { margin: 14px 0 0; font-size: 13px; color: var(--pencil-soft); }
+.scorecard :focus-visible, .howto :focus-visible { outline-color: var(--rough); }
+.scorecard h2:focus { outline: none; }
+
+/* The win has three beats: roll into the cup, a flourish, then the card. */
+.winning-ball { opacity: 0; }
+.winning-ball.animate { animation: winning-putt 950ms cubic-bezier(0.16, 0.65, 0.28, 1) both; }
+.winning-ball.animate circle { animation: cup-drop 240ms 770ms ease-in both; }
+@keyframes winning-putt {
+  0% { opacity: 1; transform: translate(var(--fx), var(--fy)); }
+  80%, 100% { opacity: 1; transform: translate(0, 0); }
+}
+@keyframes cup-drop {
+  0% { transform: scale(1); opacity: 1; }
+  45% { transform: scale(1.12, 0.85); opacity: 1; }
+  100% { transform: scale(0); opacity: 0; }
+}
+.cup-rings circle { fill: none; stroke: #ffefaa; stroke-width: 2; opacity: 0; }
+.cup-rings.animate circle { animation: cup-ripple 850ms 800ms ease-out both; }
+.cup-rings.animate circle + circle { animation-delay: 950ms; }
+@keyframes cup-ripple {
+  from { transform: scale(0.6); opacity: 1; }
+  to { transform: scale(4); opacity: 0; }
+}
+.scorecard.arriving { animation: card-arrive 600ms cubic-bezier(0.18, 0.8, 0.3, 1) both; }
+@keyframes card-arrive { from { opacity: 0; transform: translateY(28px) rotate(2deg); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .winning-ball, .cup-rings { display: none; }
+}
+
+/* Club tools and deliberate shot feedback. */
+.club-tools { display:flex; justify-content:space-between; gap:12px; margin:8px 0 14px; }
+.club-tools button { background:none; border:0; padding:8px 0; font:500 12px var(--body); color:var(--white); text-decoration:underline; text-underline-offset:4px; cursor:pointer; }
+.shot-warning { background:#fff4d3; border:2px solid #bb8538; border-radius:12px; padding:16px; color:#3f351e; }
+.shot-warning p { font-size:14px; line-height:1.5; margin:8px 0 12px; }
+.shot-warning button { border:1px solid #496444; border-radius:7px; background:#224d36; color:#fff; padding:11px 12px; margin:3px; cursor:pointer; font:600 12px var(--body); }
+.shot-warning #confirm-shot { background:transparent; color:#3f351e; }
+.green-preview { padding:18px 20px; margin:18px 0 0; border-radius:12px; background:#eef1d9; border:1px solid #c0cca3; color:#294530; }
+.green-preview h2 { font:700 19px var(--display); margin:0 0 6px; }
+.green-preview p { font:13px/1.5 var(--body); margin:0 0 12px; }
+.green-preview .finish-example { margin:12px 0 0; font-size:12px; }
+.green-preview .finisher { background:#fffdf3; color:#405c47; border-color:#bdcba7; }
+.green-preview .finisher b { color:#234b35; }
+.shot-connected { animation:phrase-land 480ms cubic-bezier(.2,.8,.3,1); }
+@keyframes phrase-land { from { transform:translateY(7px); opacity:.3; } to { transform:none; opacity:1; } }
+.trail-item:last-child { animation:phrase-land 400ms ease-out; }
+.card-bird { width:115px; height:110px; float:right; margin:-5px -6px 0 8px; }
+.card-bird svg { width:100%; height:100%; }
+.scorecard .route { clear:both; }
+.book-rounds { padding:0; list-style:none; max-height:55vh; overflow:auto; }
+.book-rounds li { border-top:1px solid #d9dbc7; }
+.book-rounds a { display:flex; justify-content:space-between; gap:12px; padding:14px 0; color:#264b38; text-decoration:none; font-size:13px; }
+.book-rounds strong { text-align:right; text-transform:capitalize; }
+.book-rounds small { display:block; margin-top:5px; font:11px/1.4 var(--body); text-transform:none; }
+.book-total { padding:14px; background:#e4ebd1; border-radius:8px; }
+.scorebook-note,.book-empty { font:14px/1.6 var(--body); }
+
+/* A stable little theatre for the final putt. */
+.finish-stage { box-sizing:border-box; width:min(480px,calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow:auto; padding:0 0 28px; border:1px solid #fff0bf; border-radius:26px; background:#fff6dc; color:#214b3b; text-align:center; box-shadow:0 30px 100px #061e2bb3; }
+.finish-stage::backdrop { background:#102e27cc; backdrop-filter:blur(6px); }
+.finish-close { position:absolute; z-index:5; right:12px; top:12px; background:#ffffffb3; border:0; border-radius:50%; width:36px; height:36px; font:25px var(--body); color:#23473a; cursor:pointer; }
+.finish-scene { height:280px; position:relative; overflow:hidden; background:radial-gradient(ellipse at 50% 25%,#f8efb8 0,#d6e9bc 45%,#9dc897 100%); border-radius:25px 25px 50% 50% / 25px 25px 12% 12%; }
+.finish-green { position:absolute; width:400px; height:135px; border-radius:50%; background:#73ad79; left:50%; top:175px; transform:translateX(-50%); box-shadow:0 0 0 20px #86b987,0 0 0 50px #a3cb97; }
+.finish-cup { position:absolute; left:calc(50% - 15px); top:223px; width:30px; height:10px; border-radius:50%; background:#173f35; box-shadow:0 2px 0 #b3d68f; }
+.finish-pole { position:absolute; left:50%; top:170px; width:4px; height:56px; background:#fff6dc; box-shadow:2px 0 #477c58; }
+.finish-pole span { display:block; width:62px; height:39px; background:#e7904b; clip-path:polygon(0 0,100% 28%,0 100%); }
+.finish-ball { position:absolute; top:218px; left:calc(50% - 6px); width:12px; height:12px; border-radius:50%; background:#fffef4; box-shadow:1px 2px 2px #17493766; opacity:0; }
+.playing .finish-ball { animation:stage-putt 1100ms ease-out both; }
+@keyframes stage-putt { 0% { opacity:1; transform:translate(-155px,30px) scale(1.4); } 73% { opacity:1; transform:translate(0,0) scale(1); } 84% { opacity:1; transform:translate(0,-3px); } 100% { opacity:0; transform:translate(0,5px) scale(.1); } }
+.finish-bird { position:absolute; width:170px; height:170px; left:calc(50% - 85px); top:12px; opacity:0; }
+.finish-bird svg { width:100%; height:100%; overflow:visible; }
+.playing .finish-bird { animation:bird-entrance 1550ms 1000ms cubic-bezier(.2,.8,.3,1) both; }
+@keyframes bird-entrance { 0% { opacity:0; transform:translateY(190px) scale(.12) rotate(-18deg); } 12% { opacity:1; } 48% { opacity:1; transform:translate(-32px,22px) scale(1) rotate(-10deg); } 72% { opacity:1; transform:translate(7px,-9px) rotate(6deg); } 86% { transform:translateY(5px) scale(1.02,.95); } 100% { opacity:1; transform:none; } }
+.bird-wing { transform-box:fill-box; transform-origin:75% 20%; }
+.playing .bird-wing { animation:club-flap 170ms 1100ms ease-in-out 8 alternate; }
+@keyframes club-flap { to { transform:rotate(65deg) scaleX(1.4); } }
+.bird-body { transform-origin:90px 146px; }
+.playing .bird-body { animation:club-bow 850ms 2750ms ease-in-out both; }
+@keyframes club-bow { 0%,100% { transform:rotate(0); } 45% { transform:rotate(16deg) translateY(3px); } }
+.finish-copy { padding:24px 18px 10px; }
+.finish-kicker { font:600 10px var(--mono); letter-spacing:.18em; margin:0 0 10px; }
+.finish-copy h2 { font:800 clamp(44px,12vw,64px)/1 var(--display); margin:0 0 12px; letter-spacing:-.04em; }
+#finish-subtitle { font:600 15px/1.4 var(--body); margin:0 0 10px; }
+#finish-phrase { display:inline-block; border:1px solid #c2cfa7; border-radius:40px; padding:8px 18px; font:500 14px var(--mono); margin:5px 0 12px; }
+.playing .finish-copy { animation:finish-type 700ms 1650ms cubic-bezier(.2,1.3,.3,1) both; }
+@keyframes finish-type { from { opacity:0; transform:translateY(15px) scale(.92); } to { opacity:1; transform:none; } }
+.finish-stage .primary { display:inline-block; width:auto; padding:12px 25px; background:#234f3d; color:#fff8df; border:0; border-radius:30px; font:600 14px var(--body); cursor:pointer; }
+.playing #finish-continue { animation:finish-type 400ms 2500ms both; }
+.finish-spark { position:absolute; color:#fff8d3; opacity:0; font-size:32px; top:105px; }
+.spark-one { left:21%; }.spark-two { right:19%; top:145px; font-size:23px; }
+.playing.under-par .finish-spark { animation:sparkle 1700ms 1500ms ease-out both; }
+@keyframes sparkle { 0% { opacity:0; transform:scale(.1) rotate(-50deg); } 40% { opacity:1; } 100% { opacity:0; transform:scale(1.4) rotate(40deg); } }
+@media(max-height:650px) { .finish-scene { height:230px; } .finish-copy { padding-top:15px; } .finish-stage { padding-bottom:18px; } }
+@media(prefers-reduced-motion:reduce) { .shot-connected,.trail-item:last-child { animation:none; } }
+
+/* The phrase closes up before the ball settles into its new lie. */
+.joined-phrase { display:inline-block; margin-right:.3em; }
+.shot-connected .phrase-first { display:inline-block; animation:join-first 380ms ease-out both; }
+.shot-connected .phrase-second { display:inline-block; animation:join-second 380ms ease-out both; }
+@keyframes join-first { from { transform:translateX(-7px); opacity:.3; } to { transform:none; opacity:1; } }
+@keyframes join-second { from { transform:translateX(9px); opacity:.3; } to { transform:none; opacity:1; } }
+.ball-now.moved { animation-delay:180ms; animation-fill-mode:both; }
+.phrase-first,.phrase-second { white-space:pre; }
+@media(prefers-reduced-motion:reduce) { .shot-connected .phrase-first,.shot-connected .phrase-second { animation:none; } }
+
+/* The keepsake is also the exact PNG shared or saved. */
+.scorecard { padding:0; background:none; box-shadow:none; color:var(--white); }
+.scorecard-image { display:block; width:100%; height:auto; border-radius:8px; box-shadow:0 5px 0 #d8cfba,0 12px 22px #15392166; margin-bottom:22px; }
+.result-announcement { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.private-route,.text-card { background:#f6f1e4; color:#2b2a27; border-radius:8px; padding:14px 16px; margin:12px 0; }
+.private-route summary,.text-card summary { cursor:pointer; font:600 13px var(--body); }
+.private-route .route { margin-top:16px; }
+.scorecard .replay-btn { color:#fff8de; }
+.scorecard .countdown,.scorecard .return-note { color:#e4ecd7; }
+.share-btn:disabled,.replay-btn:disabled { opacity:.5; cursor:wait; }

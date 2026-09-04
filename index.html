@@ -9,12 +9,16 @@
   <meta property="og:type" content="website" />
   <meta property="og:title" content="Links, daily word golf" />
   <meta property="og:description" content="A tee word, a hole word, and a par. Each stroke is a word that makes a phrase with the one before it: school bus, bus stop, stopwatch. Fewest strokes wins." />
-  <meta property="og:url" content="https://iamgrantbrown.github.io/drift-game/" />
+  <meta property="og:image" content="https://iamgrantbrown.github.io/drift-game/assets/links-social.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Links daily word golf, a cream golf scorecard and the club bird perched on a flag." />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232b7440'/%3E%3Crect x='14' y='6' width='2' height='18' fill='%23fbfbf7'/%3E%3Cpath d='M16 6 L26 10 L16 14 Z' fill='%23d8402b'/%3E%3Ccircle cx='15' cy='25' r='3' fill='%23fbfbf7'/%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/links.css?v=20260904c" />
+  <link rel="stylesheet" href="css/links.css?v=20260904h" />
 </head>
 <body>
   <main class="course">
@@ -23,30 +27,47 @@
       <h1>Links</h1>
       <button type="button" class="round-btn" id="howto-btn" aria-label="How to play">?</button>
     </header>
+    <div class="club-tools"><button id="scorebook-btn" type="button">Your scorebook</button><button id="sound-btn" type="button" aria-pressed="false">Sound off</button></div>
     <p class="rule" id="rule"></p>
 
-    <section class="hole" aria-label="The hole">
+    <div class="play-area" id="play-area">
+      <section class="fairway" id="fairway" aria-label="Your shot"></section>
+      <p class="status" id="status" role="status"></p>
+      <div id="shot-warning" class="shot-warning" role="alert" hidden><strong>A phrase, but a dead end.</strong><p id="warning-text"></p><button id="cancel-shot" type="button">Choose another word</button><button id="confirm-shot" type="button">Play anyway</button></div>
+      <p class="caddie" id="caddie" aria-live="polite" hidden></p>
+      <div class="actions" id="actions"></div>
+    </div>
+
+    <section class="hole" id="hole-view" aria-label="The hole">
       <div class="map" id="map"></div>
       <div class="chip chip-left" id="chip-hole"></div>
       <div class="chip chip-right" id="chip-score"></div>
+
     </section>
 
-    <p class="green-read" id="green-read" aria-label="Words that finish the hole"></p>
-
-    <section class="fairway" id="fairway" aria-label="Your shot"></section>
-
-    <p class="status" id="status" role="status"></p>
-    <p class="caddie" id="caddie" hidden></p>
-    <div class="actions" id="actions"></div>
+    <section id="green-preview" class="green-preview" aria-label="Plan your finish"></section>
+    <details class="green-guide" id="green-guide">
+      <summary>Read the green <span id="finisher-count"></span></summary>
+      <p class="green-help">Reach one of the bold words to finish. It still has to join the word you’re on.</p>
+      <div class="green-read" id="green-read" aria-label="Words that finish the hole"></div>
+    </details>
 
     <section class="scorecard" id="end" hidden>
+      <div class="result-announcement">
       <div class="card-head"><span id="card-hole"></span><span id="card-par"></span></div>
-      <h2 id="end-title"></h2>
+      <div id="card-bird" class="card-bird" aria-hidden="true"></div>
+      <h2 id="end-title" tabindex="-1"></h2>
       <p id="end-body"></p>
-      <ol class="route" id="route"></ol>
+      </div>
+      <canvas id="share-image" class="scorecard-image" role="img" aria-label="Your golf scorecard"></canvas>
+      <details class="private-route"><summary>Your word route</summary><ol class="route" id="route"></ol></details>
       <p class="countdown" id="countdown"></p>
-      <pre class="share-card" id="share-text"></pre>
-      <button type="button" class="share-btn" id="share-btn">Copy scorecard</button>
+      <details class="text-card"><summary>Text version</summary><pre class="share-card" id="share-text"></pre></details>
+      <button type="button" class="share-btn" id="share-btn">Share scorecard</button>
+      <button type="button" class="replay-btn" id="download-card">Save image</button>
+      <button type="button" class="replay-btn" id="copy-card">Copy text</button>
+      <button type="button" class="replay-btn" id="replay-btn">Watch that again</button>
+      <p class="return-note">Another little escape tomorrow. See you on the tee.</p>
     </section>
 
     <footer>
@@ -61,12 +82,19 @@
     <ol class="howto-steps">
       <li><b>You start on the tee word.</b> The flag is on the hole word.</li>
       <li><b>A stroke is a word.</b> It has to make a word or phrase with the one you’re standing on, reading forward: from <em>school</em> you could play <em>bus</em> (school bus), then <em>stop</em> (bus stop), then <em>watch</em> (stopwatch).</li>
-      <li><b>You’re in when your word joins the hole word.</b> The finishing phrases are listed under the map, so you know what you’re aiming at. Any route counts. The yardage tells you how many strokes you are from the hole, so you can see whether a shot took you closer.</li>
+      <li><b>You’re in when your word joins the hole word.</b> If the hole is WATCH, playing STOP finishes with “stopwatch.” Open “Read the green” for all the finishing phrases. The yardage tells you how many strokes remain on a legal route.</li>
     </ol>
-    <p class="howto-note">Par is the setter’s route. Beat it and that’s a birdie. A word the course doesn’t know costs nothing. Play into a dead end and you can take a drop back a word for one stroke.</p>
+    <p class="howto-note">Par is the target score. The shortest route earns a birdie. A word the course doesn’t know costs nothing. You can’t revisit a word on your route. We warn you before a dead end. Your first undo removes the last shot for free; after that, a drop takes you back a word for one extra stroke. The caddie’s first clue is free; further clues are marked on your card.</p>
     <button type="button" class="primary" id="howto-play">Tee off</button>
   </dialog>
 
-  <script type="module" src="js/links.js?v=20260904c"></script>
+  <dialog id="finish-stage" class="finish-stage" aria-labelledby="finish-title">
+    <button id="finish-close" class="finish-close" type="button" aria-label="Skip animation and view scorecard">×</button>
+    <div class="finish-scene" aria-hidden="true"><div class="finish-green"></div><div class="finish-cup"></div><div class="finish-pole"><span></span></div><div class="finish-ball"></div><div id="finish-bird" class="finish-bird"></div><span class="finish-spark spark-one">✦</span><span class="finish-spark spark-two">✦</span></div>
+    <div class="finish-copy"><p class="finish-kicker">A LITTLE MOMENT OF GLORY</p><h2 id="finish-title"></h2><p id="finish-subtitle"></p><p id="finish-phrase"></p></div>
+    <button id="finish-continue" class="primary" type="button">Keep this one</button>
+  </dialog>
+  <dialog id="scorebook" class="howto scorebook" aria-labelledby="scorebook-title"><button id="scorebook-close" class="dialog-close" type="button" aria-label="Close scorebook">×</button><h2 id="scorebook-title">Your scorebook</h2><p class="scorebook-note">Your finished rounds, kept on this browser.</p><div id="scorebook-content"></div></dialog>
+  <script type="module" src="js/links.js?v=20260904h"></script>
 </body>
 </html>

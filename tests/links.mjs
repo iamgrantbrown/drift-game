@@ -11,10 +11,13 @@ import {
   createHole,
   distances,
   drop,
+  undo,
+  selectHole,
   holeFromSpec,
   holeShots,
   lieOf,
   play,
+  routeDistances,
   scoreName,
   shareCard,
   yardage,
@@ -194,8 +197,8 @@ test("the caddie picks the closest shot and gives it away in three stages", () =
   s = play(s, "bus", c, d).state;
   assert.equal(askCaddie(s).state.caddie.stage, 1); // a new lie, a fresh caddie
   const text = shareCard({ puzzleNumber: 1, state: s, url: "u" });
-  assert.match(text, /💡💡/);
-  assert.doesNotMatch(text, /💡💡💡/);
+  assert.match(text, /Hints: 2/);
+  assert.doesNotMatch(text, /Hints: 3/);
   // reading the green: the words that finish the hole
   assert.deepEqual(holeShots(c, "ear").map((x) => x.word), ["dog"]);
   assert.equal(holeShots(c, "ear")[0].phrase, "dog ear");
@@ -205,22 +208,23 @@ test("the caddie picks the closest shot and gives it away in three stages", () =
   assert.match(caddieLine(1, null), /drop/);
 });
 
-test("the card carries hole, par, ends, score, and one glyph per stroke", () => {
+test("golf scorecard keeps answers private and links to the exact date", () => {
   const c = course();
-  const d = distances(c, "ear");
-  let s = play(hole(), "yard", c, d).state; // farther
-  s = drop(s).state; // penalty
-  for (const w of ["bus", "lane", "dog"]) s = play(s, w, c, d).state; // closer x3
-  const text = shareCard({ puzzleNumber: 266, state: s, url: "https://x.y/" });
+  let s = play(hole(), 'yard', c).state;
+  s = drop(s).state;
+  for (const w of ['bus','lane','dog']) s = play(s,w,c).state;
+  const text = shareCard({ puzzleNumber:266, state:s, date:'2026-09-23', url:'https://x.y/?ref=card' });
   assert.match(text, /Links #266/);
-  assert.match(text, /par 4/i);
-  assert.match(text, /school/);
-  assert.match(text, /ear/);
-  assert.match(text, /bogey/i); // 5 strokes on a par 4
-  const row = text.split("\n").find((l) => /[🟩🟨🟧🟦🟥]/u.test(l));
-  assert.equal([...row].filter((ch) => /[🟩🟨🟧🟦🟥]/u.test(ch)).length, 5);
-  assert.equal(row, "🟦🟥🟩🟩🟩"); // water, drop, fairway, green, holed
-  for (const w of ["bus", "lane", "dog", "yard"]) assert.doesNotMatch(text, new RegExp(`\\b${w}\\b`));
+  assert.match(text, /HOLE  \| PAR \| STROKES/);
+  assert.match(text, /266   \| 4   \| 5/);
+  assert.match(text, /SCHOOL → EAR/);
+  assert.match(text, /BOGEY \(\+1\)/);
+  assert.match(text, /https:\/\/x.y\/\?ref=card&date=2026-09-23/);
+  for (const w of ['bus','lane','dog','yard']) assert.doesNotMatch(text.toLowerCase(), new RegExp(`\\b${w}\\b`));
+  const birdie = shareCard({ puzzleNumber:250, state:{ ...s, strokes:3, undoUsed:true }, url:'https://x.y/' });
+  assert.match(birdie, /③/);
+  assert.match(birdie, /BIRDIE \(−1\)/);
+  assert.match(birdie, /Free undo used/);
 });
 
 test("every shot lands somewhere: fairway, rough, bunker, water, or the green", () => {
@@ -249,6 +253,59 @@ test("every authored line can still be played to its length on the reviewed pair
   }
 });
 
+test("yardage and caddie never send a player through a forbidden revisit", () => {
+  const c = buildCourse(JSON.parse(fs.readFileSync(path.join(root, "data/course.json"), "utf8")));
+  let s = holeFromSpec({ tee: "ball", hole: "blue", par: 4 });
+  for (const word of ["field", "work", "sheet", "metal"]) {
+    const r = play(s, word, c);
+    assert.equal(r.ok, true);
+    s = r.state;
+  }
+  assert.equal(distances(c, "blue").get("metal"), 5); // old, unrestricted answer
+  assert.equal(routeDistances(s, c).get("metal"), undefined);
+  assert.equal(s.log.at(-1).after, undefined);
+  assert.equal(lieOf(s.log.at(-1)), "water");
+  assert.equal(bestShot(s, c), null);
+  s = drop(s).state;
+  assert.equal(routeDistances(s, c).has("sheet"), true);
+  assert.notEqual(bestShot(s, c), null);
+  assert.equal(s.strokes, 5);
+});
+
+test("a legal detour gets its real length and the caddie avoids a false shortcut", () => {
+  const pairs = [["tee", "alpha"], ["alpha", "beta"], ["beta", "alpha"],
+    ["alpha", "finish"], ["beta", "gamma"], ["gamma", "delta"],
+    ["delta", "finish"], ["finish", "hole"]];
+  const c = buildCourse(pairs);
+  let s = holeFromSpec({ tee: "tee", hole: "hole", par: 4 });
+  s = play(s, "alpha", c).state;
+  s = play(s, "beta", c).state;
+  assert.equal(distances(c, "hole").get("beta"), 2);
+  assert.equal(routeDistances(s, c).get("beta"), 3);
+  assert.equal(s.log.at(-1).after, 3);
+  assert.equal(bestShot(s, c).word, "gamma");
+  assert.equal(bestShot(s, c).after, 2);
+  const restored = drop(s).state;
+  assert.equal(routeDistances(restored, c).get("alpha"), 1);
+  assert.equal(bestShot(restored, c).word, "finish");
+});
+
+test("reviewed spelling equivalents use existing shots in both directions", () => {
+  for (const [stored, typed] of [["tire", "tyre"], ["tyre", "tire"],
+    ["color", "colour"], ["honor", "honour"], ["centre", "center"]]) {
+    const c = buildCourse([["start", stored], [stored, "end"]]);
+    const originalEdges = [...c.next].map(([a, tos]) => [a, [...tos]]);
+    const s = holeFromSpec({ tee: "start", hole: "end", par: 2 });
+    const r = play(s, ` ${typed.toUpperCase()} `, c);
+    assert.equal(r.ok, true, typed);
+    assert.equal(r.holed, true);
+    assert.equal(r.state.path.at(-1), stored);
+    assert.deepEqual([...c.next].map(([a, tos]) => [a, [...tos]]), originalEdges);
+  }
+  const c = buildCourse([["start", "show"], ["show", "end"]]);
+  assert.equal(play(holeFromSpec({ tee: "start", hole: "end", par: 2 }), "shower", c).reason, "unknown");
+});
+
 test("the course is big, clean, and every laid-out hole has par one over its shortest route", () => {
   const shots = JSON.parse(fs.readFileSync(path.join(root, "data/course.json"), "utf8"));
   // a reviewed course is smaller than a scraped one, and that is the point
@@ -268,6 +325,29 @@ test("the course is big, clean, and every laid-out hole has par one over its sho
     const s = holeFromSpec(h, i);
     assert.deepEqual(s.path, [h.tee]);
   }
+});
+
+test("one free undo restores the route and stroke count, retaining hints", () => {
+  const c = course(); let s = play(hole(), 'bus', c).state;
+  s = askCaddie(askCaddie(s).state).state;
+  const before = JSON.stringify(s);
+  const r = undo(s);
+  assert(r.ok); assert.equal(r.state.strokes, 0); assert.deepEqual(r.state.path, ['school']);
+  assert.equal(r.state.log.length, 0); assert.equal(r.state.hints, 1); assert.equal(r.state.caddie, null);
+  assert.equal(JSON.stringify(s), before);
+  assert(!undo(play(r.state, 'bus', c).state).ok);
+  assert(!undo(drop(s).state).ok);
+  assert(!undo({ ...s, holed: true }).ok);
+});
+
+test("new rotation preserves historical and saved future rounds", () => {
+  const layout = JSON.parse(fs.readFileSync(path.join(root, 'data/holes.json')));
+  const curated = JSON.parse(fs.readFileSync(path.join(root, 'data/holes-curated.json')));
+  assert.equal(selectHole(layout, curated, '2026-09-07').tee, 'nose');
+  assert.equal(selectHole(layout, curated, '2026-09-08').tee, 'magic');
+  assert.equal(selectHole(layout, curated, '2026-09-22').tee, 'magic');
+  const old = { hole:'string|line', path:['string','bean'] };
+  assert.equal(selectHole(layout, curated, '2026-12-08', old).tee, 'string');
 });
 
 console.log(`\n${passed} passed, ${failed} failed`);
